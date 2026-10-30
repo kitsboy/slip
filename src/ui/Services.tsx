@@ -27,6 +27,28 @@ const SERVICES: Service[] = [
     guard: 'Live now. It cannot create an invoice, reserve an index or draw a payment QR.',
   },
   {
+    name: 'Counter accounts & staff hand-off',
+    status: 'shipped',
+    detail:
+      'One account per till, truck or staff member — each a BIP-85 child account you derived on your own signer and imported as an xpub. Name the person holding the device, optional till PIN, switch counters only with the PIN.',
+    guard:
+      'Saved on this device only. No cloud, no sync, no account. A wrong derivation cannot reach a customer: a counter stays disabled until you confirm address 0/0 against your wallet.',
+  },
+  {
+    name: 'Price check',
+    status: 'shipped',
+    detail:
+      'Integer-only till arithmetic: price in any of 165 ISO currencies, tax inclusive or exclusive, tips, cash rounding, and the exact sats to charge at a rate you paste.',
+    guard: 'No live rate feed yet — you supply the rate, so nothing silently reprices your goods.',
+  },
+  {
+    name: 'Address check',
+    status: 'shipped',
+    detail:
+      'Paste any BTC or LTC address and see which network it belongs to, with the script type.',
+    guard: 'Wrong-chain addresses are refused. All Bitcoin test networks share one encoding, so slip says so instead of guessing.',
+  },
+  {
     name: 'Till — catalog, cart, tax, tips',
     status: 'planned',
     detail:

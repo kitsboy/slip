@@ -68,8 +68,9 @@ export default function App() {
         <Services />
 
         <p className="mt-8 rounded-xl border border-warn/40 p-4 text-sm text-warn">
-          Not a till yet. The key check above is real, but there is no catalog, no
-          invoice and no payment engine — those are the next phases in{' '}
+          Not a till yet. The counters, key check, price maths and address check above are
+          real, but there is no catalog, no invoice and no payment engine — those are the
+          next phases in{' '}
           <code className="font-mono text-xs">SLIP-PLAN.md</code>. Nothing here can
           take a payment, and it will not pretend to.
         </p>
