@@ -93,7 +93,46 @@ await page.waitForSelector('h1');
 const afterReload = await page.locator('p:has-text("Held by")').first().innerText().catch(() => '');
 check('hand-off survives a reload', /Ana/.test(afterReload), afterReload);
 
-// 6. Owning it out loud: no runtime errors from our code.
+
+// 7. Descriptors are accepted, not just bare xpubs.
+await page.fill('#ct-label', 'Truck');
+await page.fill('#ct-xpub', `wpkh(${ZPUB}/0/*)`);
+await page.waitForTimeout(300);
+const descPreview = await page.locator('ol li code').first().innerText();
+check('wpkh() descriptor derives the same address 0/0', descPreview.includes(FIRST), descPreview);
+
+// 8. The receive QR renders (and is our own SVG, not an image fetch).
+await page.getByRole('button', { name: /address 0\/0 QR/ }).first().click();
+await page.waitForTimeout(200);
+const svgCount = await page.locator('div.h-32.w-32 svg').count();
+check('counter QR renders as inline SVG', svgCount > 0, String(svgCount));
+
+// 9. Shift log is written and verifies.
+const chainChip = await page.locator('text=/chain intact/').first().innerText().catch(() => '');
+check('shift log verified as intact after a hand-off', /chain intact/.test(chainChip), chainChip);
+
+// 10. Encrypted backup actually downloads a file.
+await page.fill('#bk-pass', 'correct horse battery staple');
+const [download] = await Promise.all([
+  page.waitForEvent('download', { timeout: 8000 }).catch(() => null),
+  page.getByRole('button', { name: /Export encrypted backup/ }).click(),
+]);
+if (download) {
+  const stream = await download.createReadStream();
+  let text = '';
+  for await (const chunk of stream) text += chunk.toString();
+  check('backup downloads as a .slip file', download.suggestedFilename().endsWith('.slip'), download.suggestedFilename());
+  check('backup is encrypted (xpub absent from the file)', !text.includes(ZPUB.slice(0, 24)));
+  check('backup declares itself encrypted', /"ciphertext"/.test(text) && /slip-backup/.test(text));
+} else {
+  check('backup downloads as a .slip file', false, 'no download event');
+}
+
+// 11. The version on the page matches the package version the deploy stamped.
+const versionChip = await page.locator('header .chip').first().innerText();
+check('header shows a version stamp', /^v\d+\.\d+\.\d+ · /.test(versionChip), versionChip);
+
+// 12. Owning it out loud: no runtime errors from our code.
 check('no runtime errors from slip', errs.length === 0, errs.join(' | '));
 
 await page.screenshot({ path: 'screenshots/quick-wins.png', fullPage: true });

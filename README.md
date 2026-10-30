@@ -8,17 +8,18 @@ wallet**. There is no slip company, server, account, API key or payment processo
 slip cannot hold, move, recover or reverse your money, because it never has the
 ability to sign anything.
 
-## Status: P4 — counters + hand-off, key check, price maths. **This cannot take a payment yet.**
+## Status: P6 — counters, descriptors, backup, shift log. **This cannot take a payment yet.**
 
-What exists right now: the single-file build pipeline, strict TypeScript, React +
-Tailwind, the coin/network tables, **BTC + LTC address derivation**, the SLIP-132
-prefix parser, secret refusal, and a "Check your key" screen that shows the first
-five derived addresses for you to compare against your own wallet. One
-`index.html`, 283 KB raw / 96 KB gzip, build-time CSP, published hash.
+What exists right now: a single `index.html` (~330 KB raw / ~110 KB gzip) with strict
+TypeScript and React, the ISO 4217 currency table, integer-only money maths, BTC + LTC
+address derivation, SLIP-132 and BIP-380 descriptor parsing, counter accounts with a
+derivation gate, a staff hand-off with a PBKDF2 PIN, a hash-chained shift log, an
+encrypted backup format, QR + BIP-21 URIs, and version stamping on every deploy.
 
-Verified against the official BIP-84 / BIP-86 / SLIP-132 vectors **and** against
-Bitcoin Core's own `deriveaddresses` output, plus a browser test that types an xpub
-into the built file and compares the address it renders.
+Verified against the official BIP-84 / BIP-86 / SLIP-132 vectors, against **Bitcoin Core's
+own `deriveaddresses`** for every address shape, and against an independent Python
+implementation for the money maths. 271 unit tests and 25 browser checks, run against the
+built artifact.
 
 There is deliberately no selling screen yet. A till that shows a receive address
 before the derivation-preview gate exists is the one bug that costs a merchant
@@ -45,6 +46,20 @@ P7d Lightning   P8 reports   P9 PWA/APK/embed   P10 rehearsal + release
 Deferred, not cancelled: Liquid, BCH, DOGE, Cashu, EVM/stablecoins, own-node REST,
 NWC, 19 further languages, iOS App Store build, thermal printing, kiosk, peer sync.
 
+### What works today
+
+| Capability | Notes |
+|---|---|
+| Counter accounts (BIP-85 child xpubs) | paste an xpub **or** a `wpkh()/tr()/sh(wpkh())/wsh(sortedmulti())` descriptor |
+| Derivation gate | a counter stays disabled until address 0/0 is confirmed against your wallet |
+| Staff hand-off | named holder, PBKDF2 till PIN, switching counters needs the PIN |
+| Shift log | hash-chained, verifiable, printable day sheet — tamper-*evident* |
+| Encrypted backup | `.slip` file, AES-GCM + PBKDF2, restore on a new device |
+| Price maths | integer-only, 165 ISO currencies, tax inclusive/exclusive, tips, round-up to sats |
+| Address check | refuses a wrong-chain address before it can reach a QR |
+| QR | BIP-21, inline SVG, decode-verified in tests |
+| Version stamping | every deploy carries a version, proven live by `scripts/deploy.sh` |
+
 ## Live
 
 - **https://slip.giveabit.io** — Cloudflare Pages project `slip` (direct-upload, free tier).
@@ -60,6 +75,20 @@ npm run build && npx wrangler pages deploy dist --project-name slip --branch mai
 ```
 
 Cost: $0. Pages free tier, existing giveabit.io zone, no new zone, no paid feature.
+
+## Documentation
+
+| Doc | For |
+|---|---|
+| [`docs/MERCHANT_GUIDE.md`](docs/MERCHANT_GUIDE.md) | a shop owner: get your xpub, add a counter, hand it to staff, back up |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | a developer: module map, the rules that shaped it, how it is tested |
+| [`docs/SELF_HOSTING.md`](docs/SELF_HOSTING.md) | running it anywhere, including from a USB stick, and verifying a build |
+| [`SECURITY.md`](SECURITY.md) | the invariant, what is in scope, how to report |
+| [`PRIVACY.md`](PRIVACY.md) | exactly what is stored and what leaves the device |
+| [`THREAT_MODEL.md`](THREAT_MODEL.md) | who can take what, and what is left unprotected |
+| [`DECISIONS.md`](DECISIONS.md) | every deviation and judgement call, with the reason |
+| [`CHANGELOG.md`](CHANGELOG.md) | every published version, its hash prefix and time |
+| [`MASTER-BRAIN/03-Projects/slip/SLIP-PLAN.md`](../MASTER-BRAIN/03-Projects/slip/SLIP-PLAN.md) | the phase plan and what is deliberately deferred |
 
 ## Develop
 

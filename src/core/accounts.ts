@@ -17,6 +17,8 @@
 import { parseExtendedKey, resolveScript, type ScriptType } from './keys';
 import { previewAddresses, type DerivedAddress } from './derive';
 import { networkById, type Coin, type NetworkId } from './network';
+import { parseDescriptor, type DescriptorScriptType } from './descriptors';
+import { appendEvent, emptyLog, type ShiftEventKind, type ShiftLog } from './shifts';
 
 export type AccountStatus = 'unchecked' | 'ready';
 
@@ -26,7 +28,10 @@ export interface CounterAccount {
   readonly xpub: string;
   readonly coin: Coin;
   readonly networkId: NetworkId;
-  readonly scriptType: ScriptType;
+  /** Wider than ScriptType: a descriptor can also describe wsh(sortedmulti(…)). */
+  readonly scriptType: DescriptorScriptType;
+  /** How the key arrived: a bare SLIP-132 xpub, or a BIP-380 output descriptor. */
+  readonly source: 'xpub' | 'descriptor';
   readonly fingerprintHex: string;
   readonly prefix: string;
   /** First receiving address, kept so the check can be re-shown without re-deriving. */
@@ -60,8 +65,18 @@ export function statusOf(account: CounterAccount): AccountStatus {
   return account.acknowledgedAt ? 'ready' : 'unchecked';
 }
 
-/** Validates a pasted child xpub into an account draft, with its derivation preview. */
+/** True when the pasted text is an output descriptor rather than a bare extended key. */
+export function looksLikeDescriptor(raw: string): boolean {
+  return /^\s*(wpkh|pkh|sh|tr|wsh|sortedmulti)\s*\(/i.test(raw);
+}
+
+/**
+ * Validates pasted wallet material — a BIP-380 descriptor OR a bare SLIP-132 xpub —
+ * into an account draft with its derivation preview.
+ */
 export function validateAccountInput(input: AccountDraft): AccountValidation {
+  if (looksLikeDescriptor(input.xpub)) return validateDescriptorAccount(input);
+
   // The key is parsed FIRST: a pasted seed phrase must be refused loudly even if the
   // name field is also wrong, and the refusal never echoes the material.
   let parsed;
@@ -121,8 +136,75 @@ export function validateAccountInput(input: AccountDraft): AccountValidation {
       coin: input.coin,
       networkId: input.networkId,
       scriptType: resolution.scriptType,
+      source: 'xpub',
       fingerprintHex: parsed.fingerprintHex,
       prefix: parsed.entry?.prefix ?? 'unregistered',
+      firstAddress: first.address,
+      acknowledgedAt: null,
+      preview,
+    },
+    warnings,
+  };
+}
+
+function validateDescriptorAccount(input: AccountDraft): AccountValidation {
+  const label = input.label.trim();
+  const descriptor = parseDescriptor(input.xpub, input.networkId);
+
+  if (!descriptor.ok) {
+    // `parseDescriptor` refuses secrets itself; the message names the kind only.
+    return { ok: false, error: descriptor.error };
+  }
+  if (label.length < 2) return { ok: false, error: 'give the account a name (at least 2 characters)' };
+
+  const net = networkById(input.networkId);
+  if (net.coin !== input.coin) {
+    return { ok: false, error: `network ${input.networkId} is not a ${input.coin.toUpperCase()} network` };
+  }
+
+  let preview: DerivedAddress[];
+  try {
+    // A fixed (non-wildcard) descriptor returns the same address for every index; label it
+    // honestly instead of implying a derivation path that does not exist.
+    const isWildcard = descriptor.descriptor.receive(0) !== descriptor.descriptor.receive(1);
+    preview = [0, 1, 2, 3, 4].map((index) => ({
+      address: descriptor.descriptor.receive(index),
+      path: isWildcard ? `0/${index}` : 'fixed',
+      publicKey: new Uint8Array(0),
+      scriptType: descriptor.descriptor.scriptType === 'wsh-sortedmulti'
+        ? 'p2wpkh'
+        : descriptor.descriptor.scriptType,
+    }));
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'could not derive from that descriptor' };
+  }
+
+  const first = preview[0];
+  if (!first) return { ok: false, error: 'no address could be derived' };
+
+  const warnings: string[] = [];
+  if (!descriptor.descriptor.checksum) {
+    warnings.push(
+      'This descriptor has no #checksum. It still works, but a checksum catches typos — most wallets include one.',
+    );
+  }
+  if (descriptor.descriptor.scriptType === 'wsh-sortedmulti') {
+    warnings.push(
+      'Multisig: every cosigner key in this descriptor is public and stored on this device. That reveals the wallet\'s policy, not its funds.',
+    );
+  }
+
+  return {
+    ok: true,
+    draft: {
+      label,
+      xpub: input.xpub.trim(),
+      coin: input.coin,
+      networkId: input.networkId,
+      scriptType: descriptor.descriptor.scriptType,
+      source: 'descriptor',
+      fingerprintHex: descriptor.descriptor.keys[0]?.fingerprintHex ?? '--------',
+      prefix: 'descriptor',
       firstAddress: first.address,
       acknowledgedAt: null,
       preview,
@@ -141,8 +223,9 @@ export interface KeyValueStore {
 }
 
 export const STORAGE_KEY = 'slip.accounts.v1';
+export const SHIFT_STORAGE_KEY = 'slip.shifts.v1';
 
-interface Envelope {
+export interface Envelope {
   version: 1;
   accounts: CounterAccount[];
   activeAccountId: string | null;
@@ -166,6 +249,9 @@ export interface Repository {
   setHandoff(id: string, staffName: string): void;
   clearHandoff(): void;
   setPin(pinHash: string | null): void;
+  /** The tamper-evident shift log, and a way to append to it. */
+  shifts(): ShiftLog;
+  recordShift(kind: ShiftEventKind, account: CounterAccount | null, staff: string | null, detail?: string): Promise<ShiftLog>;
   active(): CounterAccount | null;
   currentStaff(): string | null;
   pinHash(): string | null;
@@ -214,6 +300,7 @@ export function createRepository(store: KeyValueStore): Repository {
         coin: v.draft.coin,
         networkId: v.draft.networkId,
         scriptType: v.draft.scriptType,
+        source: v.draft.source,
         fingerprintHex: v.draft.fingerprintHex,
         prefix: v.draft.prefix,
         firstAddress: v.draft.firstAddress,
@@ -256,6 +343,30 @@ export function createRepository(store: KeyValueStore): Repository {
     setPin(pinHash) {
       const env = read();
       write({ ...env, pinHash });
+    },
+
+    shifts() {
+      const raw = store.getItem(SHIFT_STORAGE_KEY);
+      if (!raw) return emptyLog();
+      try {
+        const parsed = JSON.parse(raw) as ShiftLog;
+        return parsed && parsed.version === 1 && Array.isArray(parsed.events) ? parsed : emptyLog();
+      } catch {
+        // A corrupt log must not brick the till; start a fresh chain and let it be visible.
+        return emptyLog();
+      }
+    },
+
+    async recordShift(kind, account, staff, detail) {
+      const next = await appendEvent(repo.shifts(), {
+        kind,
+        accountId: account?.id ?? null,
+        accountLabel: account?.label ?? null,
+        staff,
+        ...(detail ? { detail } : {}),
+      });
+      store.setItem(SHIFT_STORAGE_KEY, JSON.stringify(next));
+      return next;
     },
 
     active() {

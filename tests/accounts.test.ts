@@ -8,6 +8,7 @@ import {
 } from '../src/core/accounts';
 import { hashPin, isValidPin, validateHandoff, verifyPin } from '../src/core/pin';
 import { checkAddress, detectNetworks } from '../src/core/addresses';
+import { staffSummary, verifyLog } from '../src/core/shifts';
 
 const ZPUB =
   'zpub6rFR7y4Q2AijBEqTUquhVz398htDFrtymD9xYYfG1m4wAcvPhXNfE3EfH1r1ADqtfSdVCToUG868RvUUkgDKf31mGDtKsAYz2oz2AGutZYs';
@@ -172,6 +173,107 @@ describe('counter repository', () => {
     first.acknowledge(acct.id);
     const second = createRepository(store);
     expect(second.load().accounts[0]!.acknowledgedAt).not.toBeNull();
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// Descriptors are accepted as counter material too (Coldcard/Sparrow style)
+// ---------------------------------------------------------------------------
+
+describe('counters from descriptors', () => {
+  const WPCH = `wpkh(${ZPUB}/0/*)`;
+
+  it('accepts a wpkh() descriptor and derives the same first address', () => {
+    const v = validateAccountInput({
+      label: 'Front counter',
+      xpub: WPCH,
+      coin: 'btc',
+      networkId: 'btc-mainnet',
+    });
+    expect(v.ok).toBe(true);
+    if (!v.ok) return;
+    expect(v.draft.source).toBe('descriptor');
+    expect(v.draft.firstAddress).toBe(BIP84_FIRST);
+    expect(v.draft.preview).toHaveLength(5);
+  });
+
+  it('reports a missing #checksum as a warning, not an error', () => {
+    const v = validateAccountInput({
+      label: 'Front counter',
+      xpub: WPCH,
+      coin: 'btc',
+      networkId: 'btc-mainnet',
+    });
+    expect(v.ok).toBe(true);
+    if (!v.ok) return;
+    expect(v.warnings.join(' ')).toMatch(/no #checksum/);
+  });
+
+  it('refuses a descriptor whose checksum does not match its body', () => {
+    const v = validateAccountInput({
+      label: 'Front counter',
+      xpub: `${WPCH}#deadbeef`,
+      coin: 'btc',
+      networkId: 'btc-mainnet',
+    });
+    expect(v.ok).toBe(false);
+    if (!v.ok) expect(v.error).toMatch(/checksum/i);
+  });
+
+  it('still refuses a seed phrase pasted into the descriptor box', () => {
+    const v = validateAccountInput({
+      label: 'Front counter',
+      xpub: 'wpkh(abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about)',
+      coin: 'btc',
+      networkId: 'btc-mainnet',
+    });
+    expect(v.ok).toBe(false);
+    if (!v.ok) expect(v.error).not.toContain('abandon');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The shift log is written alongside the accounts
+// ---------------------------------------------------------------------------
+
+describe('repository shift log', () => {
+  it('appends a verifiable chain as accounts are added and handed over', async () => {
+    const store = memoryStore();
+    const repo = createRepository(store);
+
+    const draft = validateAccountInput({
+      label: 'Front counter',
+      xpub: ZPUB,
+      coin: 'btc',
+      networkId: 'btc-mainnet',
+    });
+    if (!draft.ok) throw new Error(draft.error);
+
+    const acct = repo.addAccount(draft);
+    await repo.recordShift('account-added', acct, null, 'added');
+    repo.acknowledge(acct.id);
+    await repo.recordShift('acknowledge', acct, null, 'checked');
+    repo.setHandoff(acct.id, 'Ana');
+    await repo.recordShift('handoff', acct, 'Ana', 'handed over');
+
+    const log = repo.shifts();
+    expect(log.events.map((e) => e.kind)).toEqual(['account-added', 'acknowledge', 'handoff']);
+    expect(log.events.map((e) => e.seq)).toEqual([0, 1, 2]);
+
+    const verdict = await verifyLog(log);
+    expect(verdict.ok).toBe(true);
+
+    const summary = staffSummary(log);
+    expect(summary).toHaveLength(1);
+    expect(summary[0]!.staff).toBe('Ana');
+    expect(summary[0]!.endedAt).toBeNull();
+  });
+
+  it('survives a corrupt log without bricking the till', () => {
+    const store = memoryStore();
+    store.setItem('slip.shifts.v1', 'not json');
+    expect(createRepository(store).shifts().events).toEqual([]);
   });
 });
 

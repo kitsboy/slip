@@ -20,6 +20,8 @@ import {
   type Repository,
 } from '../core/accounts';
 import { hashPin, isValidPin, validateHandoff, verifyPin } from '../core/pin';
+import { paymentUri } from '../core/qr';
+import { renderQrSvg } from '../core/qr';
 import type { Coin, NetworkId } from '../core/network';
 import type { ScriptType } from '../core/keys';
 
@@ -75,6 +77,9 @@ export default function Counters() {
   const [checked, setChecked] = useState(false);
   const [message, setMessage] = useState<{ kind: 'ok' | 'warn' | 'bad'; text: string } | null>(null);
 
+  // which account's receive QR is open (address 0/0 only — a preview, never an invoice)
+  const [qrFor, setQrFor] = useState<string | null>(null);
+
   // hand-off form
   const [staffInput, setStaffInput] = useState('');
   const [pinInput, setPinInput] = useState('');
@@ -117,6 +122,8 @@ export default function Counters() {
     const r = repo();
     const account = r.addAccount(validation);
     r.acknowledge(account.id);
+    void r.recordShift('account-added', account, null, `${account.scriptType} · ${account.networkId}`);
+    void r.recordShift('acknowledge', account, null, 'address 0/0 confirmed against the wallet');
     refresh();
     setMessage({
       kind: 'ok',
@@ -161,6 +168,7 @@ export default function Counters() {
     }
 
     repo().setHandoff(verdict.accountId, verdict.staffName);
+    void repo().recordShift('handoff', target, verdict.staffName, 'till handed over');
     refresh();
     setMessage({ kind: 'ok', text: `Till handed to ${verdict.staffName}.` });
     setStaffInput('');
@@ -173,6 +181,7 @@ export default function Counters() {
       return;
     }
     repo().setPin(await hashPin(newPin));
+    void repo().recordShift('pin-set', null, null, 'till PIN set (hash stored, never the PIN)');
     setNewPin('');
     refresh();
     setMessage({ kind: 'ok', text: 'Till PIN set. Only the hash is stored on this device.' });
@@ -198,6 +207,7 @@ export default function Counters() {
             type="button"
             onClick={() => {
               repo().clearHandoff();
+              void repo().recordShift('return', activeAccount, staff, 'till returned');
               refresh();
             }}
             className="ml-3 rounded border border-line px-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
@@ -225,11 +235,44 @@ export default function Counters() {
               <p className="mt-0.5 text-[10px] uppercase tracking-wider text-muted">
                 {a.networkId} · {a.scriptType} · fp {a.fingerprintHex}
               </p>
+              <button
+                type="button"
+                onClick={() => setQrFor(qrFor === a.id ? null : a.id)}
+                className="mt-2 rounded border border-line px-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+              >
+                {qrFor === a.id ? 'hide QR' : 'address 0/0 QR'}
+              </button>
+              {qrFor === a.id && (
+                <div className="mt-2 flex items-start gap-3">
+                  {/* Our own generated SVG — the only markup injected here, and its content
+                      is a QR matrix, not merchant text. */}
+                  <div
+                    className="h-32 w-32 shrink-0 rounded-lg bg-white p-1"
+                    dangerouslySetInnerHTML={{
+                      __html: renderQrSvg(
+                        paymentUri('bitcoin', {
+                          address: a.firstAddress,
+                          label: a.label,
+                        }),
+                        { scale: 6, margin: 2 },
+                      ),
+                    }}
+                  />
+                  <p className="text-[10px] leading-relaxed text-muted">
+                    <span className="text-warn">Preview only.</span> These are the first addresses of
+                    this counter, not an invoice. A real sale will reserve a fresh index before any
+                    QR is shown.
+                    <br />
+                    <span className="font-mono break-all">{a.firstAddress}</span>
+                  </p>
+                </div>
+              )}
               {statusOf(a) !== 'ready' && (
                 <button
                   type="button"
                   onClick={() => {
                     repo().acknowledge(a.id);
+                    void repo().recordShift('acknowledge', a, null, 'address 0/0 confirmed against the wallet');
                     refresh();
                     setMessage({ kind: 'ok', text: `${a.label} marked as checked against your wallet.` });
                   }}

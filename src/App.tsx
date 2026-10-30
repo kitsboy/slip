@@ -1,4 +1,5 @@
 import About from './ui/About';
+import Backup from './ui/Backup';
 import AddressCheck from './ui/AddressCheck';
 import Counters from './ui/Counters';
 import KeyCheck from './ui/KeyCheck';
@@ -16,7 +17,7 @@ import { buildLabel } from './core/buildinfo';
  * merchant money, so screens land in a fixed order (SLIP-PLAN.md §7).
  */
 
-export const BUILD_STAGE = 'P5 — counters, hand-off, descriptors, backup (no till yet)';
+export const BUILD_STAGE = 'P6 — counters, descriptors, backup, shift log (no till yet)';
 
 const TRUST: ReadonlyArray<readonly [string, string]> = [
   ['watch-only', 'no key can be pasted'],
@@ -87,6 +88,8 @@ export default function App() {
         </section>
 
         <Counters />
+
+        <Backup />
 
         <KeyCheck />
 

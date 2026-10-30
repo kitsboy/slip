@@ -1,3 +1,5 @@
+- **v0.5.0** — 2026-10-30T22:06:07Z — `3e470268d503` — descriptors, encrypted backup, shift log, QR, full docs
+
 # Changelog
 
 Every published build, newest first.

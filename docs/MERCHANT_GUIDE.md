@@ -1,0 +1,126 @@
+# Merchant guide
+
+Everything here happens in your own wallet and your own browser. slip has no account,
+no password to reset and nobody to call — so this guide is written to be the only thing
+you need.
+
+---
+
+## 1. What you need before you start
+
+- A phone, tablet or laptop with a modern browser (Chrome, Safari, Edge, Firefox, Brave).
+- A Bitcoin or Litecoin wallet **you control** — one that can export an `xpub` or a
+  default descriptor. Good choices: Sparrow, BlueWallet, Coldcard, Krux, Jade, Electrum.
+- For Lightning later: your own Lightning address (Alby Hub, LNbits, Phoenix).
+
+> **The one rule.** Never paste a seed phrase, an `xprv`, or a private key into slip. It
+> will refuse them, wipe the field, and tell you why — but the safest habit is to never
+> copy them anywhere except your own signer.
+
+## 2. Get your wallet's public key
+
+**Sparrow (desktop):** open your wallet → **Settings → Keystore** (or the wallet's
+**Receive** tab → *Export*) → copy the **account xpub** or the **default descriptor**.
+Sparrow shows descriptors like `wpkh([a1b2c3d4/84'/0'/0']xpub…/0/*)#checksum`.
+
+**BlueWallet (phone):** open the wallet → **⋯ → Wallet Info → XPUB** → copy.
+
+**Coldcard:** *Advanced → Address Explorer* shows addresses; for the key itself use
+**MicroSD → Export Wallet → Generic JSON** or *Paper Wallet* → the **account xpub** in the
+exported file. For a BIP-85 child account see §6.
+
+**Electrum:** **Wallet → Information → Master Public Key** (this is the account xpub in
+Electrum's format).
+
+You want an **account-level** key — one that sits at `m/84'/0'/0'` (or `m/44'`, `m/49'`,
+`m/86'`). If slip warns *"this key sits at depth N, not 3"*, you have grabbed a master or
+root key by mistake; go back and copy the account key.
+
+## 3. Add your first counter
+
+A **counter** is one till. A shop with one counter has one; a shop with a front counter and
+a food truck has two, each paid into its own account.
+
+1. Open slip and find **Counters & staff hand-off**.
+2. Give it a name — *Front counter*.
+3. Pick the coin and network. **Start on a test network** (Signet for Bitcoin, LTC testnet
+   for Litecoin) until you have seen a full cycle work.
+4. Paste your xpub **or** descriptor into *Child account xpub*.
+5. slip derives the first five addresses. Compare **0/0** with the Receive tab of your
+   wallet. If they are identical, tick the confirmation box and **Save counter**.
+
+If they differ, **stop**. Do not take a payment. That mismatch is the only bug in this app
+that can cost you money, and it is why the box exists.
+
+## 4. Hand the till to a member of staff
+
+1. Set a **till PIN** (4–8 digits) once. Only a hash of it is stored on the device — the PIN
+   itself is never kept, and it can never move money.
+2. Choose the counter, type the person's name, enter the PIN, **Hand over**.
+3. The till now shows **Held by <name> · <counter>**. Switching to another counter mid-shift
+   needs the PIN again, so one person cannot quietly reassign the day's takings.
+4. When the shift ends, **Return till**.
+
+Every one of those actions is written into the **shift log** with the hash of the event
+before it, so an edited or reordered line is detectable. It is tamper-*evident*, not
+tamper-proof: whoever holds the device can rewrite the whole chain. There is no server to
+prevent that, and slip will not pretend otherwise.
+
+## 5. Back up, and actually keep the file
+
+1. Enter a passphrase (12+ characters, or a 20+ character phrase).
+2. **Export encrypted backup** → you get a `.slip` file.
+3. Keep it where you would keep a bank statement. It contains no spending keys, but it does
+   contain your xpubs — so it is encrypted even so.
+
+To move to a new phone: install slip, open **Backups**, enter the same passphrase,
+**Restore from a .slip file**. Your counters, PIN hash and shift log come back exactly.
+
+## 6. Separate accounts for separate tills (BIP-85)
+
+BIP-85 lets one seed produce independent child wallets — *Front counter*, *Food truck*,
+*Market stall* — with no visible link between them. **slip cannot do this for you**, and
+that is deliberate: BIP-85 needs your master private key, which this app must never see.
+
+What you do instead, on your own signer:
+
+1. **Coldcard**: *Advanced → Derive BIP-85 Child Seed* → choose an index (e.g. 0 for the
+   front counter, 1 for the truck) → it prints a fresh 12/24-word seed.
+2. Import that child seed into a wallet (Sparrow, BlueWallet, or a second Coldcard account).
+3. Export **that** wallet's account xpub.
+4. Paste it into slip as a new counter.
+
+Each counter then has its own addresses, its own index and its own report — and the device
+an employee holds never sees anything that links them together.
+
+## 7. Test before real money
+
+The order that costs nothing to get wrong:
+
+1. **Signet** (Bitcoin) or **LTC testnet**: add a counter with a test key, take a test
+   payment, watch it confirm.
+2. **Mainnet, small amount**: one real sale you can afford to learn from.
+3. Then normal business.
+
+Testnet coins are worthless by design — that is the point of them.
+
+## 8. What slip will never do
+
+- It will not ask for a seed phrase, an `xprv`, a WIF or a private key, and it refuses them.
+- It will not hold, move, sign for, recover or reverse your money.
+- It will not call a server of ours, because we do not have one.
+- It will not show "Paid" unless it actually observed the payment.
+- It will not claim a method is auto-verified when it cannot see that method.
+
+## 9. If something looks wrong
+
+| What you see | What it means |
+|---|---|
+| *"slip did not start"* | The page loaded but its script was blocked — usually a stale cached copy. Hard-reload with Ctrl/Cmd + Shift + R. |
+| *"Several test networks share this encoding"* | Signet and the Bitcoin testnets use identical addresses. Pick the network you actually mean. |
+| *"this address belongs to Bitcoin, not Litecoin"* | You are about to pay into the wrong chain. Nothing was sent. |
+| *"needs your check"* on a counter | You have not confirmed address 0/0 against your wallet, so hand-off is blocked. |
+| The counter will not hand over | The PIN is wrong, or the account was never checked. |
+
+Nothing in slip can be "reset" by us. If you lose the device and have no backup, you lose
+the counter list — never any money, because slip never had any.
