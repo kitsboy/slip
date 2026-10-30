@@ -1,0 +1,12 @@
+import { chromium } from 'playwright';
+import { execSync } from 'node:child_process';
+const CHROME = execSync('find /root/.cache/ms-playwright -name chrome -type f | head -1',{encoding:'utf8'}).trim();
+const b = await chromium.launch({executablePath:CHROME,args:['--no-sandbox','--host-resolver-rules=MAP slip.giveabit.io 188.114.96.3']});
+const p = await b.newPage({viewport:{width:430,height:1500}, deviceScaleFactor:2});
+await p.goto('https://slip.giveabit.io/',{waitUntil:'load'});
+await p.fill('#xpub','zpub6rFR7y4Q2AijBEqTUquhVz398htDFrtymD9xYYfG1m4wAcvPhXNfE3EfH1r1ADqtfSdVCToUG868RvUUkgDKf31mGDtKsAYz2oz2AGutZYs');
+await p.waitForSelector('ol li code');
+await p.evaluate(()=>document.querySelectorAll('h2')[1]?.scrollIntoView());
+await p.screenshot({path:'/root/slip/screenshots/live-services.png', fullPage:true});
+await b.close();
+console.log('ok');

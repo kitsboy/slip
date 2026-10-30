@@ -8,7 +8,7 @@
  * precisely why they are not built yet).
  */
 
-type Status = 'building' | 'planned';
+type Status = 'shipped' | 'planned';
 
 interface Service {
   name: string;
@@ -20,15 +20,22 @@ interface Service {
 
 const SERVICES: Service[] = [
   {
+    name: 'Check your key (derivation preview)',
+    status: 'shipped',
+    detail:
+      'Paste an account xpub and see the first five receive addresses, so you can compare address 0/0 with your own wallet before any sale.',
+    guard: 'Live now. It cannot create an invoice, reserve an index or draw a payment QR.',
+  },
+  {
     name: 'Till — catalog, cart, tax, tips',
-    status: 'building',
+    status: 'planned',
     detail:
       'Items, categories, modifiers, hold/resume, split payment, receipts, end-of-day Z-report with a hash chain.',
     guard: 'Works offline. Nothing here touches the network.',
   },
   {
     name: 'Payment engine — BTC, LTC, Lightning',
-    status: 'building',
+    status: 'planned',
     detail:
       'Fresh receive address per sale from your own xpub, or an exact-amount Lightning invoice from your own Lightning address, verified by LNURL-verify.',
     guard: '"Paid" only appears when slip observed it. Every method carries a verification badge.',
@@ -43,7 +50,7 @@ const SERVICES: Service[] = [
   },
   {
     name: 'Silent Payments (BIP-352)',
-    status: 'building',
+    status: 'planned',
     detail:
       'Display-only at first: a reusable sp1… address with an honest "confirm in your own wallet" step. Auto-detection later needs a scan key plus an index server.',
     guard: 'Bitcoin only. Never claimed as auto-verified until slip can actually see it.',
@@ -72,7 +79,7 @@ const SERVICES: Service[] = [
 ];
 
 const BADGE: Record<Status, string> = {
-  building: 'in build',
+  shipped: 'live now',
   planned: 'not built yet',
 };
 
@@ -81,7 +88,7 @@ export default function Services() {
     <section className="mt-8 rounded-xl border border-line bg-surface p-4">
       <h2 className="text-base font-semibold">What slip will offer</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">
-        The plan, in public. &ldquo;In build&rdquo; means code exists in this repository;
+        The plan, in public. &ldquo;Live now&rdquo; means it works in this build;
         &ldquo;not built yet&rdquo; means it does not, and this build cannot do it.
       </p>
 
@@ -92,7 +99,7 @@ export default function Services() {
               <span className="text-sm font-medium">{s.name}</span>
               <span
                 className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wider ${
-                  s.status === 'building' ? 'border-accent text-accent' : 'border-line text-muted'
+                  s.status === 'shipped' ? 'border-good text-good' : 'border-line text-muted'
                 }`}
               >
                 {BADGE[s.status]}
