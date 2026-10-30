@@ -20,8 +20,8 @@ export default function AddressCheck() {
   }, [address, networkId]);
 
   return (
-    <section className="mt-8 rounded-xl border border-line bg-surface p-4">
-      <h2 className="text-base font-semibold">Check an address</h2>
+    <section className="mt-6 panel lg:mt-0">
+      <h2 className="panel-title">Check an address</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">
         Paste any BTC or LTC address. slip tells you which network it belongs to and refuses a
         mismatch — before it ever reaches a QR code.

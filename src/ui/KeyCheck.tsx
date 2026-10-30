@@ -89,8 +89,8 @@ export default function KeyCheck() {
   }, [raw, networkId, scriptOverride]);
 
   return (
-    <section className="mt-8 rounded-xl border border-line bg-surface p-4">
-      <h2 className="text-base font-semibold">Check your key</h2>
+    <section className="mt-6 panel">
+      <h2 className="panel-title">Check your key</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">
         Paste an account-level <span className="font-mono">xpub / ypub / zpub / Ltub / tpub</span>.
         slip derives the first five receiving addresses and nothing else. Compare address #0 with

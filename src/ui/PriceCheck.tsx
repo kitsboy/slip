@@ -51,8 +51,8 @@ export default function PriceCheck() {
   }, [price, currency, rate, taxBps, tipBps]);
 
   return (
-    <section className="mt-8 rounded-xl border border-line bg-surface p-4">
-      <h2 className="text-base font-semibold">Price check</h2>
+    <section className="mt-6 panel lg:mt-0">
+      <h2 className="panel-title">Price check</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">
         The till&apos;s arithmetic, before the till exists. Integer-only: fiat is counted in
         minor units, sats are counted in whole sats, and the fiat→sats step always rounds{' '}

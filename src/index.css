@@ -3,15 +3,18 @@
 @tailwind utilities;
 
 /* Theme tokens. Dark is the default (a till behind a counter at night).
-   Every colour is a plain custom property so themes swap without a rebuild. */
+   Every colour is a plain custom property so a theme swap needs no rebuild. */
 :root {
-  --slip-bg: #0b0d10;
-  --slip-surface: #14181d;
-  --slip-ink: #f2f4f6;
-  --slip-muted: #98a2ad;
-  --slip-line: #232a32;
+  --slip-bg: #0a0c0f;
+  --slip-surface: #11151a;
+  --slip-surface-2: #161b21;
+  --slip-ink: #f3f5f7;
+  --slip-muted: #9aa5b1;
+  --slip-line: #232a33;
+  --slip-line-strong: #2e3742;
   --slip-accent: #f7931a; /* Bitcoin orange — accent only, never a background */
-  --slip-good: #2fbf71;
+  --slip-accent-soft: rgba(247, 147, 26, 0.12);
+  --slip-good: #34c77b;
   --slip-warn: #e6a700;
   --slip-bad: #e5484d;
   color-scheme: dark;
@@ -20,9 +23,12 @@
 [data-theme='light'] {
   --slip-bg: #f7f6f3;
   --slip-surface: #ffffff;
+  --slip-surface-2: #fbfaf8;
   --slip-ink: #0d1117;
   --slip-muted: #5b6673;
   --slip-line: #e2dfd9;
+  --slip-line-strong: #cfcbc3;
+  --slip-accent-soft: rgba(247, 147, 26, 0.14);
   --slip-bad: #c2262a;
   color-scheme: light;
 }
@@ -30,9 +36,11 @@
 [data-theme='contrast'] {
   --slip-bg: #000000;
   --slip-surface: #000000;
+  --slip-surface-2: #000000;
   --slip-ink: #ffffff;
   --slip-muted: #d0d0d0;
   --slip-line: #ffffff;
+  --slip-line-strong: #ffffff;
   --slip-good: #00ff88;
   --slip-warn: #ffd700;
   --slip-bad: #ff5a5f;
@@ -47,7 +55,13 @@ body,
 
 body {
   margin: 0;
-  background: var(--slip-bg);
+  background-color: var(--slip-bg);
+  /* A single, very quiet warm light behind the top of the page. No images, no fonts,
+     nothing fetched — it is a gradient, so the offline promise is untouched. */
+  background-image:
+    radial-gradient(900px 420px at 50% -10%, var(--slip-accent-soft), transparent 70%),
+    radial-gradient(600px 300px at 90% 0%, rgba(52, 199, 123, 0.05), transparent 70%);
+  background-repeat: no-repeat;
   color: var(--slip-ink);
   font-family: theme('fontFamily.sans');
   -webkit-font-smoothing: antialiased;
@@ -57,6 +71,73 @@ body {
 /* A till is touched with wet or floury fingers — nothing under 44px tall. */
 button {
   min-height: 44px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--slip-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@layer components {
+  /* One card shape for every panel, so the page reads as one instrument. */
+  .panel {
+    border: 1px solid var(--slip-line);
+    border-radius: 16px;
+    background: linear-gradient(180deg, var(--slip-surface-2), var(--slip-surface));
+    padding: 1rem;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+  }
+
+  .panel-title {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* Small all-caps label above a panel title. */
+  .eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--slip-muted);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid var(--slip-line);
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    font-size: 11px;
+    color: var(--slip-muted);
+    white-space: nowrap;
+  }
+
+  .chip-accent {
+    border-color: color-mix(in oklab, var(--slip-accent) 55%, var(--slip-line));
+    color: var(--slip-accent);
+    background: var(--slip-accent-soft);
+  }
+
+  .chip-good {
+    border-color: color-mix(in oklab, var(--slip-good) 45%, var(--slip-line));
+    color: var(--slip-good);
+  }
+
+  /* Figures are read aloud and copied — give them tabular digits and a mono face. */
+  .figure {
+    font-family: theme('fontFamily.mono');
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--slip-line);
+    border: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

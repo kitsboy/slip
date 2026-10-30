@@ -182,8 +182,8 @@ export default function Counters() {
   const [pendingAccountId, setPendingAccountId] = useState<string>('');
 
   return (
-    <section className="mt-8 rounded-xl border border-line bg-surface p-4">
-      <h2 className="text-base font-semibold">Counters &amp; staff hand-off</h2>
+    <section className="mt-6 panel">
+      <h2 className="panel-title">Counters &amp; staff hand-off</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">
         One account per till, truck or staff member — each a <span className="text-ink">BIP-85</span>{' '}
         child account you derived on your own signer and imported here as an xpub. slip never derives

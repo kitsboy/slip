@@ -1,84 +1,120 @@
-import KeyCheck from './ui/KeyCheck';
+import About from './ui/About';
 import AddressCheck from './ui/AddressCheck';
 import Counters from './ui/Counters';
+import KeyCheck from './ui/KeyCheck';
 import PriceCheck from './ui/PriceCheck';
 import RequestCounter from './ui/RequestCounter';
 import Services from './ui/Services';
+import { buildLabel } from './core/buildinfo';
 
 /**
- * slip — shell only (phase P0).
+ * slip — the shell.
  *
- * This screen exists to prove the pipeline: strict TS, React, Tailwind, and a
- * single-file production build with a build-time CSP and a published hash.
- * There is deliberately NO selling UI here yet — a till that displays an address
- * before the derivation-preview safeguard exists would be the one bug that costs
- * a merchant money, so product screens land in later phases in a fixed order.
+ * Deliberately not a till yet: no catalog, no invoice, no payment engine. The panels
+ * below are real and tested, and the page says exactly that — a till that shows a
+ * receive address before the derivation gate exists is the one bug that costs a
+ * merchant money, so screens land in a fixed order (SLIP-PLAN.md §7).
  */
 
-export const BUILD_STAGE = 'P4 — counters, key check, price maths (no till yet)';
+export const BUILD_STAGE = 'P5 — counters, hand-off, descriptors, backup (no till yet)';
+
+const TRUST: ReadonlyArray<readonly [string, string]> = [
+  ['watch-only', 'no key can be pasted'],
+  ['no backend', 'no server, account or key'],
+  ['offline', 'works with the network off'],
+  ['0 requests', 'measured, not promised'],
+];
 
 export default function App() {
   return (
-    <div className="min-h-full flex flex-col">
-      <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex max-w-2xl items-center justify-between px-5 py-4">
-          <div className="flex items-baseline gap-2">
-            <span className="text-xl font-semibold tracking-tight">slip</span>
-            <span className="text-xs text-muted">point of sale</span>
+    <div className="flex min-h-full flex-col">
+      <header className="sticky top-0 z-10 border-b border-line bg-bg/85 backdrop-blur">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-5 py-3">
+          <div className="flex items-center gap-2.5">
+            <span
+              aria-hidden
+              className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-[13px] font-bold text-bg"
+            >
+              s
+            </span>
+            <span className="flex items-baseline gap-2">
+              <span className="text-lg font-semibold tracking-tight">slip</span>
+              <span className="hidden text-xs text-muted sm:inline">point of sale</span>
+            </span>
           </div>
-          <span className="rounded-full border border-line px-3 py-1 text-[11px] uppercase tracking-widest text-muted">
-            watch-only
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="chip figure hidden sm:inline-flex">{buildLabel()}</span>
+            <span className="chip chip-accent">watch-only</span>
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-2xl flex-1 px-5 py-10">
-        <h1 className="text-2xl font-semibold leading-tight">
-          Sells pay straight into your own wallet.
-        </h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted">
-          slip never holds money, never asks for a seed phrase, and has no server,
-          account or API key behind it. You paste public wallet material once —
-          an xpub, a descriptor, a Silent Payments address or a Lightning address —
-          and every sale is paid directly to you.
-        </p>
+      <main className="mx-auto w-full max-w-3xl flex-1 px-5 pb-16 pt-10">
+        <section>
+          <p className="eyebrow">non-custodial · serverless · no KYC</p>
+          <h1 className="mt-2 text-3xl font-semibold leading-[1.1] tracking-tight sm:text-4xl">
+            Sells pay straight into your own wallet.
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
+            slip never holds money, never asks for a seed phrase, and has no server, account or
+            API key behind it. You paste public wallet material once — an xpub, a descriptor, a
+            Silent Payments address or a Lightning address — and every sale is paid directly to
+            you.
+          </p>
 
-        <dl className="mt-8 grid gap-3 sm:grid-cols-2">
+          <ul className="mt-5 flex flex-wrap gap-2">
+            {TRUST.map(([label, detail]) => (
+              <li key={label} className="chip" title={detail}>
+                <span className="text-ink">{label}</span>
+                <span className="opacity-70">· {detail}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="mt-8 grid gap-3 sm:grid-cols-2">
           {[
             ['Stage', BUILD_STAGE],
             ['Planned rails', 'BTC · LTC · Lightning · Fedimint · Silent Payments'],
             ['Networks', 'mainnet · signet · testnet4 · LTC testnet'],
             ['Backend', 'none — by construction'],
           ].map(([k, v]) => (
-            <div key={k} className="rounded-xl border border-line bg-surface p-4">
-              <dt className="text-[11px] uppercase tracking-widest text-muted">{k}</dt>
+            <div key={k} className="panel">
+              <dt className="eyebrow">{k}</dt>
               <dd className="mt-1 text-sm">{v}</dd>
             </div>
           ))}
-        </dl>
+        </section>
 
         <Counters />
 
         <KeyCheck />
 
-        <PriceCheck />
-
-        <AddressCheck />
+        <div className="grid gap-3 lg:grid-cols-2 lg:items-start">
+          <PriceCheck />
+          <AddressCheck />
+        </div>
 
         <Services />
 
-        <p className="mt-8 rounded-xl border border-warn/40 p-4 text-sm text-warn">
-          Not a till yet. The counters, key check, price maths and address check above are
-          real, but there is no catalog, no invoice and no payment engine — those are the
-          next phases in{' '}
-          <code className="font-mono text-xs">SLIP-PLAN.md</code>. Nothing here can
-          take a payment, and it will not pretend to.
+        <About />
+
+        <p className="mt-6 rounded-xl border border-warn/40 bg-warn/5 p-4 text-sm leading-relaxed text-warn">
+          Not a till yet. The counters, key check, price maths and address check above are real
+          and tested, but there is no catalog, no invoice and no payment engine — those are the
+          next phases in <code className="font-mono text-xs">SLIP-PLAN.md</code>. Nothing here
+          can take a payment, and it will not pretend to.
         </p>
       </main>
 
-      <footer className="border-t border-line px-5 py-4 text-center text-[11px] text-muted">
-        <RequestCounter />
-        <span className="mt-1 block">no accounts · no analytics · no telemetry</span>
+      <footer className="border-t border-line px-5 py-6">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-2 text-center">
+          <span className="chip figure">{buildLabel()}</span>
+          <RequestCounter />
+          <span className="text-[11px] text-muted">
+            no accounts · no analytics · no telemetry · MIT licensed
+          </span>
+        </div>
       </footer>
     </div>
   );

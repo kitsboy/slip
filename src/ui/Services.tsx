@@ -107,14 +107,14 @@ const BADGE: Record<Status, string> = {
 
 export default function Services() {
   return (
-    <section className="mt-8 rounded-xl border border-line bg-surface p-4">
-      <h2 className="text-base font-semibold">What slip will offer</h2>
+    <section className="mt-6 panel">
+      <h2 className="panel-title">What slip will offer</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">
         The plan, in public. &ldquo;Live now&rdquo; means it works in this build;
         &ldquo;not built yet&rdquo; means it does not, and this build cannot do it.
       </p>
 
-      <ul className="mt-4 space-y-2">
+      <ul className="mt-4 grid gap-2 lg:grid-cols-2">
         {SERVICES.map((s) => (
           <li key={s.name} className="rounded-lg border border-line p-3">
             <div className="flex flex-wrap items-baseline justify-between gap-2">

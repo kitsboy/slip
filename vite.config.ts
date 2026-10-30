@@ -3,7 +3,24 @@ import react from '@vitejs/plugin-react';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
+
+/** Build identity — one source of truth: package.json + git. */
+const pkg = JSON.parse(readFileSync(resolve(import.meta.dirname, 'package.json'), 'utf8')) as {
+  version: string;
+};
+const VERSION = pkg.version;
+const COMMIT = (() => {
+  try {
+    return execFileSync('git', ['rev-parse', '--short', 'HEAD'], { encoding: 'utf8' }).trim();
+  } catch {
+    return 'untracked';
+  }
+})();
+const BUILT_AT = process.env.SOURCE_DATE_EPOCH
+  ? new Date(Number(process.env.SOURCE_DATE_EPOCH) * 1000).toISOString()
+  : new Date().toISOString();
 
 const DIST = resolve(import.meta.dirname, 'dist/index.html');
 
@@ -55,7 +72,13 @@ function cspPlugin() {
 
       html = html.replace(
         '</head>',
-        `  <meta http-equiv="Content-Security-Policy" content="${csp}" />\n</head>`,
+        [
+          `  <meta http-equiv="Content-Security-Policy" content="${csp}" />`,
+          `  <meta name="slip-version" content="${VERSION}" />`,
+          `  <meta name="slip-commit" content="${COMMIT}" />`,
+          `  <meta name="slip-built" content="${BUILT_AT}" />`,
+          '</head>',
+        ].join('\n'),
       );
       writeFileSync(DIST, html, 'utf8');
     },
@@ -78,7 +101,8 @@ function hashReportPlugin() {
           'utf8',
         );
         console.log(
-          `\n  dist/index.html  ${(buf.byteLength / 1024).toFixed(1)} KB\n  sha256           ${sha}\n`,
+          `\n  slip v${VERSION} (${COMMIT}) built ${BUILT_AT}` +
+            `\n  dist/index.html  ${(buf.byteLength / 1024).toFixed(1)} KB\n  sha256           ${sha}\n`,
         );
       } catch {
         /* build failed earlier; nothing to hash */
@@ -88,6 +112,11 @@ function hashReportPlugin() {
 }
 
 export default defineConfig({
+  define: {
+    __SLIP_VERSION__: JSON.stringify(VERSION),
+    __SLIP_COMMIT__: JSON.stringify(COMMIT),
+    __SLIP_BUILT__: JSON.stringify(BUILT_AT),
+  },
   plugins: [
     react(),
     viteSingleFile({ removeViteModuleLoader: true }),
