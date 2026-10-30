@@ -8,7 +8,7 @@ wallet**. There is no slip company, server, account, API key or payment processo
 slip cannot hold, move, recover or reverse your money, because it never has the
 ability to sign anything.
 
-## Status: P3 — key check + money maths work. **This cannot take a payment yet.**
+## Status: P4 — counters + hand-off, key check, price maths. **This cannot take a payment yet.**
 
 What exists right now: the single-file build pipeline, strict TypeScript, React +
 Tailwind, the coin/network tables, **BTC + LTC address derivation**, the SLIP-132

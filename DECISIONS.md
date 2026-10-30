@@ -74,6 +74,27 @@ using `bitcoin-cli deriveaddresses` (v28) for pkh / wpkh / sh(wpkh) / tr /
 Core proves interop. LTC is checked by parameter substitution — same hash160, Litecoin
 version bytes / `ltc1` HRP — because no public Litecoin oracle is available offline.
 
+### D-18 — BIP-85 is implemented as imported child accounts, never on-device
+BIP-85 derives child entropy from the *master private key*, so no watch-only app can do
+it. slip's "counters" are the honest equivalent: the merchant derives a BIP-85 child
+seed on their own signer (Coldcard/Sparrow/Krux/Jade), imports it as a wallet, exports
+that wallet's account xpub, and pastes it here as e.g. "Front counter". Each account
+keeps its own index, its own first address and its own hand-off, with no path back to
+the master key on this device. Claiming on-device BIP-85 would mean asking for a master
+key — the one thing this product exists to never see.
+
+### D-19 — A counter is unusable until address 0/0 is acknowledged
+`acknowledgedAt` is null on creation and set only by an explicit "I compared address 0/0
+with my wallet" action. Staff hand-off is refused while it is null, so a wrong derivation
+cannot reach a customer by way of a staff member in a hurry. The check is re-openable,
+and the first address is stored so it can be re-shown without re-deriving.
+
+### D-20 — The till PIN gates people, not money
+PBKDF2-SHA256, 200k iterations, 16-byte random salt per PIN, constant-time compare,
+stored as `pbkdf2$iter$salt$hash`. It names who is holding the device and blocks a
+silent counter switch; it can never sign, spend or recover anything. Hand-off requires a
+named person, and switching counters mid-shift requires the PIN.
+
 ### D-16 — The currency table is GENERATED from ISO 4217, never typed
 `src/core/currencies.ts` is produced by `scripts/make-currency-table.mjs` from the
 published `datasets/currency-codes` CSV (165 currencies). Minor-unit exponents are

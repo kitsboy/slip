@@ -1,5 +1,8 @@
 import KeyCheck from './ui/KeyCheck';
+import AddressCheck from './ui/AddressCheck';
+import Counters from './ui/Counters';
 import PriceCheck from './ui/PriceCheck';
+import RequestCounter from './ui/RequestCounter';
 import Services from './ui/Services';
 
 /**
@@ -12,7 +15,7 @@ import Services from './ui/Services';
  * a merchant money, so product screens land in later phases in a fixed order.
  */
 
-export const BUILD_STAGE = 'P3 — key check + price maths online (no till yet)';
+export const BUILD_STAGE = 'P4 — counters, key check, price maths (no till yet)';
 
 export default function App() {
   return (
@@ -54,9 +57,13 @@ export default function App() {
           ))}
         </dl>
 
+        <Counters />
+
         <KeyCheck />
 
         <PriceCheck />
+
+        <AddressCheck />
 
         <Services />
 
@@ -69,7 +76,8 @@ export default function App() {
       </main>
 
       <footer className="border-t border-line px-5 py-4 text-center text-[11px] text-muted">
-        no accounts · no analytics · no telemetry
+        <RequestCounter />
+        <span className="mt-1 block">no accounts · no analytics · no telemetry</span>
       </footer>
     </div>
   );
