@@ -148,3 +148,69 @@ button {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Print / PDF. Cam's standing ask: a white-background, black-text variant for
+   anything that gets printed, because ink economy matters in a real shop.
+   Screen chrome (buttons, inputs, the QR panel) is hidden; the record stays.
+   --------------------------------------------------------------------------- */
+@media print {
+  :root {
+    --slip-bg: #ffffff;
+    --slip-surface: #ffffff;
+    --slip-surface-2: #ffffff;
+    --slip-ink: #000000;
+    --slip-muted: #333333;
+    --slip-line: #999999;
+    --slip-accent: #000000;
+    --slip-good: #000000;
+    --slip-warn: #000000;
+    --slip-bad: #000000;
+  }
+
+  body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #000000 !important;
+    font-size: 11pt;
+  }
+
+  header,
+  footer,
+  button,
+  input,
+  select,
+  textarea,
+  [role='status'],
+  .no-print {
+    display: none !important;
+  }
+
+  .panel {
+    border: 1px solid #999999;
+    box-shadow: none;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  pre,
+  code,
+  .figure {
+    color: #000000 !important;
+    background: #ffffff !important;
+    border-color: #999999 !important;
+  }
+
+  details {
+    display: block;
+  }
+
+  details > summary {
+    list-style: none;
+  }
+
+  a[href]::after {
+    content: ' (' attr(href) ')';
+    font-size: 9pt;
+  }
+}

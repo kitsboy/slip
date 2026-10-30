@@ -151,6 +151,13 @@ export default function Backup() {
         </button>
         <button
           type="button"
+          onClick={() => window.print()}
+          className="rounded-lg border border-line px-3 py-2 text-xs uppercase tracking-wider text-muted hover:text-ink"
+        >
+          Print / save as PDF
+        </button>
+        <button
+          type="button"
           onClick={() => fileInput.current?.click()}
           disabled={busy}
           className="rounded-lg border border-line px-3 py-2 text-xs uppercase tracking-wider text-muted hover:text-ink disabled:opacity-50"
