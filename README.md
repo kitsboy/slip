@@ -8,7 +8,7 @@ wallet**. There is no slip company, server, account, API key or payment processo
 slip cannot hold, move, recover or reverse your money, because it never has the
 ability to sign anything.
 
-## Status: P6 — counters, descriptors, backup, shift log. **This cannot take a payment yet.**
+## Status: P7 — guided setup, counters, descriptors, backup, shift log. **This cannot take a payment yet.**
 
 What exists right now: a single `index.html` (~330 KB raw / ~110 KB gzip) with strict
 TypeScript and React, the ISO 4217 currency table, integer-only money maths, BTC + LTC
@@ -61,6 +61,7 @@ NWC, 19 further languages, iOS App Store build, thermal printing, kiosk, peer sy
 | Version stamping | every deploy carries a version, proven live by `scripts/deploy.sh` |
 | Index discipline | reserve at invoice creation, release on cancel, burn on display, gap-limit scan (`src/core/indexes.ts`) |
 | Print | white-background, black-text print/PDF variant for day sheets (`@media print`) |
+| Guided setup | five-screen wizard; the wallet step cannot be left until address 0/0 is confirmed (`src/core/settings.ts` gates) |
 
 ## Live
 

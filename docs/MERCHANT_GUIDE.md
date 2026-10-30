@@ -6,6 +6,19 @@ you need.
 
 ---
 
+## 0. The guided path
+
+On the first screen press **set up your shop**. Five screens, about a minute:
+
+1. **Welcome** — what slip is, and the one thing it will never ask for.
+2. **Your shop** — name, currency, tax. (These are the numbers every sale will use.)
+3. **Your wallet** — paste an xpub or descriptor, then confirm address 0/0 against your wallet. *You cannot skip this: the Continue button stays disabled until you tick the box.*
+4. **Who holds the till** — a 4–8 digit PIN (skippable; the hand-off will ask for one).
+5. **Ready** — a summary you can read before taking money.
+
+You can leave the wizard at any point with **skip to the workbench**, and re-run it later
+with **run setup again** in the header. Nothing in it can take a payment.
+
 ## 1. What you need before you start
 
 - A phone, tablet or laptop with a modern browser (Chrome, Safari, Edge, Firefox, Brave).

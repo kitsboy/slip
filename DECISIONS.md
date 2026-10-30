@@ -140,3 +140,17 @@ code runs — but the served bytes differ from `SHA256SUMS` on the custom domain
 **A merchant verifying the artifact must compare against the pages.dev download or a
 repo copy, not the proxied domain.** Turning bot JS-detection off for the zone would
 make the bytes match; that is a family-wide security setting and not ours to flip.
+
+### D-21 — The wizard guides, it does not gate
+A shop owner should be walked through five screens; a stranger evaluating slip should still
+be able to read the page. So the wizard opens from a button (`set up your shop`) rather than
+taking over the first visit, and `skip to the workbench` is always available. The *rule* that
+matters — you cannot leave the wallet step until address 0/0 is confirmed — lives in
+`core/settings.ts` as a pure `gateFor()` function with tests, not as a disabled attribute a
+refactor can drop.
+
+### D-22 — v0.6.0 was bumped but never published
+A deploy run was interrupted after `npm version minor` and before the upload, so the next
+publish is v0.7.0. `CHANGELOG.md` lists only versions that actually reached the live origin
+(the script appends on success only), so a gap in the numbers is the honest record — not a
+missing entry.

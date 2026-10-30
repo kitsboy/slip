@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import About from './ui/About';
 import Backup from './ui/Backup';
 import AddressCheck from './ui/AddressCheck';
@@ -6,7 +7,9 @@ import KeyCheck from './ui/KeyCheck';
 import PriceCheck from './ui/PriceCheck';
 import RequestCounter from './ui/RequestCounter';
 import Services from './ui/Services';
+import Wizard from './ui/Wizard';
 import { buildLabel } from './core/buildinfo';
+import { isOnboarded } from './core/settings';
 
 /**
  * slip — the shell.
@@ -27,6 +30,18 @@ const TRUST: ReadonlyArray<readonly [string, string]> = [
 ];
 
 export default function App() {
+  // The wizard is a guided path, not a gate: a shop owner gets walked through it, a
+  // visitor evaluating slip still sees what it is. Never force a stranger through five
+  // screens before they can read the page.
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const onboarded = (() => {
+    try {
+      return isOnboarded(window.localStorage);
+    } catch {
+      return false;
+    }
+  })();
+
   return (
     <div className="flex min-h-full flex-col">
       <header className="sticky top-0 z-10 border-b border-line bg-bg/85 backdrop-blur">
@@ -45,11 +60,20 @@ export default function App() {
           </div>
           <div className="flex items-center gap-2">
             <span className="chip figure hidden sm:inline-flex">{buildLabel()}</span>
-            <span className="chip chip-accent">watch-only</span>
+            <button
+              type="button"
+              onClick={() => setWizardOpen(true)}
+              className="chip chip-accent hover:bg-accent/10"
+            >
+              {onboarded ? 'run setup again' : 'start setup'}
+            </button>
           </div>
         </div>
       </header>
 
+      {wizardOpen ? (
+        <Wizard onDone={() => setWizardOpen(false)} />
+      ) : (
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 pb-16 pt-10">
         <section>
           <p className="eyebrow">non-custodial · serverless · no KYC</p>
@@ -63,7 +87,18 @@ export default function App() {
             you.
           </p>
 
-          <ul className="mt-5 flex flex-wrap gap-2">
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setWizardOpen(true)}
+              className="rounded-lg border border-accent bg-accent/10 px-4 py-2 text-xs uppercase tracking-wider text-accent"
+            >
+              {onboarded ? 'run setup again' : 'set up your shop'}
+            </button>
+            <span className="text-[11px] text-muted">five screens · about a minute</span>
+          </div>
+
+          <ul className="mt-4 flex flex-wrap gap-2">
             {TRUST.map(([label, detail]) => (
               <li key={label} className="chip" title={detail}>
                 <span className="text-ink">{label}</span>
@@ -109,6 +144,7 @@ export default function App() {
           can take a payment, and it will not pretend to.
         </p>
       </main>
+      )}
 
       <footer className="border-t border-line px-5 py-6">
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-2 text-center">
