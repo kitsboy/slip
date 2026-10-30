@@ -69,10 +69,10 @@ await page.waitForSelector('ol li code');
 const ltcFirst = await page.locator('ol li code').first().innerText();
 check('same zpub derives an ltc1 address on Litecoin', ltcFirst.startsWith('ltc1q'), ltcFirst);
 check('address differs between coins', ltcFirst !== EXPECTED_0);
-check(
-  'warns that the prefix is shared',
-  /shared between/.test(await page.locator('ul li').first().innerText()),
-);
+// The hero's trust chips are also a <ul><li>, so match the warning by its text,
+// not by "the first list item" (which silently asserted on the wrong element).
+const sharedWarning = await page.getByText(/shared between BTC and LTC/).count();
+check('warns that the prefix is shared', sharedWarning > 0, String(sharedWarning));
 
 // 5. Zero network requests: a till on a plane must not phone home.
 const requests = [];
