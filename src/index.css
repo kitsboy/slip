@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Theme tokens. Dark is the default (a till behind a counter at night).
+   Every colour is a plain custom property so themes swap without a rebuild. */
+:root {
+  --slip-bg: #0b0d10;
+  --slip-surface: #14181d;
+  --slip-ink: #f2f4f6;
+  --slip-muted: #98a2ad;
+  --slip-line: #232a32;
+  --slip-accent: #f7931a; /* Bitcoin orange — accent only, never a background */
+  --slip-good: #2fbf71;
+  --slip-warn: #e6a700;
+  --slip-bad: #e5484d;
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  --slip-bg: #f7f6f3;
+  --slip-surface: #ffffff;
+  --slip-ink: #0d1117;
+  --slip-muted: #5b6673;
+  --slip-line: #e2dfd9;
+  --slip-bad: #c2262a;
+  color-scheme: light;
+}
+
+[data-theme='contrast'] {
+  --slip-bg: #000000;
+  --slip-surface: #000000;
+  --slip-ink: #ffffff;
+  --slip-muted: #d0d0d0;
+  --slip-line: #ffffff;
+  --slip-good: #00ff88;
+  --slip-warn: #ffd700;
+  --slip-bad: #ff5a5f;
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--slip-bg);
+  color: var(--slip-ink);
+  font-family: theme('fontFamily.sans');
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* A till is touched with wet or floury fingers — nothing under 44px tall. */
+button {
+  min-height: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
