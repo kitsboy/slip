@@ -74,10 +74,25 @@ SHA="$(cut -d' ' -f1 dist/SHA256SUMS)"
 DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ENTRY="- **v${VERSION}** — ${DATE} — \`${SHA:0:12}\` — ${SLIP_NOTE:-deploy}"
 
+# Newest first, but BELOW the header — an entry above "# Changelog" breaks markdown.
 if [[ -f CHANGELOG.md ]]; then
-  # Newest first, under the header.
-  printf '%s\n\n%s\n' "$ENTRY" "$(cat CHANGELOG.md)" > /tmp/slip-changelog.md
-  mv /tmp/slip-changelog.md CHANGELOG.md
+  python3 - "$ENTRY" <<'PY'
+import sys
+entry = sys.argv[1]
+lines = open('CHANGELOG.md', encoding='utf-8').read().splitlines()
+# Keep everything up to the first entry (lines starting with '- **v').
+head = []
+i = 0
+while i < len(lines) and not lines[i].startswith('- **v'):
+    head.append(lines[i])
+    i += 1
+tail = lines[i:]
+body = [ln for ln in head if ln.strip()]
+while body and not body[-1].startswith('#'):
+    body.pop()
+out = body + ['', entry, ''] + tail
+open('CHANGELOG.md', 'w', encoding='utf-8').write('\n'.join(out).rstrip() + '\n')
+PY
 else
   printf '# Changelog\n\nEvery published build, newest first.\n\n%s\n' "$ENTRY" > CHANGELOG.md
 fi

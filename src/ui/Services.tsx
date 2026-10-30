@@ -47,6 +47,21 @@ const SERVICES: Service[] = [
     detail:
       'Paste any BTC or LTC address and see which network it belongs to, with the script type.',
     guard: 'Wrong-chain addresses are refused. All Bitcoin test networks share one encoding, so slip says so instead of guessing.',
+  },  {
+    name: 'Encrypted backup & shift log',
+    status: 'shipped',
+    detail:
+      'A .slip file encrypted with your passphrase (AES-GCM, PBKDF2) that restores your counters and PIN on a new device, plus a hash-chained record of which person held which counter, with a printable day sheet.',
+    guard:
+      'Tamper-evident, not tamper-proof: whoever holds the device can rewrite the chain. No server, no signature, so slip says so instead of implying otherwise.',
+  },
+  {
+    name: 'Receive QR & BIP-21 requests',
+    status: 'shipped',
+    detail:
+      'Each counter can show a BIP-21 QR for its first address, rendered as inline SVG and decode-verified in tests.',
+    guard:
+      'Preview only: a real sale must reserve a fresh index before any QR is shown, and that invoice engine does not exist yet.',
   },
   {
     name: 'Till — catalog, cart, tax, tips',
@@ -64,7 +79,7 @@ const SERVICES: Service[] = [
   },
   {
     name: 'Wallet — BIP-85 counter accounts',
-    status: 'planned',
+    status: 'shipped',
     detail:
       'Separate labelled accounts per till, truck or staff member, derived by YOUR signer (Coldcard, Sparrow, Krux, Jade) and imported here as child xpubs. Each gets its own address index and its own report.',
     guard:
