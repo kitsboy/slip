@@ -1,4 +1,5 @@
 import KeyCheck from './ui/KeyCheck';
+import PriceCheck from './ui/PriceCheck';
 import Services from './ui/Services';
 
 /**
@@ -11,7 +12,7 @@ import Services from './ui/Services';
  * a merchant money, so product screens land in later phases in a fixed order.
  */
 
-export const BUILD_STAGE = 'P2 — key check online (no till yet)';
+export const BUILD_STAGE = 'P3 — key check + price maths online (no till yet)';
 
 export default function App() {
   return (
@@ -54,6 +55,8 @@ export default function App() {
         </dl>
 
         <KeyCheck />
+
+        <PriceCheck />
 
         <Services />
 

@@ -81,6 +81,25 @@ await page.reload();
 await page.waitForSelector('h1');
 check('makes no network requests', requests.every((u) => u.startsWith('file://')), requests.join(','));
 
+
+// 6. Money maths in the real UI: 4.50 USD at 60,000 USD/BTC must charge 7,500 sats,
+//    and the zero-decimal currency must not gain decimals.
+const ddFor = async (label) =>
+  (await page.locator(`div:has(> dt:text-is("${label}")) > dd`).first().innerText()).trim();
+
+const charge = await ddFor('Charge');
+check('4.50 USD at 60,000 charges 7,500 sats', charge === '7,500 sats', charge);
+const total = await ddFor('Total');
+check('total reads 4.50 USD', total === '4.50 USD', total);
+
+await page.selectOption('#pc-currency', 'JPY');
+await page.fill('#pc-price', '1500');
+await page.fill('#pc-rate', '9000000');
+const jpyCharge = await ddFor('Charge');
+check('¥1,500 at ¥9,000,000 rounds up to 16,667 sats', jpyCharge === '16,667 sats', jpyCharge);
+const jpyMinor = await ddFor('Minor units');
+check('JPY is zero-decimal', jpyMinor === '0', jpyMinor);
+
 await page.getByRole('button', { name: 'Bitcoin', exact: true }).click();
 await page.fill('#xpub', ZPUB);
 await page.waitForSelector('ol li code');

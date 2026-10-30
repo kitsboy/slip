@@ -74,6 +74,23 @@ using `bitcoin-cli deriveaddresses` (v28) for pkh / wpkh / sh(wpkh) / tr /
 Core proves interop. LTC is checked by parameter substitution — same hash160, Litecoin
 version bytes / `ltc1` HRP — because no public Litecoin oracle is available offline.
 
+### D-16 — The currency table is GENERATED from ISO 4217, never typed
+`src/core/currencies.ts` is produced by `scripts/make-currency-table.mjs` from the
+published `datasets/currency-codes` CSV (165 currencies). Minor-unit exponents are
+the classic transcription trap: type `JPY: 2` and every yen price is 100× too small,
+type `KWD: 2` and a dinar price loses its third decimal. Generated, with the script
+committed so it can be re-run and audited.
+
+### D-17 — Two arithmetic bugs the golden table caught before any merchant did
+1. **Tax-inclusive extraction was wrong.** `taxOnNet` treated an inclusive amount as a
+   NET base instead of a gross total, so it under-reported tax (87 vs 88 on a
+   10.875%-inclusive 10.88). Inclusive now derives the net and takes the remainder, so
+   `net + tax` always equals the total exactly.
+2. **The fixture asked for impossible input.** A `199.00 VND` case assumed two
+   decimals for a zero-decimal currency; the parser refused it. The parser was right —
+   the fixture was fixed, which is the point of cross-checking two implementations.
+Both were found by the independent Python reference, not by review.
+
 ### D-13 — CSP authorises the inline bundle by HASH, never `unsafe-inline`
 A single-file build has no external script to allow: the whole app is one inline
 `<script>`, which `script-src 'self'` blocks outright (found live the first time the

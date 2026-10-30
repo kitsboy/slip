@@ -1,0 +1,379 @@
+{
+ "generatedBy": "scripts/make-money-fixtures.py (Python decimal, independent of the TS implementation)",
+ "rules": [
+  "fiat is integer minor units, per ISO 4217 exponents",
+  "fiat -> sats rounds UP (merchant never short)",
+  "percent of an amount rounds half up",
+  "tax-inclusive split: net = half_up(total*10000/(10000+bps)); tax = total - net"
+ ],
+ "conversions": [
+  {
+   "fiat": "4.50",
+   "currency": "USD",
+   "rate": "60000.00",
+   "fiatMinor": 450,
+   "expectedSats": 7500
+  },
+  {
+   "fiat": "4.50",
+   "currency": "USD",
+   "rate": "120000.00",
+   "fiatMinor": 450,
+   "expectedSats": 3750
+  },
+  {
+   "fiat": "0.99",
+   "currency": "USD",
+   "rate": "60000.00",
+   "fiatMinor": 99,
+   "expectedSats": 1650
+  },
+  {
+   "fiat": "1.00",
+   "currency": "USD",
+   "rate": "60000.00",
+   "fiatMinor": 100,
+   "expectedSats": 1667
+  },
+  {
+   "fiat": "0.01",
+   "currency": "USD",
+   "rate": "60000.00",
+   "fiatMinor": 1,
+   "expectedSats": 17
+  },
+  {
+   "fiat": "12.34",
+   "currency": "USD",
+   "rate": "61000.00",
+   "fiatMinor": 1234,
+   "expectedSats": 20230
+  },
+  {
+   "fiat": "1234.56",
+   "currency": "USD",
+   "rate": "61000.00",
+   "fiatMinor": 123456,
+   "expectedSats": 2023869
+  },
+  {
+   "fiat": "99999.99",
+   "currency": "USD",
+   "rate": "61000.00",
+   "fiatMinor": 9999999,
+   "expectedSats": 163934410
+  },
+  {
+   "fiat": "0.50",
+   "currency": "CAD",
+   "rate": "83000.00",
+   "fiatMinor": 50,
+   "expectedSats": 603
+  },
+  {
+   "fiat": "35.00",
+   "currency": "CAD",
+   "rate": "83000.00",
+   "fiatMinor": 3500,
+   "expectedSats": 42169
+  },
+  {
+   "fiat": "3.20",
+   "currency": "EUR",
+   "rate": "55000.00",
+   "fiatMinor": 320,
+   "expectedSats": 5819
+  },
+  {
+   "fiat": "149.99",
+   "currency": "EUR",
+   "rate": "55000.00",
+   "fiatMinor": 14999,
+   "expectedSats": 272710
+  },
+  {
+   "fiat": "2.80",
+   "currency": "GBP",
+   "rate": "47000.00",
+   "fiatMinor": 280,
+   "expectedSats": 5958
+  },
+  {
+   "fiat": "1500",
+   "currency": "JPY",
+   "rate": "9000000",
+   "fiatMinor": 1500,
+   "expectedSats": 16667
+  },
+  {
+   "fiat": "350",
+   "currency": "JPY",
+   "rate": "9000000",
+   "fiatMinor": 350,
+   "expectedSats": 3889
+  },
+  {
+   "fiat": "1",
+   "currency": "JPY",
+   "rate": "9000000",
+   "fiatMinor": 1,
+   "expectedSats": 12
+  },
+  {
+   "fiat": "0.750",
+   "currency": "KWD",
+   "rate": "18000.000",
+   "fiatMinor": 750,
+   "expectedSats": 4167
+  },
+  {
+   "fiat": "12.500",
+   "currency": "KWD",
+   "rate": "18000.000",
+   "fiatMinor": 12500,
+   "expectedSats": 69445
+  },
+  {
+   "fiat": "0.0001",
+   "currency": "CLF",
+   "rate": "2000.0000",
+   "fiatMinor": 1,
+   "expectedSats": 5
+  },
+  {
+   "fiat": "1.0000",
+   "currency": "CLF",
+   "rate": "2000.0000",
+   "fiatMinor": 10000,
+   "expectedSats": 50000
+  },
+  {
+   "fiat": "2500",
+   "currency": "ISK",
+   "rate": "8000000",
+   "fiatMinor": 2500,
+   "expectedSats": 31250
+  },
+  {
+   "fiat": "199",
+   "currency": "VND",
+   "rate": "1500000000",
+   "fiatMinor": 199,
+   "expectedSats": 14
+  },
+  {
+   "fiat": "0.01",
+   "currency": "USD",
+   "rate": "1.00",
+   "fiatMinor": 1,
+   "expectedSats": 1000000
+  },
+  {
+   "fiat": "0.07",
+   "currency": "USD",
+   "rate": "1.00",
+   "fiatMinor": 7,
+   "expectedSats": 7000000
+  },
+  {
+   "fiat": "1.00",
+   "currency": "USD",
+   "rate": "1.00",
+   "fiatMinor": 100,
+   "expectedSats": 100000000
+  },
+  {
+   "fiat": "13.37",
+   "currency": "USD",
+   "rate": "1.00",
+   "fiatMinor": 1337,
+   "expectedSats": 1337000000
+  },
+  {
+   "fiat": "0.01",
+   "currency": "USD",
+   "rate": "7.00",
+   "fiatMinor": 1,
+   "expectedSats": 142858
+  },
+  {
+   "fiat": "0.07",
+   "currency": "USD",
+   "rate": "7.00",
+   "fiatMinor": 7,
+   "expectedSats": 1000000
+  },
+  {
+   "fiat": "1.00",
+   "currency": "USD",
+   "rate": "7.00",
+   "fiatMinor": 100,
+   "expectedSats": 14285715
+  },
+  {
+   "fiat": "13.37",
+   "currency": "USD",
+   "rate": "7.00",
+   "fiatMinor": 1337,
+   "expectedSats": 191000000
+  },
+  {
+   "fiat": "0.01",
+   "currency": "USD",
+   "rate": "33333.33",
+   "fiatMinor": 1,
+   "expectedSats": 31
+  },
+  {
+   "fiat": "0.07",
+   "currency": "USD",
+   "rate": "33333.33",
+   "fiatMinor": 7,
+   "expectedSats": 211
+  },
+  {
+   "fiat": "1.00",
+   "currency": "USD",
+   "rate": "33333.33",
+   "fiatMinor": 100,
+   "expectedSats": 3001
+  },
+  {
+   "fiat": "13.37",
+   "currency": "USD",
+   "rate": "33333.33",
+   "fiatMinor": 1337,
+   "expectedSats": 40111
+  },
+  {
+   "fiat": "0.01",
+   "currency": "USD",
+   "rate": "1.07",
+   "fiatMinor": 1,
+   "expectedSats": 934580
+  },
+  {
+   "fiat": "0.07",
+   "currency": "USD",
+   "rate": "1.07",
+   "fiatMinor": 7,
+   "expectedSats": 6542057
+  },
+  {
+   "fiat": "1.00",
+   "currency": "USD",
+   "rate": "1.07",
+   "fiatMinor": 100,
+   "expectedSats": 93457944
+  },
+  {
+   "fiat": "13.37",
+   "currency": "USD",
+   "rate": "1.07",
+   "fiatMinor": 1337,
+   "expectedSats": 1249532711
+  },
+  {
+   "fiat": "0.01",
+   "currency": "USD",
+   "rate": "999999.99",
+   "fiatMinor": 1,
+   "expectedSats": 2
+  },
+  {
+   "fiat": "0.07",
+   "currency": "USD",
+   "rate": "999999.99",
+   "fiatMinor": 7,
+   "expectedSats": 8
+  },
+  {
+   "fiat": "1.00",
+   "currency": "USD",
+   "rate": "999999.99",
+   "fiatMinor": 100,
+   "expectedSats": 101
+  },
+  {
+   "fiat": "13.37",
+   "currency": "USD",
+   "rate": "999999.99",
+   "fiatMinor": 1337,
+   "expectedSats": 1338
+  }
+ ],
+ "percents": [
+  {
+   "amount": 1000,
+   "bps": 875,
+   "expected": 88
+  },
+  {
+   "amount": 1000,
+   "bps": 500,
+   "expected": 50
+  },
+  {
+   "amount": 450,
+   "bps": 1000,
+   "expected": 45
+  },
+  {
+   "amount": 12345,
+   "bps": 1337,
+   "expected": 1651
+  },
+  {
+   "amount": 99,
+   "bps": 875,
+   "expected": 9
+  },
+  {
+   "amount": 1,
+   "bps": 500,
+   "expected": 0
+  },
+  {
+   "amount": 999999,
+   "bps": 2500,
+   "expected": 250000
+  },
+  {
+   "amount": 60000,
+   "bps": 1500,
+   "expected": 9000
+  }
+ ],
+ "inclusiveTax": [
+  {
+   "total": 10875,
+   "bps": 875,
+   "net": 10000,
+   "tax": 875
+  },
+  {
+   "total": 10500,
+   "bps": 500,
+   "net": 10000,
+   "tax": 500
+  },
+  {
+   "total": 450,
+   "bps": 1000,
+   "net": 409,
+   "tax": 41
+  },
+  {
+   "total": 1000,
+   "bps": 1300,
+   "net": 885,
+   "tax": 115
+  },
+  {
+   "total": 99,
+   "bps": 875,
+   "net": 91,
+   "tax": 8
+  }
+ ]
+}
