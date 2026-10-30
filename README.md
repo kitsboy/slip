@@ -45,6 +45,22 @@ P7d Lightning   P8 reports   P9 PWA/APK/embed   P10 rehearsal + release
 Deferred, not cancelled: Liquid, BCH, DOGE, Cashu, EVM/stablecoins, own-node REST,
 NWC, 19 further languages, iOS App Store build, thermal printing, kiosk, peer sync.
 
+## Live
+
+- **https://slip.giveabit.io** — Cloudflare Pages project `slip` (direct-upload, free tier).
+- Also reachable at https://slip-6d6.pages.dev, which serves byte-identical output to
+  `dist/index.html`. The custom domain is proxied by Cloudflare, which injects a
+  bot-detection script that slip's own CSP refuses (see `DECISIONS.md` D-15) — so a
+  hash check must be done against the pages.dev copy or a repo build.
+
+Redeploy (from THOR, with `CF_FAMILY_OPS_TOKEN` in the environment):
+
+```bash
+npm run build && npx wrangler pages deploy dist --project-name slip --branch main
+```
+
+Cost: $0. Pages free tier, existing giveabit.io zone, no new zone, no paid feature.
+
 ## Develop
 
 ```bash

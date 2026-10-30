@@ -1,0 +1,12 @@
+import { chromium } from 'playwright';
+import { execSync } from 'node:child_process';
+const CHROME = execSync('find /root/.cache/ms-playwright -name chrome -type f | head -1',{encoding:'utf8'}).trim();
+const b = await chromium.launch({executablePath:CHROME,args:['--no-sandbox']});
+const p = await b.newPage();
+const errs=[]; p.on('pageerror',e=>errs.push('pageerror: '+e)); p.on('console',m=>{if(m.type()==='error')errs.push('console: '+m.text())});
+await p.goto('file:///root/slip/dist/index.html',{waitUntil:'load'});
+await p.fill('#xpub','zpub6rFR7y4Q2AijBEqTUquhVz398htDFrtymD9xYYfG1m4wAcvPhXNfE3EfH1r1ADqtfSdVCToUG868RvUUkgDKf31mGDtKsAYz2oz2AGutZYs');
+await p.waitForSelector('ol li code');
+console.log('addr', await p.locator('ol li code').first().innerText());
+console.log('errors', JSON.stringify(errs));
+await b.close();

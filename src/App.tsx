@@ -1,4 +1,5 @@
 import KeyCheck from './ui/KeyCheck';
+import Services from './ui/Services';
 
 /**
  * slip — shell only (phase P0).
@@ -53,6 +54,8 @@ export default function App() {
         </dl>
 
         <KeyCheck />
+
+        <Services />
 
         <p className="mt-8 rounded-xl border border-warn/40 p-4 text-sm text-warn">
           Not a till yet. The key check above is real, but there is no catalog, no

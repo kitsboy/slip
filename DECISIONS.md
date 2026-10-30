@@ -73,3 +73,32 @@ using `bitcoin-cli deriveaddresses` (v28) for pkh / wpkh / sh(wpkh) / tr /
 `wsh(sortedmulti(2,…))`. A library agreeing with itself proves nothing; agreeing with
 Core proves interop. LTC is checked by parameter substitution — same hash160, Litecoin
 version bytes / `ltc1` HRP — because no public Litecoin oracle is available offline.
+
+### D-13 — CSP authorises the inline bundle by HASH, never `unsafe-inline`
+A single-file build has no external script to allow: the whole app is one inline
+`<script>`, which `script-src 'self'` blocks outright (found live the first time the
+site was served — the app still rendered because the *module* script had been
+authorised, but a second inline script was refused). `'unsafe-inline'` would fix it
+and re-open XSS, so the build computes the SHA-256 of each inline script from the
+FINAL written HTML and pins those hashes in the policy. Only the shipped bytes run.
+
+Consequence: any script a network edge injects into the page at serve time is
+**refused** — which is the behaviour we want, and is exactly what happens on the
+custom domain (see D-14).
+
+### D-14 — `frame-ancestors` is a header, not a meta tag
+Browsers ignore `frame-ancestors` in a `<meta>` policy and log a warning about it,
+so it moved to `public/_headers` (Cloudflare Pages serves it as a real header) along
+with `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` and
+`X-Content-Type-Options`. Verified in the live response headers, not just the file.
+
+### D-15 — The custom domain is not byte-identical to the build; `*.pages.dev` is
+Cloudflare injects its bot-detection snippet (`/cdn-cgi/challenge-platform/scripts/jsd/main.js`)
+into HTML served through the giveabit.io zone. Measured: `slip-6d6.pages.dev` returns
+a file whose SHA-256 equals our build exactly, while `slip.giveabit.io` returns the
+same document plus that injected `<script>`. Our CSP refuses the injected script
+(confirmed: the only network request the page makes is its own URL), so no third-party
+code runs — but the served bytes differ from `SHA256SUMS` on the custom domain.
+**A merchant verifying the artifact must compare against the pages.dev download or a
+repo copy, not the proxied domain.** Turning bot JS-detection off for the zone would
+make the bytes match; that is a family-wide security setting and not ours to flip.
