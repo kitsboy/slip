@@ -12,7 +12,30 @@
     <title>slip</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!--
+        Boot fallback. React replaces this on mount, so it disappears the moment the
+        app starts. It stays visible ONLY if the script never ran — a blocked script,
+        an old cached build or a browser extension — which used to present as a totally
+        blank page with no explanation. A blank screen is indistinguishable from a
+        broken site, so this says what happened and what to try.
+      -->
+      <div class="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-3 px-6">
+        <p class="text-lg font-semibold">slip did not start</p>
+        <p class="text-sm leading-relaxed text-muted">
+          If this message is still here after a second, the page loaded but its own
+          script was blocked — usually an out-of-date cached copy.
+        </p>
+        <p class="text-sm leading-relaxed text-muted">
+          Hard-reload with <span class="font-mono text-ink">Ctrl/Cmd + Shift + R</span>, or open
+          <a class="text-accent underline" href="https://slip-6d6.pages.dev/">slip-6d6.pages.dev</a>
+          instead.
+        </p>
+        <noscript>
+          <p class="text-sm text-warn">JavaScript is switched off, and slip cannot run without it.</p>
+        </noscript>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

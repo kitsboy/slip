@@ -1,0 +1,16 @@
+import { webkit } from 'playwright';
+const b = await webkit.launch({ args: [] });
+const ctx = await b.newContext({ viewport:{width:430,height:900}, ignoreHTTPSErrors:true });
+const p = await ctx.newPage();
+const errs=[];
+p.on('pageerror',e=>errs.push('pageerror: '+e.message));
+p.on('console',m=>{if(m.type()==='error')errs.push('console: '+m.text())});
+p.on('requestfailed', r=>errs.push('reqfail: '+r.url()));
+await p.goto('https://slip.giveabit.io/', {waitUntil:'domcontentloaded'}).catch(e=>errs.push('goto: '+e.message));
+await p.waitForTimeout(2500);
+const rootLen = await p.evaluate(()=>document.getElementById('root')?.innerHTML.length ?? -1);
+const h1 = await p.evaluate(()=>document.querySelector('h1')?.innerText ?? '');
+console.log('root innerHTML length:', rootLen);
+console.log('h1:', JSON.stringify(h1));
+console.log('errors:', JSON.stringify(errs,null,1));
+await b.close();
