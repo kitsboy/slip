@@ -8,8 +8,8 @@
  *    belongs to, so the merchant chooses the network and we validate against it.
  *  - Base58 and Bech32 parameters are per-network. Mixing them is a fund-loss
  *    class of bug, so validation always takes a `NetworkId`, never a string.
- *  - SLIP-132 extended-key prefixes are NOT in this table yet; they are added in
- *    phase P2 against the SLIP-132 registry with a vector test per prefix.
+ *  - SLIP-132 extended-key prefixes live in `keys.ts`, not here, because a prefix
+ *    does not uniquely name a coin (zpub/vpub are shared with Litecoin).
  */
 
 export type Coin = 'btc' | 'ltc';

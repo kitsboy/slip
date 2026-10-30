@@ -1,3 +1,5 @@
+import KeyCheck from './ui/KeyCheck';
+
 /**
  * slip — shell only (phase P0).
  *
@@ -8,7 +10,7 @@
  * a merchant money, so product screens land in later phases in a fixed order.
  */
 
-export const BUILD_STAGE = 'P0 — pipeline online';
+export const BUILD_STAGE = 'P2 — key check online (no till yet)';
 
 export default function App() {
   return (
@@ -50,9 +52,11 @@ export default function App() {
           ))}
         </dl>
 
+        <KeyCheck />
+
         <p className="mt-8 rounded-xl border border-warn/40 p-4 text-sm text-warn">
-          Not a till yet. Selling screens, the derivation preview and the payment
-          engine are built in the phases documented in{' '}
+          Not a till yet. The key check above is real, but there is no catalog, no
+          invoice and no payment engine — those are the next phases in{' '}
           <code className="font-mono text-xs">SLIP-PLAN.md</code>. Nothing here can
           take a payment, and it will not pretend to.
         </p>
