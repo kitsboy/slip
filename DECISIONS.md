@@ -282,3 +282,22 @@ both are complete — half a payment must not look like a finished sale.
 The bundle scanner bans `document.write`, and rightly: it is how an injection becomes executable.
 Printable receipts and close sheets are built as HTML strings in their own window via a Blob URL,
 white background and black text because paper is ink.
+
+### D-46 — The manual is data, and the build refuses to let it drift
+Each panel is documented in `src/manual/entries.ts` and tagged with `data-panel`. `docs:audit` fails
+when a tagged panel has no card, a card points at a file that does not exist, or FEATURE-MAP names
+a path that has been renamed. Documentation stops being a promise and becomes a check.
+
+### D-47 — Screenshots are captured from the shipping build, not drawn
+`npm run manual` boots `dist/` with a seeded shop and photographs each documented panel at 2×. A
+mock-up cannot drift from the app; a photograph of the app cannot either, because the script fails
+when a panel is missing.
+
+### D-48 — A fresh number must look fresh
+The freshness ring is driven by `core/freshness.ts`, the same module whose `stale` level refuses a
+stale rate. One rule, two presentations: a merchant reading the ring and the sale button being
+disabled can never disagree.
+
+### D-49 — Parked tabs reserve nothing
+A parked sale keeps its lines, note and wallet choice — no address, no index. The index is still
+reserved at charge time, so parking five sales cannot consume five addresses or reveal them.

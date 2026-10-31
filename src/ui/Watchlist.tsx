@@ -110,7 +110,7 @@ export default function Watchlist() {
   }
 
   return (
-    <section className="mt-6 panel">
+    <section className="mt-6 panel" data-panel="watchlist">
       <p className="eyebrow">Watchlist</p>
       <h2 className="panel-title mt-1">Addresses you can see but never touch</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">

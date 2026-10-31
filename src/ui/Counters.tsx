@@ -257,7 +257,7 @@ export default function Counters() {
   const [pendingAccountId, setPendingAccountId] = useState<string>('');
 
   return (
-    <section className="mt-6 panel">
+    <section className="mt-6 panel" data-panel="wallets">
       <h2 className="panel-title">Wallets &amp; staff hand-off</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">
         One entry per wallet you need to watch — your own, your employer's, your parents' — each

@@ -121,7 +121,7 @@ export default function Lightning() {
   }
 
   return (
-    <section className="mt-6 panel">
+    <section className="mt-6 panel" data-panel="lightning">
       <p className="eyebrow">Lightning</p>
       <h2 className="panel-title mt-1">Take a Lightning payment</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">

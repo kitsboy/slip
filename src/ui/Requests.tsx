@@ -109,7 +109,7 @@ export default function Requests() {
   }
 
   return (
-    <section className="mt-6 panel">
+    <section className="mt-6 panel" data-panel="requests">
       <p className="eyebrow">Rent &amp; standing requests</p>
       <h2 className="panel-title mt-1">Money that arrives on a schedule</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">

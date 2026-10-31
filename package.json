@@ -1,7 +1,7 @@
 {
   "name": "slip",
   "private": true,
-  "version": "0.13.1",
+  "version": "0.14.0",
   "type": "module",
   "description": "slip — a non-custodial, serverless, watch-only point-of-sale terminal. Sells pay straight into the merchant's own wallet.",
   "license": "MIT",
@@ -18,7 +18,9 @@
     "version:show": "node -e \"console.log(require('./package.json').version)\"",
     "format": "prettier --write 'src/**/*.{ts,tsx,css}' 'tests/**/*.{ts,mjs}' 'scripts/**/*.mjs'",
     "format:check": "prettier --check 'src/**/*.{ts,tsx,css}'",
-    "scan": "bash scripts/scan-bundle.sh dist/index.html"
+    "scan": "bash scripts/scan-bundle.sh dist/index.html",
+    "manual": "npm run build && node scripts/manual-shot.mjs",
+    "docs:audit": "node scripts/docs-audit.mjs"
   },
   "dependencies": {
     "@noble/curves": "1.7.0",

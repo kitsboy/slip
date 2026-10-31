@@ -80,7 +80,7 @@ export default function Settings() {
   }
 
   return (
-    <section className="mt-6 panel" id="settings">
+    <section className="mt-6 panel" data-panel="settings" id="settings">
       <p className="eyebrow">Your shop</p>
       <h2 className="panel-title mt-1">Settings</h2>
 

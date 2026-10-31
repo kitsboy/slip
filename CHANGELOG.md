@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.14.0** — 2026-10-31T16:24:58Z — `35ef2f8048ce` — P12: manual generated from code, docs gate, manual screenshots, freshness rings, tamper-evident footer, parked tabs, repeat last
+
 - **v0.13.1** — 2026-10-31T14:35:24Z — `1ed0cc05f889` — scanning wired into pairing and receipt checking
 
 - **v0.13.0** — 2026-10-31T14:33:10Z — `4fa4a5a04f75` — P11: sales history and day close, CSV, refunds, split payment, silent payments, offline reconcile, camera scan, install, printable receipts

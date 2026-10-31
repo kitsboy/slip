@@ -80,7 +80,7 @@ export default function AnchorPanel() {
   }
 
   return (
-    <section className="mt-6 panel">
+    <section className="mt-6 panel" data-panel="anchor">
       <p className="eyebrow">Day book &amp; proof</p>
       <h2 className="panel-title mt-1">Prove what you rang up</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">

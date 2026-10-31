@@ -18,6 +18,8 @@ import Watchlist from './ui/Watchlist';
 import History from './ui/History';
 import SilentPay from './ui/SilentPay';
 import Install from './ui/Install';
+import Manual from './ui/Manual';
+import BookSeal from './ui/BookSeal';
 import Status from './ui/Status';
 import { applyTheme, loadTheme, nextTheme, saveTheme, systemTheme, themeLabel, type Theme } from './core/theme';
 import Wizard from './ui/Wizard';
@@ -196,6 +198,8 @@ export default function App() {
           <AddressCheck />
         </div>
 
+        <Manual />
+
         <Services />
 
         <About />
@@ -212,6 +216,7 @@ export default function App() {
       <footer className="border-t border-line px-5 py-6">
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-2 text-center">
           <span className="chip figure">{buildLabel()}</span>
+          <BookSeal />
           <Status />
           <Install />
           <RequestCounter />

@@ -87,6 +87,10 @@ NWC, 19 further languages, iOS App Store build, thermal printing, kiosk, peer sy
 | Silent Payments | `sp1…` display + BIP-21 QR, recorded as a manual confirmation by design |
 | Scanning | Camera (BarcodeDetector) where supported, USB wedge anywhere, paste always |
 | Install | Add-to-device prompt only when the browser actually offers one |
+| Manual | Generated from panel declarations; `npm run docs:audit` fails the build when docs drift |
+| Freshness | Age rings on fetched numbers, from the same rule that refuses a stale rate |
+| Book seal | Today's digest in the footer, changing as sales land |
+| Parked tabs | Up to five held sales, resumed in one tap; repeat-last for the usual order |
 
 ## Live
 

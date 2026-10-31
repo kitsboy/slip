@@ -62,7 +62,7 @@ export default function Verify() {
   }
 
   return (
-    <section className="mt-6 panel">
+    <section className="mt-6 panel" data-panel="verify">
       <p className="eyebrow">Receipts</p>
       <h2 className="panel-title mt-1">Check a receipt</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">

@@ -35,6 +35,8 @@ import { formatProof, type ReceiptProof } from '../core/proof';
 import { fetchRate, requireFresh, type RateQuote } from '../core/providers/rates';
 import { publishToDisplay, openCustomerDisplay } from './CustomerDisplay';
 import { describeSweep, sweep } from '../core/reconcile';
+import { closeTab, park, repeatable, tabLabel, tabSubtotalMinor, toTabLine, type ParkedTab, type RepeatSale } from '../core/tabs';
+import FreshnessRing from './FreshnessRing';
 import { openPrintable } from './print';
 
 interface CartLine {
@@ -52,6 +54,10 @@ const POLL_MS = 10_000;
  * both a privacy leak and a way to get rate-limited at exactly the wrong moment.
  */
 const RATE_CACHE = new Map<string, { at: number; promise: Promise<RateQuote> }>();
+
+/** Parked sales and the last completed one, both local to this device. */
+const TABS_KEY = 'slip.tabs.v1';
+const LAST_SALE_KEY = 'slip.lastSale.v1';
 
 function qrSvg(text: string, scale = 5): string {
   return renderQrSvg(text, { scale, margin: 2 });
@@ -82,6 +88,20 @@ export default function Till() {
   const [splitWalletId, setSplitWalletId] = useState('');
   const [splitPercent, setSplitPercent] = useState('50');
   const [sweepNote, setSweepNote] = useState<string>('');
+  const [tabs, setTabs] = useState<ParkedTab[]>(() => {
+    try {
+      return JSON.parse(window.localStorage.getItem(TABS_KEY) ?? '[]') as ParkedTab[];
+    } catch {
+      return [];
+    }
+  });
+  const [lastSale, setLastSale] = useState<RepeatSale | null>(() => {
+    try {
+      return JSON.parse(window.localStorage.getItem(LAST_SALE_KEY) ?? 'null') as RepeatSale | null;
+    } catch {
+      return null;
+    }
+  });
   const poller = useRef<number | null>(null);
 
   const ledger = useMemo<LedgerRepository>(() => createLedger(window.localStorage), []);
@@ -242,6 +262,66 @@ export default function Till() {
 
   function removeLine(id: string) {
     setCart((lines) => lines.map((l) => (l.item.id === id ? { ...l, quantity: l.quantity - 1 } : l)).filter((l) => l.quantity > 0));
+  }
+
+  function saveTabs(next: ParkedTab[]) {
+    setTabs(next);
+    window.localStorage.setItem(TABS_KEY, JSON.stringify(next));
+  }
+
+  function parkCurrent() {
+    if (!wallet) return;
+    const draft: ParkedTab = {
+      id: `tab_${Date.now().toString(36)}`,
+      label: '',
+      lines: cart.map((l) => toTabLine(l.item, l.quantity)),
+      custom,
+      walletId: wallet.id,
+      note: tipJar ? 'tip jar' : '',
+      createdAt: new Date().toISOString(),
+    };
+    const result = park(tabs, draft);
+    if (!result.ok) {
+      setStatus(result.reason ?? 'could not park that sale');
+      return;
+    }
+    saveTabs([...result.tabs]);
+    setCart([]);
+    setCustom('');
+    setTipJar(false);
+    setStatus('parked — tap it above to resume');
+  }
+
+  function resumeTab(tab: ParkedTab) {
+    const lines: CartLine[] = [];
+    const missing: string[] = [];
+    for (const line of tab.lines) {
+      const item = items.find((i) => i.id === line.itemId);
+      if (item) lines.push({ item, quantity: line.quantity });
+      else missing.push(line.name);
+    }
+    setCart(lines);
+    setCustom(tab.custom);
+    if (tab.walletId && wallets.some((w) => w.id === tab.walletId)) setWalletId(tab.walletId);
+    saveTabs(closeTab(tabs, tab.id));
+    setStatus(
+      missing.length > 0
+        ? `resumed, but ${missing.join(', ')} is no longer in the catalog`
+        : 'resumed',
+    );
+  }
+
+  function repeatLast() {
+    if (!repeatable(lastSale)) return;
+    const lines: CartLine[] = [];
+    for (const line of lastSale.lines) {
+      const item = items.find((i) => i.id === line.itemId);
+      if (item) lines.push({ item, quantity: line.quantity });
+    }
+    setCart(lines);
+    setCustom(lastSale.custom);
+    setTipJar(false);
+    setStatus('last sale loaded — check the total, then charge');
   }
 
   function charge() {
@@ -450,7 +530,20 @@ export default function Till() {
   }
 
   async function finish() {
-    if (receipt) await callAgent('slip:paid', { invoice: receipt, manual: receipt.manual });
+    if (receipt) {
+      // Remember what was sold, so the next identical order is one tap. Local only.
+      if (cart.length > 0 || custom.trim() !== '') {
+        const sale: RepeatSale = {
+          lines: cart.map((l) => toTabLine(l.item, l.quantity)),
+          custom,
+          totalMinor: receipt.amountMinor.toString(),
+          at: new Date().toISOString(),
+        };
+        setLastSale(sale);
+        window.localStorage.setItem(LAST_SALE_KEY, JSON.stringify(sale));
+      }
+      await callAgent('slip:paid', { invoice: receipt, manual: receipt.manual });
+    }
     publishToDisplay({ kind: 'clear' });
     setProof(null);
     setReceipt(null);
@@ -460,6 +553,9 @@ export default function Till() {
     setTipJar(false);
     setStatus('');
     reload();
+    // Every panel reads the same store: the books changed, so the footer seal and the day close
+    // must recompute rather than showing the digest from before this sale.
+    window.dispatchEvent(new Event('slip:data-changed'));
   }
 
   // --- payment screen -------------------------------------------------------
@@ -663,7 +759,7 @@ export default function Till() {
   const walletTakings = wallet ? takingsToday(ledger.load().invoices, wallet.id) : 0n;
 
   return (
-    <section className="mt-6 panel">
+    <section className="mt-6 panel" data-panel="till">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <p className="eyebrow">Till</p>
@@ -732,7 +828,41 @@ export default function Till() {
 
           {items.length > 0 && (
             <>
-              <div className="mt-3 flex flex-wrap gap-1">
+              {(tabs.length > 0 || repeatable(lastSale)) && (
+            <div className="mt-3 flex flex-wrap items-center gap-1" data-tabs={tabs.length}>
+              {tabs.map((tab) => (
+                <span key={tab.id} className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => resumeTab(tab)}
+                    className="text-muted hover:text-ink"
+                    title={`Resume ${tabLabel(tab)}`}
+                  >
+                    {tabLabel(tab)} · {formatFiat({ minor: tabSubtotalMinor(tab), currency: settings.currency })}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => saveTabs(closeTab(tabs, tab.id))}
+                    aria-label={`Close ${tabLabel(tab)}`}
+                    className="text-[10px] text-muted hover:text-bad"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              {repeatable(lastSale) && (
+                <button
+                  type="button"
+                  onClick={repeatLast}
+                  className="rounded-full border border-accent px-2 py-1 text-[11px] uppercase tracking-wider text-accent"
+                >
+                  repeat last
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="mt-3 flex flex-wrap gap-1">
                 {cats.map((c) => (
                   <button
                     key={c}
@@ -799,14 +929,23 @@ export default function Till() {
               >
                 tip jar mode
               </button>
-              {cart.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setCart([])}
-                  className="rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted"
-                >
-                  clear cart
-                </button>
+              {(cart.length > 0 || custom.trim() !== '') && (
+                <>
+                  <button
+                    type="button"
+                    onClick={parkCurrent}
+                    className="rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+                  >
+                    park sale
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCart([])}
+                    className="rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted"
+                  >
+                    clear cart
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -880,7 +1019,12 @@ export default function Till() {
             </div>
           )}
 
-          {rateNote && <p className="mt-1 text-[10px] text-muted">{rateNote}</p>}
+          {rateNote && (
+            <p className="mt-1 flex items-center gap-2 text-[10px] text-muted">
+              {quote && <FreshnessRing fetchedAt={quote.fetchedAt} />}
+              <span>{rateNote}</span>
+            </p>
+          )}
           {sweepNote && <p className="mt-1 text-[10px] text-muted">Reconciliation: {sweepNote}</p>}
 
           {cart.length > 0 && (

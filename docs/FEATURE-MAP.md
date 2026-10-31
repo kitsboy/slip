@@ -39,6 +39,13 @@ is covered by tests. Nothing on this page is aspirational.
 | Offline reconciliation | Open sales re-checked on load and whenever the network returns, with what changed | live | `core/reconcile.ts` |
 | Camera & wedge scanning | BarcodeDetector where the browser has it, keyboard-wedge buffer for USB scanners, paste everywhere else | live | `core/scanner.ts`, `ui/Scan.tsx` |
 | Printable receipts | A white, black-text receipt sheet in its own window (ink economy), not the dark UI | live | `ui/print.ts` |
+| In-app manual | Every panel declares its own card (why, steps, limit); the page is generated from those declarations | live | `src/manual/entries.ts`, `ui/Manual.tsx` |
+| Docs gate | `npm run docs:audit` fails on a panel with no card, a card pointing at a missing file, or a FEATURE-MAP path that no longer exists | live | `scripts/docs-audit.mjs` |
+| Manual screenshots | `npm run manual` photographs every documented panel at 2× from the built app | live | `scripts/manual-shot.mjs` |
+| Freshness ring | Every fetched number carries an age ring driven by the same rule that refuses a stale rate | live | `core/freshness.ts`, `ui/FreshnessRing.tsx` |
+| Tamper-evident footer | Today's completed-sales digest in the footer, changing as sales land | live | `ui/BookSeal.tsx` |
+| Parked tabs | Up to five half-built sales parked and resumed; no address is reserved until charged | live | `core/tabs.ts` |
+| Repeat last sale | One tap to reload the previous order | live | `core/tabs.ts` |
 | Install prompt | "Add to device" only when the browser offers a real prompt; says so when already installed | live | `ui/Install.tsx` |
 | **Silent Payments** | `sp1…`/`tsp1…` validated and shown with a BIP-21 QR; every sale recorded as a manual confirmation, because detection needs a scan key slip will never hold | live (display + manual) | `core/silentpay.ts`, `ui/SilentPay.tsx` |
 | **Fedimint** | request mode against a federation | planned — needs a federation + gateway to test against | — |

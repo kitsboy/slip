@@ -172,7 +172,7 @@ export default function Backup() {
   const lines = log ? exportLogLines(log) : [];
 
   return (
-    <section className="mt-6 panel">
+    <section className="mt-6 panel" data-panel="backup">
       <p className="eyebrow">Backups &amp; staff record</p>
       <h2 className="panel-title mt-1">Your records, on your device, recoverable</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">
