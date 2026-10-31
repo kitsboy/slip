@@ -1,6 +1,6 @@
 # Changelog
 
-- **v0.18.1** — 2026-10-31T21:06:47Z — `20ce9718307a` — polish: no horizontal overflow, working anchor navigation, hidden skip link, grouped nav
+- **v0.18.1** — 2026-10-31T21:06:47Z — `562aaaa` (tree `20ce9718307a` at deploy) — polish: no horizontal overflow, working anchor navigation, hidden skip link, grouped nav
 
 - **v0.18.0** — 2026-10-31T21:00:37Z — `266057df7a82` — polish pass: navigation by intent, honest services list, copy and access fixes, education pack generator
 
