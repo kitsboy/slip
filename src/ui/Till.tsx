@@ -827,7 +827,7 @@ export default function Till() {
           <h2 className="panel-title mt-1">Take a payment</h2>
         </div>
         <span className="chip">
-          {online ? 'detection live' : 'offline — detection paused'}
+          {online ? 'watching for payment' : 'offline — not watching'}
         </span>
       </div>
 
@@ -953,6 +953,11 @@ export default function Till() {
                     <span className="block text-lg" aria-hidden>
                       {i.emoji ?? '•'}
                     </span>
+                    {cart.find((l) => l.item.id === i.id) && (
+                      <span className="chip ml-1 align-middle" aria-label={`${cart.find((l) => l.item.id === i.id)!.quantity} in the cart`}>
+                        ×{cart.find((l) => l.item.id === i.id)!.quantity}
+                      </span>
+                    )}
                     <span className="mt-1 block text-xs">{i.name}</span>
                     <span className="figure mt-0.5 block text-[11px] text-muted">
                       {i.priceCurrency === 'SATS'
@@ -967,7 +972,7 @@ export default function Till() {
 
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <label className="block" htmlFor="tl-custom">
-              <span className="eyebrow">Custom amount ({settings.currency})</span>
+              <span className="eyebrow">Custom amount ({settings.currency}) — added to the items</span>
               <input
                 id="tl-custom"
                 value={custom}
@@ -986,7 +991,8 @@ export default function Till() {
                   setTipJar(true);
                   setCategory('All');
                 }}
-                className={`rounded-lg border px-3 py-2 text-[11px] uppercase tracking-wider ${tipJar ? 'border-accent text-accent' : 'border-line text-muted'}`}
+                aria-pressed={tipJar}
+                className={`rounded-lg border px-3 py-2 text-[11px] uppercase tracking-wider ${tipJar ? 'border-accent bg-accent/10 text-accent' : 'border-line text-muted'}`}
               >
                 tip jar mode
               </button>
@@ -1086,7 +1092,9 @@ export default function Till() {
               <span>{rateNote}</span>
             </p>
           )}
-          {sweepNote && <p className="mt-1 text-[10px] text-muted">Reconciliation: {sweepNote}</p>}
+          {sweepNote && sweepNote !== 'nothing was open to check' && (
+            <p className="mt-1 text-[10px] text-muted">Open sales: {sweepNote}</p>
+          )}
 
           {cart.length > 0 && (
             <ul className="mt-3 space-y-1">

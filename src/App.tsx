@@ -35,13 +35,12 @@ import { store as appStore } from './core/storage';
 /**
  * slip — the shell.
  *
- * Deliberately not a till yet: no catalog, no invoice, no payment engine. The panels
- * below are real and tested, and the page says exactly that — a till that shows a
- * receive address before the derivation gate exists is the one bug that costs a
- * merchant money, so screens land in a fixed order (SLIP-PLAN.md §7).
+ * A working till and its surrounding instruments. The page is ordered by what a shopkeeper is
+ * trying to do — sell, see the money in, close the books, prove something, set up, learn — and
+ * every surface is real, tested and documented (docs/FEATURE-MAP.md).
  */
 
-export const BUILD_STAGE = 'P10 — lightning, anchoring, pairing, watchlist, customer screen';
+export const BUILD_STAGE = 'working till — sell, close the day, prove it';
 
 const TRUST: ReadonlyArray<readonly [string, string]> = [
   ['watch-only', 'no key can be pasted'],
@@ -110,6 +109,7 @@ export default function App() {
               aria-label={`Theme: ${themeLabel(theme)}. Switch theme.`}
               title={`Theme: ${themeLabel(theme)}`}
             >
+              <span aria-hidden>{theme === 'dark' ? '◐' : theme === 'light' ? '☀' : '◑'}</span>
               {themeLabel(theme)}
             </button>
             <button
@@ -126,11 +126,15 @@ export default function App() {
       {wizardOpen ? (
         <Wizard onDone={() => setWizardOpen(false)} />
       ) : (
-      <main className="mx-auto w-full max-w-3xl flex-1 px-5 pb-16 pt-10">
+      <>
+        <a href="#sell" className="skip-link">
+          Skip to the till
+        </a>
+        <main className="mx-auto w-full max-w-3xl px-5 pb-16 pt-6">
         <section>
           <p className="eyebrow">non-custodial · serverless · no KYC</p>
           <h1 className="mt-2 text-3xl font-semibold leading-[1.1] tracking-tight sm:text-4xl">
-            Sells pay straight into your own wallet.
+            Sales pay straight into your own wallet.
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
             slip never holds money, never asks for a seed phrase, and has no server, account or
@@ -162,8 +166,8 @@ export default function App() {
 
         <section className="mt-8 grid gap-3 sm:grid-cols-2">
           {[
-            ['Stage', BUILD_STAGE],
-            ['Planned rails', 'BTC · LTC · Lightning · Fedimint · Silent Payments'],
+            ['Status', BUILD_STAGE],
+            ['Rails live', 'BTC · LTC · Lightning · Silent Payments (display)'],
             ['Networks', 'mainnet · signet · testnet4 · LTC testnet'],
             ['Backend', 'none — by construction'],
           ].map(([k, v]) => (
@@ -176,56 +180,89 @@ export default function App() {
 
         {assist.wallClock && <WallClock />}
 
-        <Counters />
+        {/* The page is long by design, so it is navigable by intent rather than by scroll. */}
+        <nav
+          aria-label="Sections"
+          className="sticky top-0 z-20 mt-4 flex w-full gap-1 overflow-x-auto border-y border-line bg-bg/95 px-1 py-2 backdrop-blur"
+        >
+          {[
+            ['sell', 'Sell'],
+            ['money', 'Money in'],
+            ['books', 'Books'],
+            ['proof', 'Proof'],
+            ['setup', 'Setup'],
+            ['more', 'More'],
+            ['learn', 'Learn'],
+          ].map(([id, label]) => (
+            <a
+              key={id}
+              href={`#${id}`}
+              className="shrink-0 rounded-full border border-line px-3 py-1 text-[11px] text-muted hover:border-accent hover:text-accent"
+            >
+              {label}
+            </a>
+          ))}
+          <a
+            href="?demo=1"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="shrink-0 rounded-full border border-warn px-3 py-1 text-[11px] text-warn"
+          >
+            Demo
+          </a>
+        </nav>
 
-        <Till />
+        <Group id="sell" label="Sell" why="Ring up a customer">
+          <Till />
+          <Lightning />
+        </Group>
 
-        <Lightning />
+        <Group id="money" label="Money in" why="Sales that arrive on a schedule">
+          <Requests />
+        </Group>
 
-        <Requests />
+        <Group id="books" label="Books" why="What you took, and the proof of it">
+          <History />
+          {assist.weeklyLetter && <WeeklyLetter />}
+          <AnchorPanel />
+        </Group>
 
-        <AnchorPanel />
+        <Group id="proof" label="Proof" why="Check a receipt, check the app itself">
+          <Verify />
+          <SelfTest />
+        </Group>
 
-        <Verify />
+        <Group id="setup" label="Setup" why="Wallets, settings, backups, calculators">
+          <Counters />
+          <Settings />
+          <Backup />
+          <KeyCheck />
+          <div className="grid gap-3 lg:grid-cols-2 lg:items-start">
+            <PriceCheck />
+            <AddressCheck />
+          </div>
+        </Group>
 
-        <History />
+        <Group id="more" label="More" why="Watching, pairing, privacy rails, a real test">
+          <SilentPay />
+          <Pair />
+          <Watchlist />
+          {assist.liveTest && <LiveTest />}
+        </Group>
 
-        <SilentPay />
+        <Group id="learn" label="Learn" why="The manual, what slip will offer, and why it is built this way">
+          <Manual />
+          <Services />
+          <About />
+        </Group>
 
-        <Pair />
-
-        <Watchlist />
-
-        <Backup />
-
-        <Settings />
-
-        <KeyCheck />
-
-        <div className="grid gap-3 lg:grid-cols-2 lg:items-start">
-          <PriceCheck />
-          <AddressCheck />
-        </div>
-
-        <SelfTest />
-
-        {assist.liveTest && <LiveTest />}
-
-        {assist.weeklyLetter && <WeeklyLetter />}
-
-        <Manual />
-
-        <Services />
-
-        <About />
-
-        <p className="mt-6 rounded-xl border border-warn/40 bg-warn/5 p-4 text-sm leading-relaxed text-warn">
-          Not a till yet. The counters, key check, price maths and address check above are real
-          and tested, but there is no catalog, no invoice and no payment engine — those are the
-          next phases in <code className="font-mono text-xs">SLIP-PLAN.md</code>. Nothing here
-          can take a payment, and it will not pretend to.
+        <p className="mt-6 rounded-xl border border-line p-4 text-sm leading-relaxed text-muted">
+          Everything on this page is live and covered by tests. slip cannot hold, move, refund or
+          recover money: there is no key here to do it with. What it can do is show an address,
+          watch it, and tell you honestly what it saw.
         </p>
-      </main>
+        </main>
+      </>
       )}
 
       <footer className="border-t border-line px-5 py-6">
@@ -254,5 +291,33 @@ export default function App() {
         </div>
       </footer>
     </div>
+  );
+}
+
+/**
+ * A page section with a name and a reason.
+ *
+ * The reason is the point: a merchant scanning the page should be able to decide "not that one"
+ * in a second, without reading every panel underneath.
+ */
+function Group({
+  id,
+  label,
+  why,
+  children,
+}: {
+  id: string;
+  label: string;
+  why: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section id={id} className="mt-10 scroll-mt-16">
+      <div className="flex flex-wrap items-baseline gap-2 border-b border-line pb-1">
+        <h2 className="text-[11px] uppercase tracking-[0.2em] text-muted">{label}</h2>
+        <span className="text-[10px] text-muted/80">{why}</span>
+      </div>
+      {children}
+    </section>
   );
 }

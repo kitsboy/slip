@@ -1,0 +1,874 @@
+s
+slip
+Light
+run setup again
+
+NON-CUSTODIAL · SERVERLESS · NO KYC
+
+Sells pay straight into your own wallet.
+
+slip never holds money, never asks for a seed phrase, and has no server, account or API key behind it. You paste public wallet material once — an xpub, a descriptor, a Silent Payments address or a Lightning address — and every sale is paid directly to you.
+
+RUN SETUP AGAIN
+five screens · about a minute
+watch-only
+· no key can be pasted
+no backend
+· no server, account or key
+offline
+· works with the network off
+0 requests
+· measured, not promised
+STAGE
+P10 — lightning, anchoring, pairing, watchlist, customer screen
+PLANNED RAILS
+BTC · LTC · Lightning · Fedimint · Silent Payments
+NETWORKS
+mainnet · signet · testnet4 · LTC testnet
+BACKEND
+none — by construction
+
+CAFÉ NORD
+
+20:50
+
+2026-10-31 UTC
+
+TODAY
+22,084 sats
+LAST SALE
+09:00
+
+2 sales today · the till is quiet
+
+Wallets & staff hand-off
+
+One entry per wallet you need to watch — your own, your employer's, your parents' — each with its own colour and label so you can tell them apart at a glance. A wallet is any of: an xpub, a BIP-380 descriptor (multisig included), a single public key, or a plain address. For a BIP-85 child account you import the child xpub your own signer produced — slip never derives BIP-85 itself, because that needs your master key.
+
+Front counter
+CHECKED
+
+bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu
+
+BLUE · TILL / SHOP COUNTER · BTC-MAINNET · P2WPKH · FP 7EF32BDB
+
+CHECK BALANCE
+ADDRESS 0/0 QR
+Back bar
+CHECKED
+
+bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu
+
+TEAL · TILL / SHOP COUNTER · BTC-MAINNET · P2WPKH · FP 7EF32BDB
+
+CHECK BALANCE
+ADDRESS 0/0 QR
+Add a wallet
+NAME
+NETWORK
+Bitcoin
+Bitcoin Signet
+Bitcoin Testnet4
+Litecoin
+Litecoin Testnet
+SCRIPT
+Auto from prefix
+Native segwit
+Nested segwit
+Legacy
+WHAT IS IT FOR
+Till / shop counter
+Work (from my employer)
+Family (parents, joint)
+Personal
+Other
+NOTE (OPTIONAL)
+COLOUR — ORANGE
+XPUB · DESCRIPTOR · PUBLIC KEY · ADDRESS
+Hand the till over
+COUNTER
+choose…
+Front counter (ready)
+Back bar (ready)
+STAFF NAME
+TILL PIN
+HAND OVER
+SET PIN
+
+Only a hash of the PIN is stored, on this device. Handing the till over names who is holding it — switching counters without the PIN is refused.
+
+TILL
+
+Take a payment
+detection live
+WALLET TAKING THIS SALE
+Front counter · btc-mainnet
+Back bar · btc-mainnet
+RATE PER 1 BTC (USD)
+All
+Drinks
+☕
+Espresso
+3.50 USD
+CUSTOM AMOUNT (USD)
+TIP JAR MODE
+Split this sale across two wallets
+Each leg gets its own address and its own QR. The receipt waits for both.
+
+Reconciliation: nothing was open to check
+
+CHARGE
+CUSTOMER SCREEN
+today on this wallet: 17,084 sats
+
+LIGHTNING
+
+Take a Lightning payment
+
+Your Lightning address is public, so slip can ask your own wallet for an invoice at the exact amount. No node, no channel, no credential — and nothing here can spend.
+
+LIGHTNING ADDRESS
+AMOUNT (USD)
+RATE PER 1 BTC (USD)
+NOTE (OPTIONAL)
+REQUEST INVOICE
+
+RENT & STANDING REQUESTS
+
+Money that arrives on a schedule
+
+A request is an ask, not a payment: it has a wallet, an amount and a due date, and slip never calls it covered unless a completed invoice says so.
+
+WHAT IS IT
+INTO WALLET
+Front counter
+Back bar
+AMOUNT (USD)
+HOW OFTEN
+Once
+Weekly
+Monthly
+RATE PER 1 BTC (USD)
+ADD REQUEST
+IN (30D)
+22,084 sats
+COMMITTED (30D)
+0.00 USD
+RUNWAY
+—
+DUE NOW
+0
+
+A blunt clock: completed takings over 30 days against requests due in the next 30. It is a sanity check, not accounting.
+
+DAY BOOK & PROOF
+
+Prove what you rang up
+
+Each day's completed sales are hashed into one digest on this device. Nothing leaves until you press stamp, and stamping only submits the digest to a public calendar — it is not a Bitcoin confirmation yet.
+
+DAY
+2026-10-31
+2026-10-30
+2026-10-29
+2026-10-28
+2026-10-27
+2026-10-26
+2026-10-25
+COMPLETED SALES
+
+2 · 22,084 sats
+
+DAY DIGEST
+
+866b4ce37fa93296f969f6a53036c7d6…
+
+STAMP WITH A CALENDAR
+
+Calendars: https://a.pool.opentimestamps.org · https://b.pool.opentimestamps.org · https://ots.btc.catallaxy.com — third parties we do not control. They learn that a digest of this shape exists, and nothing about your customers.
+
+RECEIPTS
+
+Check a receipt
+
+Paste the text under a receipt's QR (or scan it and paste what your phone shows). slip compares it against the books on this device. Nothing is sent anywhere.
+
+RECEIPT TEXT
+CHECK RECEIPT
+SCAN THE RECEIPT
+USE
+OR SHOW THE PROOF FOR A SALE ON THIS DEVICE
+— choose a completed sale —
+2026-10-31 09:00 · 17,084 sats · observed
+2026-10-31 09:00 · 5,000 sats · manual
+
+HISTORY & DAY CLOSE
+
+What you rang up
+
+Completed sales only. Refunds are subtracted, and the sheet always states how much a human confirmed rather than slip observed.
+
+DAY
+2026-10-31
+SALES
+
+2
+
+NET
+
+22,084 sats
+
+REFUNDED
+
+0 sats
+
+ON-CHAIN
+
+17,084 sats
+
+LIGHTNING
+
+0 sats
+
+MANUAL
+
+5,000 sats
+
+OTHER
+
+0 sats
+
+Observed by slip: 17,084 sats · confirmed by a human: 5,000 sats
+
+DOWNLOAD CSV
+PRINT DAY CLOSE
+FIND A SALE
+A customer comes back with a receipt and no invoice number: type what they remember.
+09:00 · Front counter
+17,084 sats
+
+onchaininv_a
+
+REFUND
+09:00 · Back bar
+5,000 sats
+
+manualmanual confirmation · inv_b
+
+REFUND
+SCAN A RECEIPT
+USE
+
+SILENT PAYMENTS
+
+Take a payment to your sp1 address
+
+Silent Payments can only be detected with your wallet's scan key, which slip will never hold. Every sp1 sale is therefore recorded as a manual confirmation: your wallet says it paid, not slip.
+
+YOUR SILENT PAYMENTS ADDRESS
+USE
+AMOUNT (USD)
+RATE PER 1 BTC (USD)
+SHOW PAYMENT QR
+
+PAIRING
+
+Move a wallet to another device
+
+A pairing code is public wallet material — the same thing you would write on a card for a colleague. Nothing secret travels, and nothing arrives checked: the receiving device must still confirm address 0/0 before it takes money.
+
+SHOW A CODE FOR
+— choose a wallet —
+Front counter · btc-mainnet
+Back bar · btc-mainnet
+PASTE A CODE TO IMPORT
+OR SCAN IT
+USE
+READ CODE
+IMPORT (UNCHECKED)
+
+WATCHLIST
+
+Addresses you can see but never touch
+
+A supplier, a landlord, a cold wallet. Adding one costs nothing and sends nothing; checking one asks your explorer, and every balance below carries the moment it was read.
+
+NAME
+ADDRESS
+NETWORK
+Bitcoin · btc-mainnet
+Bitcoin Signet · btc-signet
+Bitcoin Testnet4 · btc-testnet4
+Bitcoin Testnet3 · btc-testnet3
+Litecoin · ltc-mainnet
+Litecoin Testnet · ltc-testnet
+ADD TO WATCHLIST
+
+BACKUPS & STAFF RECORD
+
+Your records, on your device, recoverable
+
+The file holds your counters, settings and the staff log — and no keys, because none exist here. It is still encrypted, because xpubs reveal every past and future address of a wallet.
+
+BACKUP PASSPHRASE
+EXPORT ENCRYPTED BACKUP
+PRINT / SAVE AS PDF
+RESTORE FROM A .SLIP FILE
+Staff & shift log
+chain intact · 0 events
+
+No hand-offs recorded yet. Hand the till over above and it appears here, hash-chained.
+
+The log is tamper-evident, not tamper-proof: each entry carries the hash of the one before it, so an edited or reordered line is detectable. Someone holding the device can still rewrite the whole chain — there is no server and no signature to prevent that, and claiming otherwise would be a lie.
+
+YOUR SHOP
+
+Settings
+SHOP NAME
+CURRENCY
+USD — US Dollar
+CAD — Canadian Dollar
+EUR — Euro
+GBP — Pound Sterling
+AUD — Australian Dollar
+JPY — Yen
+CHF — Swiss Franc
+MXN — Mexican Peso
+KWD — Kuwaiti Dinar
+VND — Dong
+TAX %
+RECEIPT FOOTER
+CHAIN-DATA ENDPOINT (LEAVE EMPTY FOR THE PUBLIC EXPLORER)
+
+A public explorer learns which addresses you ask about, and your IP. Point this at your own Esplora / electrs and it learns nothing. slip never sends anything else.
+
+RATE ENDPOINT (EMPTY = TYPE THE RATE YOURSELF)
+Fetch the rate for me
+The quote is stamped with the minute it was read and refused after 10 minutes. If the service is down you will be asked to type the rate, never sold a stale one.
+STAFF TIP JARS
+
+A named person can take tips into their own wallet. Only public wallet material is stored — slip still cannot spend a sat.
+
+Ana → Back bar
+REMOVE
+NAME
+THEIR WALLET
+— choose —
+Front counter
+Back bar
+ADD
+remember to press Save settings
+CREDIT ON PAYMENT LABELS (EMPTY = SAY NOTHING)
+Rides on the BIP-21 label a customer’s wallet already shows — never a logo across the till.
+ASSISTANCE
+
+Every switch here adds words or widgets to the screen. A busy counter can turn them all off; a first week can leave them on. Nothing here changes what slip does with money.
+
+Explain a number when I tap it
+One plain sentence about what a figure means. Nothing changes, nothing is sent.
+Rehearsal mode
+Practise a whole sale with a real QR. No ledger entry, no proof, and the receipt says REHEARSAL.
+Show hints
+Short helper lines under fields, for the first week or two.
+Show age rings
+A ring that drains as a rate or balance gets older. Turn it off if you read ages elsewhere.
+Show the day digest in the footer
+Today’s book hash, changing as sales land. Quiet proof, or noise — your call.
+Note when the till changes hands
+A three-line summary for whoever takes over: parked sales, refunds, stale rate.
+Offer the printable counter card
+A one-page A4 of the rules for staff, for the wall behind the till.
+Quiet clock mode
+A big clock with today’s takings, for the gaps between customers.
+Weekly letter
+A week of takings written as sentences you can print and keep.
+Live 100 sat test
+A real invoice for one hundred sats, on Lightning or signet, to prove a rail works before you trust it.
+PRINT THE COUNTER CARD
+One A4 sheet of the rules, for the wall behind the till.
+SAVE SETTINGS
+
+DANGER ZONE
+
+Wiping removes every counter, the PIN hash and the shift log from this device. It cannot touch your money, because slip never had any — but if you have no backup, the counter list is gone for good. The wipe is written into the log first.
+
+WIPE THIS DEVICE
+back to top
+Check your key
+
+Paste an account-level xpub / ypub / zpub / Ltub / tpub. slip derives the first five receiving addresses and nothing else. Compare address #0 with your wallet's Receive tab — if they differ, stop and tell me before any sale.
+
+PUBLIC KEY (NEVER A SEED PHRASE)
+Bitcoin
+Signet
+Testnet4
+Litecoin
+LTC testnet
+SCRIPT TYPE (LEAVE ON AUTO TO TRUST THE PREFIX)
+Auto from prefix
+Native segwit (bc1q…)
+Taproot (bc1p…)
+Nested segwit (3…)
+Legacy (1…)
+Price check
+
+The till's arithmetic, before the till exists. Integer-only: fiat is counted in minor units, sats are counted in whole sats, and the fiat→sats step always rounds up so you are never short.
+
+PRICE
+CURRENCY
+USD — US Dollar
+CAD — Canadian Dollar
+EUR — Euro
+GBP — Pound Sterling
+AUD — Australian Dollar
+JPY — Yen
+CHF — Swiss Franc
+MXN — Mexican Peso
+KWD — Kuwaiti Dinar
+VND — Dong
+RATE (PER 1 BTC)
+TAX (BPS)
+TIP (BPS)
+SUBTOTAL
+4.50 USD
+TAX
+0.00 USD
+TIP
+0.00 USD
+TOTAL
+4.50 USD
+CHARGE
+7,500 sats
+MINOR UNITS
+2
+
+100 bps = 1%. A rate is only ever used from a snapshot you can see; slip never invents a price.
+
+Check an address
+
+Paste any BTC or LTC address. slip tells you which network it belongs to and refuses a mismatch — before it ever reaches a QR code.
+
+ADDRESS
+RINGING INTO
+Bitcoin
+Bitcoin Signet
+Bitcoin Testnet4
+Bitcoin Testnet3
+Litecoin
+Litecoin Testnet
+
+SELF TEST
+
+Prove it works
+
+Runs the arithmetic that must be exact — address derivation, money rounding, QR encoding and receipt proofs — against fixed answers, on this device, with the network off.
+
+RUN THE CHECK
+
+LIVE TEST
+
+A real 100 sat payment
+
+Everything else here can be practised with pretend money. This is the opposite: a genuine invoice for one hundred satoshis, on a rail you choose, so you can watch real money arrive before the till handles a real price. slip still cannot spend anything.
+
+LIGHTNING
+SIGNET
+YOUR LIGHTNING ADDRESS (REAL MONEY)
+REQUEST A REAL 100 SAT INVOICE
+
+This panel spends real (or test) money from your wallet, never slip’s — slip has none. Nothing is stored about the test except the invoice it watched.
+
+WEEKLY LETTER
+
+Café Nord — week to 2026-10-31
+2 sales, 22084 sats net after refunds.
+1 sale confirmed by a human rather than observed: that is 5000 sats of your own word.
+Busiest hour: 09:00 UTC, 2 sales.
+Nothing in this letter left your device to be written.
+PRINT THE LETTER
+
+MANUAL
+
+How to use slip
+
+Written for a shop, not an engineer. Each card says what a panel is for, the steps, and the one limit you should know before you rely on it.
+
+Try it without a wallet. Open the demo café: a pretend shop in its own drawer, with a simulated explorer. Nothing leaves the device and your real books are never touched.
+
+OPEN THE DEMO SHOP
+
+A QR for your customers. Print this and stand it beside the till: it opens one plain page explaining what they are paying, who holds the money, and why no receipt is emailed.
+
+SEARCH
+START HERE
+
+The two things to do before your first sale.
+
+Your wallets
+live
+
+slip never holds money, so a wallet here is only a public address slip watches for you.
+
+Paste an xpub, a descriptor, a single public key or one address.
+Compare address 0/0 with the same address in your own wallet.
+Tick the box only when they match, then save.
+
+Limit: A wallet is unusable until you confirm address 0/0 yourself — slip will not do it for you.
+
+The demo shop
+live
+
+A pretend café so a stranger can take a sale before owning a wallet.
+
+Open the Manual and press “open the demo shop”.
+Take a sale: it becomes paid on its own after a few seconds, because the explorer is simulated.
+Press exit demo when you are done. Your real books are untouched — the demo has its own drawer.
+
+Limit: Demo money is pretend and the explorer is simulated. Nothing leaves the device.
+
+Quiet clock mode
+live
+
+Between customers, the till should look like a shop, not a spreadsheet.
+
+Switch it on in Settings → Assistance.
+The till shows the time, today’s takings and the last sale.
+
+Limit: It is display only: nothing is taken while it is showing.
+
+Assistance switches
+live
+
+Every helper on screen can be turned off, so a busy counter can stay quiet.
+
+Open Settings and scroll to Assistance.
+Switch off anything that reads as noise — explanations, rings, the footer digest, rehearsal.
+Press Save settings. Nothing about how money is handled changes.
+
+Limit: Rehearsal is a practice mode: a rehearsed sale is never written to the books and never watched.
+
+This manual
+live
+
+Every panel explains itself here, in the same words the build checks.
+
+Search for the plain word you would use — cash, rent, proof.
+Read the limit line before relying on a feature.
+
+Limit: If a panel is missing from this page, it is missing from the app — the build fails otherwise.
+
+Settings
+live
+
+The shop’s name, currency, tax, explorer and rate source in one place.
+
+Change a value.
+Press save — nothing is applied until you do.
+
+Limit: The rate endpoint is optional: leaving it empty means you type the rate, which is the safest default.
+
+SELLING
+
+Taking money on-chain and over Lightning.
+
+Take a payment
+live
+
+Ring up a sale in four taps and show a QR that pays your wallet directly.
+
+Pick the wallet taking this sale and enter the rate you were quoted.
+Tap items, or type a custom amount, or use tip jar mode.
+Charge. The QR names the exact amount and the reserved address.
+Watch the status: seen in the mempool is not paid. Paid means mined.
+
+Limit: slip can only check a payment while the payment screen is open, or at the next launch.
+
+Lightning payments
+live
+
+Coffee-sized sales belong on Lightning, and they can still land in your own wallet.
+
+Enter your Lightning address (name@wallet.example).
+Type the amount and rate, then request an invoice.
+Show the QR. slip asks your wallet every five seconds whether it settled.
+
+Limit: If your wallet gives no verify link, the sale can only be confirmed by eye — and slip says so.
+
+MONEY IN
+
+Sales that arrive on a schedule.
+
+Rent and standing requests
+live
+
+Money that arrives on a schedule still needs a due date and an address.
+
+Name it, choose the wallet, the amount and how often.
+Show the request QR when it is due.
+Mark paid to roll it forward.
+
+Limit: A request is an ask, not a payment: only a completed invoice proves money arrived.
+
+PROOF
+
+Showing that a sale, and a day, really happened.
+
+Check a receipt
+live
+
+A customer can prove a sale happened without asking you for anything.
+
+Scan or paste the proof text under the receipt QR.
+slip compares the invoice, address and amount against its own books.
+
+Limit: A proof is a record, not a signature: it cannot prove who wrote it, only what was recorded.
+
+Day book and proof
+live
+
+Stamping a day proves the books existed then, without trusting anyone.
+
+Choose the day and read the digest.
+Press stamp to submit it to a public calendar.
+Keep the file; re-hash later to prove nothing changed.
+
+Limit: Stamped is not confirmed: the Bitcoin attestation arrives in the calendar’s own time.
+
+Live 100 sat test
+live
+
+Prove a rail works with real money before a real price depends on it.
+
+Switch it on in Settings → Assistance.
+Choose Lightning and paste your own Lightning address, or signet and paste a signet address.
+Scan and pay 100 sats; slip watches it settle.
+
+Limit: It spends your money, not slip’s — slip has none. Test coins on signet come from a faucet.
+
+The customer page
+live
+
+One plain page for a customer who has never used bitcoin.
+
+Print the QR from this card and stand it by the till.
+A customer scans it and reads what happens when they pay.
+
+Limit: It explains; it does not take a payment. The payment QR is on the till.
+
+Prove it works
+live
+
+Check that the copy of slip on this device still does its arithmetic correctly.
+
+Press run the check.
+Read the five ticks: address, amount, sats, QR, proof.
+
+Limit: It proves the maths has not been altered — not that the whole app is safe. slip still holds no keys.
+
+RECORDS
+
+The books, the backups and the sheet for your accountant.
+
+History and the day close
+live
+
+The sheet your accountant asks for, produced from the sales you actually took.
+
+Pick a day.
+Read the split by rail, with refunds subtracted.
+Download the CSV or print the close sheet.
+
+Limit: Only completed sales count as takings; a manual line is stated separately from an observed one.
+
+Find a sale
+live
+
+A customer comes back with a receipt and no invoice number.
+
+Type the amount, the end of the address, the time, or the invoice id.
+The day’s list narrows to matches; the day’s totals stay beside it.
+
+Limit: It searches this device’s books only — another till’s sales are not here.
+
+Weekly letter
+live
+
+A week of takings written as sentences you can print and keep.
+
+Switch it on in Settings → Assistance.
+Read the week, then print it if you want it on paper.
+
+Limit: Nothing is emailed: there is no server to email from.
+
+Backups
+live
+
+One encrypted file holds your wallets, your PIN, your staff log and your books.
+
+Choose a passphrase you will remember.
+Export the file and keep it somewhere you would keep a bank statement.
+To restore, preview the file first, then confirm.
+
+Limit: The file holds public wallet material only. If you lose it, your money is still safe — only the records are lost.
+
+WHEN YOU NEED MORE
+
+Watching, pairing, privacy rails.
+
+Watchlist
+live
+
+A supplier or a landlord, watched without being touched.
+
+Add a name, an address and its network.
+Press check to see the balance and the moment it was read.
+
+Limit: A watched address can never be spent from: there is no key here.
+
+Pair another device
+live
+
+Move a wallet to a second till with a QR, because public material needs no secrecy.
+
+Choose a wallet and show its code.
+On the other device, scan or paste the code and import.
+
+Limit: An imported wallet arrives UNCHECKED: that device must confirm address 0/0 before taking money.
+
+Silent Payments
+live
+
+A private receive address your customer’s wallet can pay to a fresh one-time address.
+
+Paste your sp1 or tsp1 address.
+Enter the amount and rate, then show the QR.
+Record the sale as a manual confirmation.
+
+Limit: slip cannot watch an sp1 address: detection needs your scan key, which slip will never hold.
+
+This page is generated from the same declarations the build checks. If a panel disappears from the app, its card disappears here — and the build goes red.
+
+What slip will offer
+
+The plan, in public. “Live now” means it works in this build; “not built yet” means it does not, and this build cannot do it.
+
+Check your key (derivation preview)
+LIVE NOW
+
+Paste an account xpub and see the first five receive addresses, so you can compare address 0/0 with your own wallet before any sale.
+
+Live now. It cannot create an invoice, reserve an index or draw a payment QR.
+
+Counter accounts & staff hand-off
+LIVE NOW
+
+One account per till, truck or staff member — each a BIP-85 child account you derived on your own signer and imported as an xpub. Name the person holding the device, optional till PIN, switch counters only with the PIN.
+
+Saved on this device only. No cloud, no sync, no account. A wrong derivation cannot reach a customer: a counter stays disabled until you confirm address 0/0 against your wallet.
+
+Price check
+LIVE NOW
+
+Integer-only till arithmetic: price in any of 165 ISO currencies, tax inclusive or exclusive, tips, cash rounding, and the exact sats to charge at a rate you paste.
+
+No live rate feed yet — you supply the rate, so nothing silently reprices your goods.
+
+Address check
+LIVE NOW
+
+Paste any BTC or LTC address and see which network it belongs to, with the script type.
+
+Wrong-chain addresses are refused. All Bitcoin test networks share one encoding, so slip says so instead of guessing.
+
+Encrypted backup & shift log
+LIVE NOW
+
+A .slip file encrypted with your passphrase (AES-GCM, PBKDF2) that restores your counters and PIN on a new device, plus a hash-chained record of which person held which counter, with a printable day sheet.
+
+Tamper-evident, not tamper-proof: whoever holds the device can rewrite the chain. No server, no signature, so slip says so instead of implying otherwise.
+
+Receive QR & BIP-21 requests
+LIVE NOW
+
+Each counter can show a BIP-21 QR for its first address, rendered as inline SVG and decode-verified in tests.
+
+Preview only: a real sale must reserve a fresh index before any QR is shown, and that invoice engine does not exist yet.
+
+Till — catalog, cart, tax, tips
+NOT BUILT YET
+
+Items, categories, modifiers, hold/resume, split payment, receipts, end-of-day Z-report with a hash chain.
+
+Works offline. Nothing here touches the network.
+
+Payment engine — BTC, LTC, Lightning
+NOT BUILT YET
+
+Fresh receive address per sale from your own xpub, or an exact-amount Lightning invoice from your own Lightning address, verified by LNURL-verify.
+
+"Paid" only appears when slip observed it. Every method carries a verification badge.
+
+Wallet — BIP-85 counter accounts
+LIVE NOW
+
+Separate labelled accounts per till, truck or staff member, derived by YOUR signer (Coldcard, Sparrow, Krux, Jade) and imported here as child xpubs. Each gets its own address index and its own report.
+
+slip will never derive BIP-85 itself — that needs your master private key, which this app must never see. Watch-only stays watch-only.
+
+Silent Payments (BIP-352)
+NOT BUILT YET
+
+Display-only at first: a reusable sp1… address with an honest "confirm in your own wallet" step. Auto-detection later needs a scan key plus an index server.
+
+Bitcoin only. Never claimed as auto-verified until slip can actually see it.
+
+Fedimint ecash
+NOT BUILT YET
+
+Request mode first — the till shows your own federation or gateway invoice. Embedded receiving only after a forced seed-backup and sweep-out flow exists.
+
+Ecash is held by the federation. It is labelled "trusted federation" and never ranked beside on-chain.
+
+Agent-ready
+NOT BUILT YET
+
+A local, offline scripting surface: a documented in-page API and embed events so an automation or bot you run can ring up a sale, read the ledger and close the day — without slip ever holding a key or calling a server.
+
+No cloud agent, no phone-home, no remote control. Anything that can move money stays outside slip, always.
+
+Liquid (L-BTC, L-USDt)
+NOT BUILT YET
+
+Confidential addresses and a blinded receive flow, once the library and provider work is done properly.
+
+Deferred on purpose — three new failure modes for a rail few merchants hold.
+
+THIS BUILD
+
+v0.17.1 · b79ea1e
+VERSION
+v0.17.1
+COMMIT
+b79ea1e
+BUILT
+2026-10-31 20:21:15 UTC
+
+To check you are running the published file, compare this version with the one named in CHANGELOG.md, and compare the SHA-256 of the downloaded index.html against SHA256SUMS released beside it. slip cannot show that hash inside itself — no file can contain its own fingerprint — so this panel is the honest half of the check.
+
+COPY DIAGNOSTICS
+Nothing is sent anywhere — this copies to your clipboard only.
+
+Not a till yet. The counters, key check, price maths and address check above are real and tested, but there is no catalog, no invoice and no payment engine — those are the next phases in SLIP-PLAN.md. Nothing here can take a payment, and it will not pretend to.
+
+v0.17.1 · b79ea1e
+◈
+866b 4ce3
+today's book
+₿
+giveabit.io
+online
+in a browser tab
+
+network requests to other servers: 0 · this page has phoned nobody (0 resources total, all from this file)
+
+no accounts · no analytics · no telemetry · MIT licensed

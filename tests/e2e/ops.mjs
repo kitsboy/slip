@@ -156,7 +156,7 @@ const body = () => page.locator('body').innerText();
 
 // --- offline reconciliation ---------------------------------------------------------
 let text = await body();
-check('reconciliation re-checks open sales', /Reconciliation: .*open sale/.test(text), text.slice(0, 400));
+check('reconciliation re-checks open sales', /Open sales: .*open sale/.test(text), text.slice(0, 400));
 check('a paid open sale becomes confirmed without a human', (await page.evaluate(() => {
   const raw = JSON.parse(window.localStorage.getItem('slip.ledger.v1'));
   return raw.invoices.find((i) => i.id === 'inv_open').status;

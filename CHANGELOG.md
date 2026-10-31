@@ -1,5 +1,9 @@
 # Changelog
 
+- **v0.18.1** — 2026-10-31T21:06:47Z — `20ce9718307a` — polish: no horizontal overflow, working anchor navigation, hidden skip link, grouped nav
+
+- **v0.18.0** — 2026-10-31T21:00:37Z — `266057df7a82` — polish pass: navigation by intent, honest services list, copy and access fixes, education pack generator
+
 - **v0.17.1** — 2026-10-31T20:21:30Z — `5dfe05d1930a` — onboarding now points at the demo shop
 
 - **v0.17.0** — 2026-10-31T20:19:16Z — `99542764a8d4` — P14: demo shop in its own drawer, live 100-sat test, quiet clock, find a sale, customer page, weekly letter, credit line

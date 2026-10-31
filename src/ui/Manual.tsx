@@ -103,6 +103,17 @@ export default function Manual() {
         This page is generated from the same declarations the build checks. If a panel disappears
         from the app, its card disappears here — and the build goes red.
       </p>
+
+      <p className="mt-2 flex items-center gap-1 text-[10px] text-muted">
+        <span aria-hidden>{BRAND_GLYPH}</span>
+        <span>
+          Built by{' '}
+          <a href="https://giveabit.io" className="underline decoration-dotted" rel="noreferrer noopener">
+            {BRAND_NAME}
+          </a>{' '}
+          — open source, sound-money tools.
+        </span>
+      </p>
     </section>
   );
 }

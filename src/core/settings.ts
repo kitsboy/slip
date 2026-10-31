@@ -97,6 +97,32 @@ export const ASSIST_LABELS: Readonly<Record<keyof AssistOptions, { title: string
   liveTest: { title: 'Live 100 sat test', why: 'A real invoice for one hundred sats, on Lightning or signet, to prove a rail works before you trust it.' },
 };
 
+export const ASSIST_GROUPS: ReadonlyArray<{
+  id: string;
+  label: string;
+  why: string;
+  keys: readonly (keyof AssistOptions)[];
+}> = [
+  {
+    id: 'teaching',
+    label: 'Teaching',
+    why: 'For the first week, or a new member of staff.',
+    keys: ['explainNumbers', 'hints', 'rehearsal'],
+  },
+  {
+    id: 'quiet',
+    label: 'Quiet the screen',
+    why: 'Turn these off when the counter gets busy.',
+    keys: ['freshnessRings', 'bookSeal', 'wallClock', 'handoverNote', 'counterCard'],
+  },
+  {
+    id: 'records',
+    label: 'Records and testing',
+    why: 'The week on paper, and proving a rail works.',
+    keys: ['weeklyLetter', 'liveTest'],
+  },
+];
+
 export const SETTINGS_KEY = 'slip.settings.v1';
 
 export const DEFAULT_SETTINGS: ShopSettings = {

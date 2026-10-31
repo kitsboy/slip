@@ -12,7 +12,7 @@
 
 import { useState } from 'react';
 import { CURRENCIES } from '../core/currencies';
-import { ASSIST_LABELS, DEFAULT_ASSIST, loadSettings, sanitizeSettings, saveSettings, type AssistOptions } from '../core/settings';
+import { ASSIST_GROUPS, ASSIST_LABELS, loadSettings, sanitizeSettings, saveSettings, type AssistOptions } from '../core/settings';
 import { printCounterCard } from './counterCard';
 import { buildLabel } from '../core/buildinfo';
 import { createRepository, SHIFT_STORAGE_KEY, STORAGE_KEY } from '../core/accounts';
@@ -275,23 +275,31 @@ export default function Settings() {
           Every switch here adds words or widgets to the screen. A busy counter can turn them all off;
           a first week can leave them on. Nothing here changes what slip does with money.
         </p>
-        <ul className="mt-2 space-y-2">
-          {(Object.keys(DEFAULT_ASSIST) as (keyof AssistOptions)[]).map((key) => (
-            <li key={key} className="flex items-start gap-2">
-              <input
-                id={`as-${key}`}
-                type="checkbox"
-                checked={assist[key]}
-                onChange={(e) => setAssist((cur) => ({ ...cur, [key]: e.target.checked }))}
-                className="mt-0.5"
-              />
-              <label htmlFor={`as-${key}`} className="text-xs">
-                {ASSIST_LABELS[key].title}
-                <span className="mt-0.5 block text-[10px] leading-relaxed text-muted">{ASSIST_LABELS[key].why}</span>
-              </label>
-            </li>
-          ))}
-        </ul>
+        {ASSIST_GROUPS.map((group) => (
+          <div key={group.id} className="mt-3" data-assist-group={group.id}>
+            <div className="flex flex-wrap items-baseline gap-2">
+              <h4 className="text-[10px] uppercase tracking-[0.18em] text-muted">{group.label}</h4>
+              <span className="text-[10px] text-muted/80">{group.why}</span>
+            </div>
+            <ul className="mt-1 space-y-2">
+              {group.keys.map((key) => (
+                <li key={key} className="flex items-start gap-2">
+                  <input
+                    id={`as-${key}`}
+                    type="checkbox"
+                    checked={assist[key]}
+                    onChange={(e) => setAssist((cur) => ({ ...cur, [key]: e.target.checked }))}
+                    className="mt-0.5"
+                  />
+                  <label htmlFor={`as-${key}`} className="text-xs">
+                    {ASSIST_LABELS[key].title}
+                    <span className="mt-0.5 block text-[10px] leading-relaxed text-muted">{ASSIST_LABELS[key].why}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <button
             type="button"

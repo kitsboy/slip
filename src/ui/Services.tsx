@@ -1,11 +1,9 @@
 /**
  * "What slip will offer" — the services menu.
  *
- * Every row here is a PROMISE, not a feature, so every row says so. A merchant
- * reading this must not conclude that a wallet exists in this build: the till has
- * no wallet, no invoice engine and no agent API yet. The list exists so the shape of
- * the product is honest up front — including the parts that hold funds (which is
- * precisely why they are not built yet).
+ * Every row carries a status that is checkable: shipped means it works in this build and is
+ * covered by tests; planned means it does not exist yet, and the row says why rather than
+ * implying it is waiting behind a setting.
  */
 
 type Status = 'shipped' | 'planned';
@@ -20,98 +18,89 @@ interface Service {
 
 const SERVICES: Service[] = [
   {
-    name: 'Check your key (derivation preview)',
-    status: 'shipped',
-    detail:
-      'Paste an account xpub and see the first five receive addresses, so you can compare address 0/0 with your own wallet before any sale.',
-    guard: 'Live now. It cannot create an invoice, reserve an index or draw a payment QR.',
-  },
-  {
-    name: 'Counter accounts & staff hand-off',
-    status: 'shipped',
-    detail:
-      'One account per till, truck or staff member — each a BIP-85 child account you derived on your own signer and imported as an xpub. Name the person holding the device, optional till PIN, switch counters only with the PIN.',
-    guard:
-      'Saved on this device only. No cloud, no sync, no account. A wrong derivation cannot reach a customer: a counter stays disabled until you confirm address 0/0 against your wallet.',
-  },
-  {
-    name: 'Price check',
-    status: 'shipped',
-    detail:
-      'Integer-only till arithmetic: price in any of 165 ISO currencies, tax inclusive or exclusive, tips, cash rounding, and the exact sats to charge at a rate you paste.',
-    guard: 'No live rate feed yet — you supply the rate, so nothing silently reprices your goods.',
-  },
-  {
-    name: 'Address check',
-    status: 'shipped',
-    detail:
-      'Paste any BTC or LTC address and see which network it belongs to, with the script type.',
-    guard: 'Wrong-chain addresses are refused. All Bitcoin test networks share one encoding, so slip says so instead of guessing.',
-  },  {
-    name: 'Encrypted backup & shift log',
-    status: 'shipped',
-    detail:
-      'A .slip file encrypted with your passphrase (AES-GCM, PBKDF2) that restores your counters and PIN on a new device, plus a hash-chained record of which person held which counter, with a printable day sheet.',
-    guard:
-      'Tamper-evident, not tamper-proof: whoever holds the device can rewrite the chain. No server, no signature, so slip says so instead of implying otherwise.',
-  },
-  {
-    name: 'Receive QR & BIP-21 requests',
-    status: 'shipped',
-    detail:
-      'Each counter can show a BIP-21 QR for its first address, rendered as inline SVG and decode-verified in tests.',
-    guard:
-      'Preview only: a real sale must reserve a fresh index before any QR is shown, and that invoice engine does not exist yet.',
-  },
-  {
     name: 'Till — catalog, cart, tax, tips',
-    status: 'planned',
+    status: 'shipped',
     detail:
-      'Items, categories, modifiers, hold/resume, split payment, receipts, end-of-day Z-report with a hash chain.',
-    guard: 'Works offline. Nothing here touches the network.',
+      'Items from a template, a cart, custom amounts, tip jar, parked sales and repeat-last. Tax inclusive or exclusive, integer-only arithmetic in 165 ISO currencies.',
+    guard: 'Works offline. Nothing on this screen touches the network.',
   },
   {
     name: 'Payment engine — BTC, LTC, Lightning',
-    status: 'planned',
-    detail:
-      'Fresh receive address per sale from your own xpub, or an exact-amount Lightning invoice from your own Lightning address, verified by LNURL-verify.',
-    guard: '"Paid" only appears when slip observed it. Every method carries a verification badge.',
-  },
-  {
-    name: 'Wallet — BIP-85 counter accounts',
     status: 'shipped',
     detail:
-      'Separate labelled accounts per till, truck or staff member, derived by YOUR signer (Coldcard, Sparrow, Krux, Jade) and imported here as child xpubs. Each gets its own address index and its own report.',
+      'A fresh receive address per sale from your own xpub, or an exact-amount Lightning invoice from your own Lightning address, checked by LNURL-verify.',
     guard:
-      'slip will never derive BIP-85 itself — that needs your master private key, which this app must never see. Watch-only stays watch-only.',
+      '“Paid” appears only when the payment is mined and within tolerance. A mempool payment is shown as seen, never as paid.',
+  },
+  {
+    name: 'Receipts with customer-kept proofs',
+    status: 'shipped',
+    detail:
+      'A receipt with a proof QR and a printable white sheet. The proof names the invoice, address, amount and time, and can be checked against the books later.',
+    guard: 'A proof is a record, not a signature: slip holds no key that could sign one.',
+  },
+  {
+    name: 'Day close, CSV and the weekly letter',
+    status: 'shipped',
+    detail:
+      'Every completed sale for a day, split by rail, refunds subtracted, observed kept apart from human-confirmed. CSV for an accountant, plain-text close sheet, a week written as sentences.',
+    guard: 'Only completed sales count as takings. Nothing is emailed — there is no server to email from.',
+  },
+  {
+    name: 'Refunds, recorded honestly',
+    status: 'shipped',
+    detail:
+      'Refund a sale with a method (on-chain, Lightning, cash, goodwill), a reference and a reason; capped at what was received minus what was already refunded.',
+    guard: 'slip cannot send money. Every refund is a record of something you did, and the screen says so.',
+  },
+  {
+    name: 'Rate feed, optional',
+    status: 'shipped',
+    detail:
+      'Point slip at a price endpoint and it fetches the rate itself, stamped with the minute it was read.',
+    guard: 'A quote older than ten minutes is refused, not used. Leaving the endpoint empty means you type the rate.',
   },
   {
     name: 'Silent Payments (BIP-352)',
-    status: 'planned',
+    status: 'shipped',
     detail:
-      'Display-only at first: a reusable sp1… address with an honest "confirm in your own wallet" step. Auto-detection later needs a scan key plus an index server.',
-    guard: 'Bitcoin only. Never claimed as auto-verified until slip can actually see it.',
+      'An sp1 or tsp1 address is validated, shown as a BIP-21 QR, and the sale is recorded as a manual confirmation.',
+    guard:
+      'slip cannot watch an sp1 address: detection needs your wallet’s scan key, which slip will never hold.',
+  },
+  {
+    name: 'Day anchoring (OpenTimestamps)',
+    status: 'shipped',
+    detail:
+      'Each day’s completed sales are hashed on this device; stamping submits that digest to a public calendar and keeps the proof.',
+    guard: 'Stamped is not confirmed: the Bitcoin attestation arrives in the calendar’s own time.',
+  },
+  {
+    name: 'Pairing, watchlist, customer screen',
+    status: 'shipped',
+    detail:
+      'Move a wallet to a second till with a QR, watch addresses you do not own, and show a customer a second window with just the QR and the amount.',
+    guard: 'An imported wallet arrives UNCHECKED. A watched address can never be spent from.',
+  },
+  {
+    name: 'Agent-ready, read-only',
+    status: 'shipped',
+    detail:
+      'window.slip exposes wallets, invoices, requests and today’s takings, plus events when a sale completes.',
+    guard: 'It is read-only by construction: there is no method that writes, signs or sends.',
   },
   {
     name: 'Fedimint ecash',
     status: 'planned',
     detail:
-      'Request mode first — the till shows your own federation or gateway invoice. Embedded receiving only after a forced seed-backup and sweep-out flow exists.',
-    guard: 'Ecash is held by the federation. It is labelled "trusted federation" and never ranked beside on-chain.',
-  },
-  {
-    name: 'Agent-ready',
-    status: 'planned',
-    detail:
-      'A local, offline scripting surface: a documented in-page API and embed events so an automation or bot you run can ring up a sale, read the ledger and close the day — without slip ever holding a key or calling a server.',
-    guard:
-      'No cloud agent, no phone-home, no remote control. Anything that can move money stays outside slip, always.',
+      'Request mode first — the till shows an invoice from your own federation or gateway, embedded receiving only after a forced backup-and-sweep flow exists.',
+    guard: 'Ecash is held by a federation; it would be labelled “trusted federation” and never ranked beside on-chain.',
   },
   {
     name: 'Liquid (L-BTC, L-USDt)',
     status: 'planned',
-    detail: 'Confidential addresses and a blinded receive flow, once the library and provider work is done properly.',
-    guard: 'Deferred on purpose — three new failure modes for a rail few merchants hold.',
+    detail: 'Confidential addresses and a blinded receive flow, once the library work is done properly.',
+    guard: 'Deferred on purpose: three new failure modes for a rail few merchants hold.',
   },
 ];
 

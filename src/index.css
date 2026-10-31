@@ -216,3 +216,32 @@ button {
     font-size: 9pt;
   }
 }
+
+
+/* Keyboard users must be able to see where they are, and skip the long page.
+   The skip link lives off-screen until it is focused — never visible by default. */
+:focus-visible {
+  outline: 2px solid var(--accent, #f5820a);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 60;
+  background: var(--surface-2, #14181d);
+  color: var(--ink, #fff);
+  padding: 8px 12px;
+  border: 1px solid var(--line, #333);
+  border-radius: 0 0 8px 0;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  left: 0;
+}
+
+/* Do NOT hide overflow on html or body: it turns the body into its own scroll container, which
+   breaks anchor jumps and window.scrollY. The nav is constrained at the source instead. */

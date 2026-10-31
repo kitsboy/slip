@@ -52,6 +52,17 @@ if (existsSync(mapPath)) {
   }
 }
 
+// The education pack is generated; it must mention every card that exists.
+const educationPath = join(ROOT, 'docs/EDUCATION.md');
+if (!existsSync(educationPath)) {
+  problems.push('docs/EDUCATION.md is missing — run npm run docs:education');
+} else {
+  const education = readFileSync(educationPath, 'utf8');
+  for (const id of ids) {
+    if (!education.includes('`' + id + '`')) problems.push(`education pack has no card for "${id}"`);
+  }
+}
+
 // Screenshots prove the manual matches what ships.
 const shotsDir = join(ROOT, 'screenshots/manual');
 for (const id of ids) {
