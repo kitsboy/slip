@@ -18,7 +18,7 @@ import { parseExtendedKey, resolveScript, type ScriptType } from './keys';
 import { previewAddresses, type DerivedAddress } from './derive';
 import { networkById, type Coin, type NetworkId } from './network';
 import { parseDescriptor, type DescriptorScriptType } from './descriptors';
-import { encodeAddress, slipNetwork } from './derive';
+import { deriveAddress, encodeAddress, slipNetwork } from './derive';
 import { checkAddress } from './addresses';
 import { appendEvent, emptyLog, type ShiftEventKind, type ShiftLog } from './shifts';
 
@@ -389,6 +389,30 @@ function validateDescriptorAccount(input: AccountDraft): AccountValidation {
     },
     warnings,
   };
+}
+
+/**
+ * Derives the receive address for one index of a saved account.
+ *
+ * Kept here (not in the UI) so the till cannot invent its own derivation: a descriptor
+ * supplies the address, an extended key derives `change/index`, and a single-address wallet
+ * always returns the same thing because that is what it is.
+ */
+export function deriveForAccount(account: CounterAccount, index: number): string {
+  if (account.source === 'pubkey' || account.source === 'address') return account.firstAddress;
+
+  if (account.source === 'descriptor') {
+    const parsed = parseDescriptor(account.xpub, account.networkId);
+    if (!parsed.ok) throw new Error(`saved descriptor no longer parses: ${parsed.error}`);
+    return parsed.descriptor.receive(index);
+  }
+
+  const key = parseExtendedKey(account.xpub);
+  return deriveAddress(key, {
+    networkId: account.networkId,
+    scriptType: account.scriptType === 'wsh-sortedmulti' ? 'p2wpkh' : account.scriptType,
+    index,
+  }).address;
 }
 
 // ---------------------------------------------------------------------------

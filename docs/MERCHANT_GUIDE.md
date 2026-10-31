@@ -65,6 +65,24 @@ a food truck has two, each paid into its own account.
 If they differ, **stop**. Do not take a payment. That mismatch is the only bug in this app
 that can cost you money, and it is why the box exists.
 
+## 3b. Take a payment
+
+1. Pick the **wallet taking this sale**.
+2. Enter the **rate** you were quoted (slip never fetches one for you yet, so nothing can
+   silently reprice your goods).
+3. Load a **template** (Café, Market, Services) or use **custom amount**, or **tip jar mode**.
+4. Tap the items. The charge figure is in sats, computed by round-up so you are never short.
+5. **Charge** → a QR appears with the amount, the address and the network.
+6. The customer pays. slip checks the address while the screen is open:
+   - **waiting for payment** — nothing seen yet
+   - **seen in mempool — not mined yet** — a 0-conf promise, not a payment
+   - **paid — seen on chain** — mined, and a receipt is issued
+7. If the customer pays cash, press **I have the money (manual)** — the receipt will say a
+   human confirmed it, because slip did not observe that payment.
+
+Warnings on the payment screen are deliberate: pay the **exact** amount, on the **right
+network**, and never pay an address twice.
+
 ## 4. Hand the till to a member of staff
 
 1. Set a **till PIN** (4–8 digits) once. Only a hash of it is stored on the device — the PIN

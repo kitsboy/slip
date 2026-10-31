@@ -1,0 +1,208 @@
+/**
+ * Ledger persistence — catalog, invoices, standing requests and per-wallet index books.
+ *
+ * BigInt does not survive JSON, so every amount is stored as a decimal STRING and revived
+ * as BigInt on read. That is not ceremony: `JSON.stringify({ n: 1n })` throws, and a
+ * `number` round-trip silently loses precision above 2^53 — a sat is 1e-8 of a coin, so the
+ * loss shows up as a wrong total on a real receipt.
+ */
+
+import type { CatalogItem } from './catalog';
+import type { Invoice, InvoiceLine, InvoiceStatus } from './orders';
+import type { StandingRequest } from './requests';
+import { emptyBook, type IndexBook } from './indexes';
+
+export const LEDGER_KEY = 'slip.ledger.v1';
+
+export interface Ledger {
+  items: CatalogItem[];
+  invoices: Invoice[];
+  requests: StandingRequest[];
+  books: Record<string, IndexBook>;
+}
+
+export function emptyLedger(): Ledger {
+  return { items: [], invoices: [], requests: [], books: {} };
+}
+
+interface WireItem extends Omit<CatalogItem, 'priceMinor'> {
+  priceMinor: string;
+}
+interface WireLine extends Omit<InvoiceLine, 'unitAtoms' | 'unitMinor'> {
+  unitAtoms: string;
+  unitMinor: string;
+}
+interface WireInvoice extends Omit<Invoice, 'amountAtoms' | 'amountMinor' | 'rateMinorPerCoin' | 'lines'> {
+  amountAtoms: string;
+  amountMinor: string;
+  rateMinorPerCoin: string | null;
+  lines: WireLine[];
+}
+interface WireRequest extends Omit<StandingRequest, 'amountMinor'> {
+  amountMinor: string;
+}
+interface WireLedger {
+  version: 1;
+  items: WireItem[];
+  invoices: WireInvoice[];
+  requests: WireRequest[];
+  books: Record<string, { next: number; reserved: number[]; used: number[] }>;
+}
+
+function big(text: string | null | undefined): bigint {
+  return text && /^-?\d+$/.test(text) ? BigInt(text) : 0n;
+}
+
+export function toWire(ledger: Ledger): WireLedger {
+  return {
+    version: 1,
+    items: ledger.items.map((i) => ({ ...i, priceMinor: i.priceMinor.toString() })),
+    invoices: ledger.invoices.map((i) => ({
+      ...i,
+      amountAtoms: i.amountAtoms.toString(),
+      amountMinor: i.amountMinor.toString(),
+      rateMinorPerCoin: i.rateMinorPerCoin === null ? null : i.rateMinorPerCoin.toString(),
+      lines: i.lines.map((l) => ({
+        ...l,
+        unitAtoms: l.unitAtoms.toString(),
+        unitMinor: l.unitMinor.toString(),
+      })),
+    })),
+    requests: ledger.requests.map((r) => ({ ...r, amountMinor: r.amountMinor.toString() })),
+    books: ledger.books,
+  };
+}
+
+export function fromWire(wire: WireLedger): Ledger {
+  return {
+    items: (wire.items ?? []).map((i) => ({ ...i, priceMinor: big(i.priceMinor) })),
+    invoices: (wire.invoices ?? []).map((i) => ({
+      ...i,
+      // A stored status is a claim; an unknown one falls back to awaiting rather than
+      // being trusted into "complete".
+      status: ([
+        'awaiting',
+        'seen',
+        'confirmed',
+        'complete',
+        'underpaid',
+        'expired',
+        'cancelled',
+      ].includes(i.status as string)
+        ? i.status
+        : 'awaiting') as InvoiceStatus,
+      amountAtoms: big(i.amountAtoms),
+      amountMinor: big(i.amountMinor),
+      rateMinorPerCoin: i.rateMinorPerCoin === null ? null : big(i.rateMinorPerCoin),
+      lines: (i.lines ?? []).map((l) => ({
+        ...l,
+        unitAtoms: big(l.unitAtoms),
+        unitMinor: big(l.unitMinor),
+      })),
+    })),
+    requests: (wire.requests ?? []).map((r) => ({ ...r, amountMinor: big(r.amountMinor) })),
+    books: wire.books ?? {},
+  };
+}
+
+export interface LedgerStore {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+}
+
+export interface LedgerRepository {
+  load(): Ledger;
+  save(ledger: Ledger): void;
+  book(walletId: string): IndexBook;
+  putInvoice(invoice: Invoice): void;
+  putInvoices(invoices: Invoice[]): void;
+  touchInvoice(id: string, patch: Partial<Invoice>): Invoice | undefined;
+  addItem(item: CatalogItem): void;
+  replaceItems(items: CatalogItem[]): void;
+  addRequest(request: StandingRequest): void;
+  touchRequest(id: string, patch: Partial<StandingRequest>): void;
+  removeRequest(id: string): void;
+  setBook(walletId: string, book: IndexBook): void;
+}
+
+export function createLedger(store: LedgerStore): LedgerRepository {
+  const load = (): Ledger => {
+    const raw = store.getItem(LEDGER_KEY);
+    if (!raw) return emptyLedger();
+    try {
+      const parsed = JSON.parse(raw) as WireLedger;
+      if (parsed.version !== 1) return emptyLedger();
+      return fromWire(parsed);
+    } catch {
+      // A corrupt ledger must not brick the till; start empty and let the UI say so.
+      return emptyLedger();
+    }
+  };
+  const save = (ledger: Ledger) => store.setItem(LEDGER_KEY, JSON.stringify(toWire(ledger)));
+
+  const repo: LedgerRepository = {
+    load,
+    save,
+
+    book(walletId) {
+      return load().books[walletId] ?? emptyBook();
+    },
+
+    setBook(walletId, book) {
+      const l = load();
+      save({ ...l, books: { ...l.books, [walletId]: book } });
+    },
+
+    putInvoice(invoice) {
+      const l = load();
+      const existing = l.invoices.findIndex((i) => i.id === invoice.id);
+      const invoices = [...l.invoices];
+      if (existing >= 0) invoices[existing] = invoice;
+      else invoices.unshift(invoice);
+      save({ ...l, invoices });
+    },
+
+    putInvoices(list) {
+      const l = load();
+      const byId = new Map(l.invoices.map((i) => [i.id, i]));
+      for (const i of list) byId.set(i.id, i);
+      save({ ...l, invoices: [...byId.values()] });
+    },
+
+    touchInvoice(id, patch) {
+      const l = load();
+      const found = l.invoices.find((i) => i.id === id);
+      if (!found) return undefined;
+      const updated = { ...found, ...patch };
+      save({ ...l, invoices: l.invoices.map((i) => (i.id === id ? updated : i)) });
+      return updated;
+    },
+
+    addItem(item) {
+      const l = load();
+      save({ ...l, items: [...l.items, item] });
+    },
+
+    replaceItems(items) {
+      const l = load();
+      save({ ...l, items });
+    },
+
+    addRequest(request) {
+      const l = load();
+      save({ ...l, requests: [request, ...l.requests] });
+    },
+
+    touchRequest(id, patch) {
+      const l = load();
+      save({ ...l, requests: l.requests.map((r) => (r.id === id ? { ...r, ...patch } : r)) });
+    },
+
+    removeRequest(id) {
+      const l = load();
+      save({ ...l, requests: l.requests.filter((r) => r.id !== id) });
+    },
+  };
+
+  return repo;
+}

@@ -7,7 +7,9 @@ import KeyCheck from './ui/KeyCheck';
 import PriceCheck from './ui/PriceCheck';
 import RequestCounter from './ui/RequestCounter';
 import Services from './ui/Services';
+import Requests from './ui/Requests';
 import Settings from './ui/Settings';
+import Till from './ui/Till';
 import Status from './ui/Status';
 import { applyTheme, loadTheme, nextTheme, saveTheme, systemTheme, themeLabel, type Theme } from './core/theme';
 import Wizard from './ui/Wizard';
@@ -23,7 +25,7 @@ import { isOnboarded } from './core/settings';
  * merchant money, so screens land in a fixed order (SLIP-PLAN.md §7).
  */
 
-export const BUILD_STAGE = 'P8 — settings, themes, wipe, wizard (no till yet)';
+export const BUILD_STAGE = 'P9 — till, requests, receipts (payment detection live)';
 
 const TRUST: ReadonlyArray<readonly [string, string]> = [
   ['watch-only', 'no key can be pasted'],
@@ -156,6 +158,10 @@ export default function App() {
         </section>
 
         <Counters />
+
+        <Till />
+
+        <Requests />
 
         <Backup />
 

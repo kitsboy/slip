@@ -193,3 +193,24 @@ the app says so** rather than failing silently at sale time. The merchant's own
 Esplora/electrs URL goes in Settings. Balances are per *address 0/0*, labelled with their
 source and fetch time — never "your wallet balance", which slip cannot know without scanning
 a chain it does not index.
+
+### D-29 — Reserve at creation, burn when the address is shown
+`createInvoice` only RESERVES an index. The index is burned (`burnInvoiceIndex`) at the moment
+the address reaches a payer. That distinction is what lets an abandoned cart hand its index
+back — and it is why `cancelInvoice` is honest rather than decorative.
+
+### D-30 — `seen` is not `paid`, and the code cannot confuse them
+`statusFromObservation` reads chain and mempool receipts separately. Mined and within 1% of
+the amount = `confirmed` (then `complete`, with a receipt). Mempool only = `seen`, labelled
+"not mined yet". Overdue and short = `underpaid`. A late but full payment still completes,
+because reality beat the clock.
+
+### D-31 — Manual confirmation is a first-class, labelled state
+"I have the money" sets `manual: true` and the receipt says *marked paid by you* plus *slip did
+not observe this payment*. Cash is a real thing in a real shop; the dishonesty would be
+pretending the till saw it.
+
+### D-32 — `window.slip` is read-only by construction
+The agent surface returns copies from storage and emits events. There is no method that writes,
+signs or sends, so a future bot can report and reconcile but can never move money. Tests assert
+`readOnly === true`.

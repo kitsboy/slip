@@ -20,6 +20,79 @@ if ('serviceWorker' in navigator && window.isSecureContext) {
   });
 }
 
+/**
+ * Agent-ready, read-only surface.
+ *
+ * A shop's own automation (a bot, a script, a tiny dashboard) can ask slip what it knows
+ * without slip ever gaining a way to spend. There is no network here and no mutation: the
+ * objects returned are copies, and the only events are notifications that something a human
+ * did has happened.
+ */
+declare global {
+  interface Window {
+    slip?: {
+      readonly version: string;
+      readonly readOnly: true;
+      wallets: () => unknown[];
+      invoices: () => unknown[];
+      requests: () => unknown[];
+      today: (walletId: string) => string;
+      on: (event: 'slip:paid' | 'slip:data-changed', handler: (detail: unknown) => void) => () => void;
+    };
+  }
+}
+
+window.slip = {
+  version: (() => {
+    const meta = document.querySelector('meta[name="slip-version"]');
+    return meta?.getAttribute('content') ?? 'unknown';
+  })(),
+  readOnly: true,
+  wallets: () => {
+    try {
+      const raw = window.localStorage.getItem('slip.accounts.v1');
+      return raw ? (JSON.parse(raw).accounts ?? []) : [];
+    } catch {
+      return [];
+    }
+  },
+  invoices: () => {
+    try {
+      const raw = window.localStorage.getItem('slip.ledger.v1');
+      return raw ? (JSON.parse(raw).invoices ?? []) : [];
+    } catch {
+      return [];
+    }
+  },
+  requests: () => {
+    try {
+      const raw = window.localStorage.getItem('slip.ledger.v1');
+      return raw ? (JSON.parse(raw).requests ?? []) : [];
+    } catch {
+      return [];
+    }
+  },
+  today: (walletId: string) => {
+    try {
+      const raw = window.localStorage.getItem('slip.ledger.v1');
+      const invoices = raw ? (JSON.parse(raw).invoices ?? []) : [];
+      const day = new Date().toISOString().slice(0, 10);
+      return invoices
+        .filter((i: { walletId: string; status: string; createdAt: string }) =>
+          i.walletId === walletId && i.status === 'complete' && i.createdAt.slice(0, 10) === day)
+        .reduce((sum: bigint, i: { amountAtoms: string }) => sum + BigInt(i.amountAtoms), 0n)
+        .toString();
+    } catch {
+      return '0';
+    }
+  },
+  on: (event, handler) => {
+    const listener = (e: Event) => handler((e as CustomEvent).detail);
+    window.addEventListener(event, listener);
+    return () => window.removeEventListener(event, listener);
+  },
+};
+
 createRoot(el).render(
   <React.StrictMode>
     <App />

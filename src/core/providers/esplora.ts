@@ -47,6 +47,10 @@ export interface AddressActivity {
   readonly address: string;
   /** Total ever received, in atoms (chain + mempool). */
   readonly receivedAtoms: bigint;
+  /** Confirmed on-chain receipts only — what "confirmed" is allowed to mean. */
+  readonly chainReceivedAtoms: bigint;
+  /** Receipts still in the mempool — a 0-conf promise, never a confirmation. */
+  readonly mempoolReceivedAtoms: bigint;
   /** Total ever spent, in atoms (chain + mempool). */
   readonly spentAtoms: bigint;
   readonly txCount: number;
@@ -114,7 +118,9 @@ export async function fetchAddressActivity(
 
     const chain = body.chain_stats ?? {};
     const mempool = body.mempool_stats ?? {};
-    const funded = BigInt(chain.funded_txo_sum ?? 0) + BigInt(mempool.funded_txo_sum ?? 0);
+    const chainReceived = BigInt(chain.funded_txo_sum ?? 0);
+    const mempoolReceived = BigInt(mempool.funded_txo_sum ?? 0);
+    const funded = chainReceived + mempoolReceived;
     const spent = BigInt(chain.spent_txo_sum ?? 0) + BigInt(mempool.spent_txo_sum ?? 0);
     const txCount = (chain.tx_count ?? 0) + (mempool.tx_count ?? 0);
     const confirmed = BigInt(chain.funded_txo_sum ?? 0) - BigInt(chain.spent_txo_sum ?? 0);
@@ -122,6 +128,8 @@ export async function fetchAddressActivity(
     return {
       address,
       receivedAtoms: funded,
+      chainReceivedAtoms: chainReceived,
+      mempoolReceivedAtoms: mempoolReceived,
       spentAtoms: spent,
       txCount,
       used: txCount > 0 || funded > 0n,

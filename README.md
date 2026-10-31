@@ -62,6 +62,10 @@ NWC, 19 further languages, iOS App Store build, thermal printing, kiosk, peer sy
 | Index discipline | reserve at invoice creation, release on cancel, burn on display, gap-limit scan (`src/core/indexes.ts`) |
 | Print | white-background, black-text print/PDF variant for day sheets (`@media print`) |
 | Guided setup | five-screen wizard; the wallet step cannot be left until address 0/0 is confirmed (`src/core/settings.ts` gates) |
+| Till | catalog + cart + charge + QR + receipt; tip jar; index reserved per sale and burned when shown |
+| Payment detection | Esplora poll while a payment screen is open: `seen` (mempool) is never `paid` (mined) |
+| Standing requests | rent/subscriptions with a due date, request QR and a blunt 30-day budget clock |
+| Agent surface | `window.slip` — read-only wallets/invoices/requests/takings + events |
 
 ## Live
 
