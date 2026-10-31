@@ -27,6 +27,12 @@ export default function Settings() {
   const [taxPercent, setTaxPercent] = useState(String(loaded.settings.taxBps / 100));
   const [receiptFooter, setReceiptFooter] = useState(loaded.settings.receiptFooter);
   const [explorerUrl, setExplorerUrl] = useState(loaded.settings.explorerUrl);
+  const [rateEndpoint, setRateEndpoint] = useState(loaded.settings.rateEndpoint);
+  const [autoRate, setAutoRate] = useState(loaded.settings.autoRate);
+  const [staff, setStaff] = useState<{ name: string; walletId: string }[]>([...loaded.settings.staff]);
+  const [newStaff, setNewStaff] = useState('');
+  const [newStaffWallet, setNewStaffWallet] = useState('');
+  const wallets = createRepository(store).load().accounts;
   const [note, setNote] = useState<{ kind: 'ok' | 'warn' | 'bad'; text: string } | null>(
     loaded.warnings.length > 0 ? { kind: 'warn', text: loaded.warnings.join(' · ') } : null,
   );
@@ -41,6 +47,9 @@ export default function Settings() {
       tipPresetsBps: loaded.settings.tipPresetsBps,
       receiptFooter,
       explorerUrl,
+      rateEndpoint,
+      autoRate,
+      staff,
       language: 'en',
       onboardedAt: loaded.settings.onboardedAt ?? new Date().toISOString(),
     });
@@ -137,6 +146,104 @@ export default function Settings() {
         A public explorer learns which addresses you ask about, and your IP. Point this at your own
         Esplora / electrs and it learns nothing. slip never sends anything else.
       </p>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <label className="block" htmlFor="st-rate-endpoint">
+          <span className="eyebrow">Rate endpoint (empty = type the rate yourself)</span>
+          <input
+            id="st-rate-endpoint"
+            value={rateEndpoint}
+            onChange={(e) => setRateEndpoint(e.target.value)}
+            spellCheck={false}
+            placeholder="https://mempool.space/api/v1/prices"
+            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
+          />
+        </label>
+        <label className="mt-4 flex items-start gap-2 text-xs" htmlFor="st-auto-rate">
+          <input
+            id="st-auto-rate"
+            type="checkbox"
+            checked={autoRate}
+            onChange={(e) => setAutoRate(e.target.checked)}
+            className="mt-0.5"
+          />
+          <span>
+            Fetch the rate for me
+            <span className="mt-0.5 block text-[11px] text-muted">
+              The quote is stamped with the minute it was read and refused after 10 minutes. If the
+              service is down you will be asked to type the rate, never sold a stale one.
+            </span>
+          </span>
+        </label>
+      </div>
+
+      <div className="mt-3 rounded-lg border border-line p-2">
+        <span className="eyebrow">Staff tip jars</span>
+        <p className="mt-1 text-[11px] leading-relaxed text-muted">
+          A named person can take tips into their own wallet. Only public wallet material is stored —
+          slip still cannot spend a sat.
+        </p>
+        {staff.length > 0 && (
+          <ul className="mt-2 space-y-1">
+            {staff.map((s) => (
+              <li key={s.walletId} className="flex items-center gap-2 text-[11px]">
+                <span className="flex-1">
+                  {s.name} →{' '}
+                  {wallets.find((w) => w.id === s.walletId)?.label ?? 'a wallet that no longer exists'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setStaff((cur) => cur.filter((x) => x.walletId !== s.walletId))}
+                  className="rounded border border-line px-2 text-[10px] uppercase text-muted"
+                >
+                  remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-2 flex flex-wrap items-end gap-2">
+          <label className="block" htmlFor="st-staff-name">
+            <span className="eyebrow">Name</span>
+            <input
+              id="st-staff-name"
+              value={newStaff}
+              onChange={(e) => setNewStaff(e.target.value)}
+              placeholder="Ana"
+              className="mt-1 w-32 rounded-lg border border-line bg-bg p-2 text-xs outline-none focus:border-accent"
+            />
+          </label>
+          <label className="block" htmlFor="st-staff-wallet">
+            <span className="eyebrow">Their wallet</span>
+            <select
+              id="st-staff-wallet"
+              value={newStaffWallet}
+              onChange={(e) => setNewStaffWallet(e.target.value)}
+              className="mt-1 rounded-lg border border-line bg-bg p-2 text-xs outline-none focus:border-accent"
+            >
+              <option value="">— choose —</option>
+              {wallets.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            onClick={() => {
+              if (newStaff.trim().length < 2 || !newStaffWallet) return;
+              setStaff((cur) => [...cur.filter((x) => x.walletId !== newStaffWallet), { name: newStaff.trim().slice(0, 40), walletId: newStaffWallet }]);
+              setNewStaff('');
+              setNewStaffWallet('');
+            }}
+            className="rounded-lg border border-line px-3 py-2 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
+          >
+            add
+          </button>
+          <span className="text-[10px] text-muted">remember to press Save settings</span>
+        </div>
+      </div>
 
       <button
         type="button"

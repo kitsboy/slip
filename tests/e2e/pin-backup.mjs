@@ -79,7 +79,9 @@ await page.getByRole('button', { name: /Confirm restore/ }).click();
 await page.waitForTimeout(800);
 const afterRestore = await page.locator('body').innerText();
 check('counter restored', /Front counter/.test(afterRestore));
-check('restore reports the PIN travelled', /and the PIN/.test(afterRestore), afterRestore.slice(-300));
+// A backup made on a device with no ledger says so honestly ("no books in that file"), so the
+// assertion is about the PIN travelling, not about a phrase that depends on the fixture.
+check('restore reports the PIN travelled', /restored .*the PIN/.test(afterRestore), afterRestore.slice(-300));
 
 // 5. the actual regression: a hand-off must still demand the PIN
 await page.selectOption('#ho-account', { index: 1 }).catch(() => undefined);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import CustomerDisplay from './ui/CustomerDisplay';
 import './index.css';
 
 const el = document.getElementById('root');
@@ -93,8 +94,13 @@ window.slip = {
   },
 };
 
+/**
+ * The customer display is the same single file opened with `?display=1`: it shows a QR and an
+ * amount and nothing else. Same origin, same bundle, no second deploy — and it never reads the
+ * merchant's books, so a customer cannot see the day's takings by tapping the screen.
+ */
+const isDisplay = new URLSearchParams(window.location.search).get('display') === '1';
+
 createRoot(el).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+  <React.StrictMode>{isDisplay ? <CustomerDisplay /> : <App />}</React.StrictMode>,
 );

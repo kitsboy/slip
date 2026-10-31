@@ -83,6 +83,84 @@ that can cost you money, and it is why the box exists.
 Warnings on the payment screen are deliberate: pay the **exact** amount, on the **right
 network**, and never pay an address twice.
 
+## 3c. Take a Lightning payment
+
+1. Put your Lightning address (`shop@yourwallet.example`) in the Lightning panel.
+2. Type the amount and the rate, then **request invoice**.
+3. Show the QR. If your wallet returns a `verify` link, slip asks it every five seconds and only
+   its answer turns the sale into *settled*.
+4. If your wallet returns no verify link, slip says so: confirm by eye, and treat it as manual.
+
+Nothing here needs a node, a channel or a credential — and nothing here can spend.
+
+## 3d. Let slip fetch the rate
+
+Settings → **Rate endpoint** (leave the field empty to keep typing the rate yourself) → tick
+**Fetch the rate for me**. The quote is stamped with the minute it was read and **refused after ten
+minutes**; if the endpoint is down you will be asked to type the rate, never sold a stale one.
+
+## 3e. A second screen for the customer
+
+Press **customer screen** in the till. A window opens showing only the QR, the amount and the
+status — no takings, no wallet names, no staff. It talks to the till over the device itself, so
+nothing is sent anywhere. If your browser blocks the window, allow pop-ups for slip.
+
+## 3f. Prove the day
+
+Day book panel → pick the date → slip shows how many sales completed and the **day digest** it
+computed (on this device, with no network). Press **stamp with a calendar** to submit that digest to
+a public OpenTimestamps calendar. The screen then says *submitted* — which is not the same as
+*confirmed on Bitcoin*: the calendar upgrades it in its own time, and slip refuses to pretend
+otherwise. **re-hash my books** re-computes the digest and tells you if the books no longer match.
+
+## 3g. Check a receipt
+
+Receipts panel → paste the text under a customer's receipt QR → **check receipt**. slip compares the
+invoice id, address and amount against the books on this device and says *matches* or *do not treat
+it as checked*. Nothing leaves the device.
+
+## 3h. Move a wallet to another device
+
+Pairing panel → choose the wallet → a QR (and a text code) appear. On the other device paste the
+code and press **import (unchecked)**. The wallet arrives **UNCHECKED** on purpose: that device has
+not compared address 0/0 against your wallet. Open your wallet, confirm, then take money.
+
+## 3i. Watch addresses you do not own
+
+Watchlist panel → name + address + network → **add**. **check** asks your explorer and shows the
+balance with the exact minute it was read. A watch entry can never spend: it is a label and an
+address, nothing else.
+
+## 3j. Close the day
+
+History & day close panel → pick the day. You get every completed sale, the split by rail
+(on-chain / Lightning / manual / other), refunds subtracted, and — stated separately — how much
+slip **observed** versus how much a **human** confirmed. **download CSV** gives your accountant
+integers plus a BTC column; **print day close** gives a plain-text sheet on white paper.
+
+## 3k. Refund something
+
+History → **refund** on the sale → sats, how it went back (on-chain, Lightning, cash, goodwill),
+a reference and a reason → **record refund**. slip cannot send money: this is a record of something
+you did, and the screen says so. A refund larger than what was received is refused.
+
+## 3l. Split one sale across two wallets
+
+Tick **split this sale** in the till, choose the second wallet and the percentage. Each leg gets its
+own address and its own QR; the receipt appears only when both legs are paid.
+
+## 3m. Silent Payments
+
+Silent Payments panel → your `sp1…` (or `tsp1…`) address → amount and rate → **show payment QR**.
+Then **record as paid (manual)**, because detecting a Silent Payment needs your wallet's scan key,
+which slip will never hold. Your wallet is the authority; slip is the record.
+
+## 3n. Scanning
+
+Any field with a **camera** button can scan a QR where the browser supports it; anywhere else, a USB
+keyboard-wedge scanner just types into the field. If a browser has no barcode reader, the button is
+absent rather than dead.
+
 ## 4. Hand the till to a member of staff
 
 1. Set a **till PIN** (4–8 digits) once. Only a hash of it is stored on the device — the PIN

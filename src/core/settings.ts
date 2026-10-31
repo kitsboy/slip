@@ -23,6 +23,16 @@ export interface ShopSettings {
    * party learning every address we watch and nobody learning anything.
    */
   readonly explorerUrl: string;
+  /**
+   * Optional rate source. Empty means "type the rate yourself", which is the safest default:
+   * a shop that sells against a number it did not choose is a shop that can be mispriced by a
+   * third party's outage.
+   */
+  readonly rateEndpoint: string;
+  /** True when the merchant wants slip to fetch the rate instead of typing it. */
+  readonly autoRate: boolean;
+  /** Staff who can own a tip jar — each name points at a wallet id. Public keys only. */
+  readonly staff: readonly { readonly name: string; readonly walletId: string }[];
   readonly language: 'en';
   readonly onboardedAt: string | null;
 }
@@ -37,6 +47,9 @@ export const DEFAULT_SETTINGS: ShopSettings = {
   tipPresetsBps: [0, 1000, 1500, 2000],
   receiptFooter: '',
   explorerUrl: '',
+  rateEndpoint: '',
+  autoRate: false,
+  staff: [],
   language: 'en',
   onboardedAt: null,
 };
@@ -154,6 +167,26 @@ export function sanitizeSettings(raw: unknown): { settings: ShopSettings; warnin
         }
         return url.replace(/\/+$/, '');
       })(),
+      rateEndpoint: (() => {
+        const url = typeof input.rateEndpoint === 'string' ? input.rateEndpoint.trim() : '';
+        if (url === '') return '';
+        if (!/^https?:\/\/[^\s]+$/i.test(url)) {
+          warnings.push(`rate endpoint "${url.slice(0, 40)}" is not an http(s) URL — ignored`);
+          return '';
+        }
+        return url.replace(/\/+$/, '');
+      })(),
+      // Auto-rate without an endpoint is a promise the app cannot keep, so it is off.
+      autoRate: Boolean(input.autoRate),
+      staff: Array.isArray(input.staff)
+        ? input.staff
+            .filter(
+              (s): s is { name: string; walletId: string } =>
+                Boolean(s) && typeof (s as { name?: unknown }).name === 'string' && typeof (s as { walletId?: unknown }).walletId === 'string',
+            )
+            .map((s) => ({ name: s.name.slice(0, 40), walletId: s.walletId.slice(0, 64) }))
+            .slice(0, 20)
+        : [],
       language: 'en',
       onboardedAt: typeof input.onboardedAt === 'string' ? input.onboardedAt : null,
     },

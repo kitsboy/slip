@@ -11,6 +11,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createRepository, type CounterAccount } from '../core/accounts';
 import { createBackup, describeBackup, passphraseStrength, restoreBackup } from '../core/backup';
 import { exportLogLines, staffSummary, verifyLog, type ShiftLog } from '../core/shifts';
+import { LEDGER_KEY } from '../core/ledger';
 
 interface BackupState {
   accounts: CounterAccount[];
@@ -18,6 +19,11 @@ interface BackupState {
   /** The till PIN hash. Without it a restore leaves the device unprotected and looks fine. */
   pinHash: string | null;
   shifts: ShiftLog;
+  /**
+   * The books. Without these a restored device has wallets but no history — and the history
+   * is what a merchant is actually trying not to lose.
+   */
+  ledger?: unknown;
   app: 'slip';
   savedAt: string;
 }
@@ -70,11 +76,15 @@ export default function Backup() {
     setBusy(true);
     try {
       const repo = createRepository(window.localStorage);
+      const rawLedger = window.localStorage.getItem(LEDGER_KEY);
       const state: BackupState = {
         accounts: repo.load().accounts,
         activeAccountId: repo.load().activeAccountId,
         pinHash: repo.load().pinHash,
         shifts: repo.shifts(),
+        // Stored in the same wire shape the app already writes: strings for every amount,
+        // so a 8-decimal sat total cannot lose precision on the way into the file.
+        ...(rawLedger ? { ledger: JSON.parse(rawLedger) } : {}),
         app: 'slip',
         savedAt: new Date().toISOString(),
       };
@@ -136,9 +146,13 @@ export default function Backup() {
       // the hand-off protection the merchant thinks they still have.
       repo.setPin(state.pinHash ?? null);
       window.localStorage.setItem('slip.shifts.v1', JSON.stringify(state.shifts ?? { version: 1, events: [] }));
+      // Restore the books too, and say so when the file predates them rather than pretending
+      // the history came back.
+      const hadLedger = state.ledger !== undefined && state.ledger !== null;
+      if (hadLedger) window.localStorage.setItem(LEDGER_KEY, JSON.stringify(state.ledger));
       setNote({
         kind: 'ok',
-        text: `restored ${state.accounts.length} counter(s) and ${state.pinHash ? 'the PIN' : 'no PIN'} from a backup made ${head.createdAt.slice(0, 10)}.`,
+        text: `restored ${state.accounts.length} counter(s), ${state.pinHash ? 'the PIN' : 'no PIN'}${hadLedger ? ' and the books' : ' — no books in that file (older backup)'}, from a backup made ${head.createdAt.slice(0, 10)}.`,
       });
       setPassphrase('');
       setPending(null);

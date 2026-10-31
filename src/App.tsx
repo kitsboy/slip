@@ -10,6 +10,14 @@ import Services from './ui/Services';
 import Requests from './ui/Requests';
 import Settings from './ui/Settings';
 import Till from './ui/Till';
+import Lightning from './ui/Lightning';
+import AnchorPanel from './ui/AnchorPanel';
+import Pair from './ui/Pair';
+import Verify from './ui/Verify';
+import Watchlist from './ui/Watchlist';
+import History from './ui/History';
+import SilentPay from './ui/SilentPay';
+import Install from './ui/Install';
 import Status from './ui/Status';
 import { applyTheme, loadTheme, nextTheme, saveTheme, systemTheme, themeLabel, type Theme } from './core/theme';
 import Wizard from './ui/Wizard';
@@ -25,7 +33,7 @@ import { isOnboarded } from './core/settings';
  * merchant money, so screens land in a fixed order (SLIP-PLAN.md §7).
  */
 
-export const BUILD_STAGE = 'P9 — till, requests, receipts (payment detection live)';
+export const BUILD_STAGE = 'P10 — lightning, anchoring, pairing, watchlist, customer screen';
 
 const TRUST: ReadonlyArray<readonly [string, string]> = [
   ['watch-only', 'no key can be pasted'],
@@ -161,7 +169,21 @@ export default function App() {
 
         <Till />
 
+        <Lightning />
+
         <Requests />
+
+        <AnchorPanel />
+
+        <Verify />
+
+        <History />
+
+        <SilentPay />
+
+        <Pair />
+
+        <Watchlist />
 
         <Backup />
 
@@ -191,6 +213,7 @@ export default function App() {
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-2 text-center">
           <span className="chip figure">{buildLabel()}</span>
           <Status />
+          <Install />
           <RequestCounter />
           <span className="text-[11px] text-muted">
             no accounts · no analytics · no telemetry · MIT licensed

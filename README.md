@@ -8,18 +8,26 @@ wallet**. There is no slip company, server, account, API key or payment processo
 slip cannot hold, move, recover or reverse your money, because it never has the
 ability to sign anything.
 
-## Status: P7 — guided setup, counters, descriptors, backup, shift log. **This cannot take a payment yet.**
+## Status: P11 — it takes payments and closes the day.
 
-What exists right now: a single `index.html` (~330 KB raw / ~110 KB gzip) with strict
-TypeScript and React, the ISO 4217 currency table, integer-only money maths, BTC + LTC
-address derivation, SLIP-132 and BIP-380 descriptor parsing, counter accounts with a
-derivation gate, a staff hand-off with a PBKDF2 PIN, a hash-chained shift log, an
-encrypted backup format, QR + BIP-21 URIs, and version stamping on every deploy.
+On-chain (BTC/LTC, mainnet and testnets), Lightning via LNURL-pay + LNURL-verify, receipts with
+customer-kept proofs, rent requests, a day book you can stamp, wallet pairing by QR, a watchlist and
+a customer screen. Every rail is labelled with what was actually observed — `seen` is never `paid`,
+`submitted` is never `confirmed`, and a manual confirmation says it was manual.
 
-Verified against the official BIP-84 / BIP-86 / SLIP-132 vectors, against **Bitcoin Core's
-own `deriveaddresses`** for every address shape, and against an independent Python
-implementation for the money maths. 271 unit tests and 25 browser checks, run against the
-built artifact.
+Still planned: Fedimint (needs a federation to test against), translations, an APK shell.
+
+What exists right now: a single `index.html` (485 KB raw / 150 KB gzip) with strict TypeScript
+and React — the ISO 4217 currency table, integer-only money maths, BTC + LTC address derivation,
+SLIP-132 and BIP-380 descriptor parsing, counter accounts with a derivation gate, a staff hand-off
+with a PBKDF2 PIN, a hash-chained shift log, an encrypted backup (books included), QR + BIP-21
+URIs, the till with catalog and receipts, standing requests, Lightning, anchoring, pairing, the
+watchlist and a customer screen.
+
+Verified against the official BIP-84 / BIP-86 / SLIP-132 vectors, against **Bitcoin Core's own
+`deriveaddresses`** for every address shape, against an independent Python implementation for the
+money maths, and against stubbed explorers/calendars/LNURL endpoints for every status transition.
+**436 unit tests** and **seven browser suites** (124 checks) run against the built artifact.
 
 There is deliberately no selling screen yet. A till that shows a receive address
 before the derivation-preview gate exists is the one bug that costs a merchant
@@ -66,6 +74,19 @@ NWC, 19 further languages, iOS App Store build, thermal printing, kiosk, peer sy
 | Payment detection | Esplora poll while a payment screen is open: `seen` (mempool) is never `paid` (mined) |
 | Standing requests | rent/subscriptions with a due date, request QR and a blunt 30-day budget clock |
 | Agent surface | `window.slip` — read-only wallets/invoices/requests/takings + events |
+| Lightning | LNURL-pay to your own Lightning address; settled only if the wallet's verify URL says so |
+| Day anchoring | Local SHA-256 day digest; optional OpenTimestamps calendar submission, honestly labelled |
+| Pairing | Wallet material as a QR/text code; imports arrive **unchecked** by design |
+| Watchlist | Any address, labelled, checked on demand with a read timestamp |
+| Customer screen | `?display=1` shows the QR and amount, never the takings |
+| Receipt proofs | `SLIP1\|…` record the customer keeps; verifiable against your own books |
+| Sales history | Day close by rail, observed vs human-confirmed, printable sheet, CSV export |
+| Refunds | Recorded with method and reference; slip never moves money |
+| Split payment | One sale across two wallets, two addresses, one receipt |
+| Offline reconcile | Open sales re-checked on load and on reconnect |
+| Silent Payments | `sp1…` display + BIP-21 QR, recorded as a manual confirmation by design |
+| Scanning | Camera (BarcodeDetector) where supported, USB wedge anywhere, paste always |
+| Install | Add-to-device prompt only when the browser actually offers one |
 
 ## Live
 

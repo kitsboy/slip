@@ -11,18 +11,35 @@ import type { CatalogItem } from './catalog';
 import type { Invoice, InvoiceLine, InvoiceStatus } from './orders';
 import type { StandingRequest } from './requests';
 import { emptyBook, type IndexBook } from './indexes';
+import type { Anchor } from './anchor';
+import type { Refund } from './refunds';
 
 export const LEDGER_KEY = 'slip.ledger.v1';
+
+export interface Watch {
+  readonly id: string;
+  readonly label: string;
+  readonly address: string;
+  readonly networkId: string;
+  readonly note: string;
+  readonly addedAt: string;
+}
 
 export interface Ledger {
   items: CatalogItem[];
   invoices: Invoice[];
   requests: StandingRequest[];
   books: Record<string, IndexBook>;
+  /** Addresses we merely look at — a supplier, a landlord, a cold wallet. Never ours. */
+  watches: Watch[];
+  /** Day anchors, so a restored device keeps the proof it already paid for. */
+  anchors: Anchor[];
+  /** Refunds are records of money the merchant moved elsewhere — never movements by slip. */
+  refunds: Refund[];
 }
 
 export function emptyLedger(): Ledger {
-  return { items: [], invoices: [], requests: [], books: {} };
+  return { items: [], invoices: [], requests: [], books: {}, watches: [], anchors: [], refunds: [] };
 }
 
 interface WireItem extends Omit<CatalogItem, 'priceMinor'> {
@@ -43,6 +60,9 @@ interface WireRequest extends Omit<StandingRequest, 'amountMinor'> {
 }
 interface WireLedger {
   version: 1;
+  watches?: Watch[];
+  anchors?: Anchor[];
+  refunds?: (Omit<Refund, 'atoms'> & { atoms: string })[];
   items: WireItem[];
   invoices: WireInvoice[];
   requests: WireRequest[];
@@ -70,6 +90,9 @@ export function toWire(ledger: Ledger): WireLedger {
     })),
     requests: ledger.requests.map((r) => ({ ...r, amountMinor: r.amountMinor.toString() })),
     books: ledger.books,
+    watches: ledger.watches,
+    anchors: ledger.anchors,
+    refunds: ledger.refunds.map((r) => ({ ...r, atoms: r.atoms.toString() })),
   };
 }
 
@@ -102,6 +125,16 @@ export function fromWire(wire: WireLedger): Ledger {
     })),
     requests: (wire.requests ?? []).map((r) => ({ ...r, amountMinor: big(r.amountMinor) })),
     books: wire.books ?? {},
+    // Additive field: an older backup has no watches, which is not an error.
+    watches: (wire.watches ?? []).filter(
+      (w): w is Watch => Boolean(w) && typeof w.address === 'string' && typeof w.label === 'string',
+    ),
+    anchors: (wire.anchors ?? []).filter(
+      (a): a is Anchor => Boolean(a) && typeof a.date === 'string' && typeof a.digestHex === 'string',
+    ),
+    refunds: (wire.refunds ?? [])
+      .filter((r) => Boolean(r) && typeof r.invoiceId === 'string')
+      .map((r) => ({ ...r, atoms: big(r.atoms) })),
   };
 }
 
@@ -123,6 +156,8 @@ export interface LedgerRepository {
   touchRequest(id: string, patch: Partial<StandingRequest>): void;
   removeRequest(id: string): void;
   setBook(walletId: string, book: IndexBook): void;
+  addRefund(refund: Refund): void;
+  refunds(): Refund[];
 }
 
 export function createLedger(store: LedgerStore): LedgerRepository {
@@ -201,6 +236,15 @@ export function createLedger(store: LedgerStore): LedgerRepository {
     removeRequest(id) {
       const l = load();
       save({ ...l, requests: l.requests.filter((r) => r.id !== id) });
+    },
+
+    addRefund(refund) {
+      const l = load();
+      save({ ...l, refunds: [refund, ...l.refunds] });
+    },
+
+    refunds() {
+      return load().refunds;
     },
   };
 

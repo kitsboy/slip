@@ -15,7 +15,11 @@ not live. Every shot below maps to something in `docs/FEATURE-MAP.md` marked **l
 | 8 | 64–72 | Receipt with proof QR + print | *A receipt your customer can keep* | "Every sale ends with a receipt and a proof QR." |
 | 9 | 72–82 | Staff hand-off: name + PIN → "Held by Ana" | *Hand the till over, keep the record* | "Give the till to a staff member. The PIN keeps the record straight, and every move is hash-chained." |
 | 10 | 82–90 | Backup panel → export → restore | *Encrypted backup. Yours.* | "One encrypted file backs it all up. No keys in it, because slip never has any." |
-| 11 | 90–96 | End card: version chip + `slip.giveabit.io` | **slip** · watch-only · open source | "slip. Your keys, your till, nobody's server." |
+| 11 | 88–96 | Receipt: proof QR appears beside the receipt QR | *a receipt your customer can verify* | "Every receipt carries a proof the customer keeps — and slip can check one handed back to it." |
+| 12 | 96–104 | Customer screen on a second window | *the customer sees a QR, not your takings* | "A second screen shows the payer the QR and the amount, and nothing about your shop." |
+| 13 | 104–112 | Lightning panel → invoice → *settled* | *Lightning, straight to your own wallet* | "Lightning goes to your own Lightning address. No node, no channel, no account." |
+| 14 | 112–120 | Day book → stamp with a calendar | *your day, provable* | "At closing, slip hashes the day's sales. Stamp it and that digest is fixed in time." |
+| 15 | 120–126 | End card: version chip + `slip.giveabit.io` | **slip** · watch-only · open source | "slip. Your keys, your till, nobody's server." |
 
 ## Assets to capture when we record
 
@@ -29,6 +33,12 @@ not live. Every shot below maps to something in `docs/FEATURE-MAP.md` marked **l
 8. `handoff.png` — "Held by Ana · Front counter" banner.
 9. `backup.png` — export button + passphrase field.
 10. `footer-zero.png` — the network-request counter at zero.
+11. `receipt-proof.png` — the proof QR beside the receipt QR.
+12. `customer-screen.png` — the second window with just a QR and a total.
+13. `lightning.png` — an invoice with the "settled" line.
+14. `anchor.png` — the day digest and the stamp button.
+15. `pairing.png` — a wallet pairing code as a QR.
+16. `watchlist.png` — a watched address with its balance and read time.
 
 Capture with the same 430 px viewport and 2× scale as the other screenshots so the film looks
 consistent. Record against a **stubbed explorer** so the demo never depends on a third party

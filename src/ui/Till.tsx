@@ -31,6 +31,11 @@ import { loadSettings } from '../core/settings';
 import { fetchAddressActivity, targetFor } from '../core/providers/esplora';
 import { paymentUri, renderQrSvg } from '../core/qr';
 import { cancelInvoice, takingsToday } from '../core/orders';
+import { formatProof, type ReceiptProof } from '../core/proof';
+import { fetchRate, requireFresh, type RateQuote } from '../core/providers/rates';
+import { publishToDisplay, openCustomerDisplay } from './CustomerDisplay';
+import { describeSweep, sweep } from '../core/reconcile';
+import { openPrintable } from './print';
 
 interface CartLine {
   readonly item: CatalogItem;
@@ -38,6 +43,15 @@ interface CartLine {
 }
 
 const POLL_MS = 10_000;
+
+/**
+ * One rate request per minute per (coin, currency, endpoint).
+ *
+ * React's StrictMode mounts effects twice in development and a re-render can remount the
+ * panel; without this the till would ask the same price feed several times a minute, which is
+ * both a privacy leak and a way to get rate-limited at exactly the wrong moment.
+ */
+const RATE_CACHE = new Map<string, { at: number; promise: Promise<RateQuote> }>();
 
 function qrSvg(text: string, scale = 5): string {
   return renderQrSvg(text, { scale, margin: 2 });
@@ -58,6 +72,16 @@ export default function Till() {
   const [receipt, setReceipt] = useState<Invoice | null>(null);
   const [status, setStatus] = useState<string>('');
   const [online, setOnline] = useState(navigator.onLine);
+  const [staffId, setStaffId] = useState<string>('');
+  const [quote, setQuote] = useState<RateQuote | null>(null);
+  const [rateNote, setRateNote] = useState<string>('');
+  const [proof, setProof] = useState<ReceiptProof | null>(null);
+  /** A split sale's second leg: its own address, its own QR, its own status. */
+  const [leg2, setLeg2] = useState<Invoice | null>(null);
+  const [split, setSplit] = useState(false);
+  const [splitWalletId, setSplitWalletId] = useState('');
+  const [splitPercent, setSplitPercent] = useState('50');
+  const [sweepNote, setSweepNote] = useState<string>('');
   const poller = useRef<number | null>(null);
 
   const ledger = useMemo<LedgerRepository>(() => createLedger(window.localStorage), []);
@@ -85,6 +109,89 @@ export default function Till() {
       if (poller.current) window.clearInterval(poller.current);
     };
   }, [reload]);
+
+  /**
+   * Offline reconciliation. A till that sold through a dropped connection has invoices nobody
+   * re-asked about; this sweeps them when the app loads and every time the network returns, and
+   * says what changed. It is a courtesy, not a transaction: a failure changes nothing.
+   */
+  const reconcile = useCallback(async () => {
+    const accounts = createRepository(window.localStorage).load().accounts;
+    const l = ledger.load();
+    if (l.invoices.length === 0) return;
+    const runner = async (target: typeof l.invoices[number]) => {
+      const account = accounts.find((a) => a.id === target.walletId);
+      if (!account) throw new Error('that wallet is no longer on this device');
+      const t = targetFor(account.networkId, settings.explorerUrl);
+      if (!t) throw new Error('no explorer for that network');
+      return fetchAddressActivity(t, target.address);
+    };
+    const result = await sweep(l.invoices, runner);
+    if (result.updated.length > 0) ledger.putInvoices([...result.updated]);
+    setSweepNote(describeSweep(result));
+    if (result.changes.length > 0) window.dispatchEvent(new Event('slip:data-changed'));
+  }, [ledger, settings.explorerUrl]);
+
+  useEffect(() => {
+    void reconcile();
+    const onOnline = () => void reconcile();
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [reconcile]);
+
+  /**
+   * The rate, when the merchant asked slip to fetch one. The quote is stored with its age and
+   * refused once it is stale: selling against a ten-minute-old price is how a shop loses money
+   * to a quiet outage, and the UI must say so rather than quietly using it.
+   */
+  useEffect(() => {
+    const coin = wallet?.coin ?? 'btc';
+    if (!settings.autoRate) {
+      setQuote(null);
+      setRateNote('');
+      return;
+    }
+    const key = `${coin}|${settings.currency}|${settings.rateEndpoint}`;
+
+    // Deduplicate on the PROMISE rather than on the result: a remount that reaches here while
+    // the first request is still in flight must join it, not start a second one. Cancelling on
+    // unmount would otherwise throw the answer away and cost a second request.
+    let entry = RATE_CACHE.get(key);
+    if (!entry || Date.now() - entry.at > 60_000) {
+      entry = {
+        at: Date.now(),
+        promise: fetchRate({
+          coin,
+          currency: settings.currency,
+          ...(settings.rateEndpoint ? { endpoint: settings.rateEndpoint } : {}),
+        }),
+      };
+      RATE_CACHE.set(key, entry);
+    }
+
+    let cancelled = false;
+    const current = entry;
+    current.promise
+      .then((q) => {
+        if (cancelled) return;
+        setQuote(q);
+        setRate((prev) => prev.trim() || (Number(q.minorPerCoin) / 100).toFixed(2));
+        setRateNote(`fetched ${q.fetchedAt.slice(11, 16)} UTC from ${q.source}`);
+      })
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        // A failed fetch must not stay cached as a failure: the next attempt deserves a try.
+        RATE_CACHE.delete(key);
+        setQuote(null);
+        setRateNote(
+          `${e instanceof Error ? e.message : 'the rate service did not answer'} — type the rate yourself`,
+        );
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [settings.autoRate, settings.currency, settings.rateEndpoint, wallet?.coin]);
 
   const visible = useMemo(() => {
     const filtered = category === 'All' ? items : items.filter((i) => i.category === category);
@@ -138,8 +245,40 @@ export default function Till() {
   }
 
   function charge() {
-    if (!wallet || !totals || chargeSats === null) return;
-    const book = ledger.book(wallet.id);
+    // In tip-jar mode a named staff member's own wallet takes the money, so their tips land in
+    // their wallet and not the shop's. It is the same watch-only rule either way.
+    const payee = tipJar && staffId ? (wallets.find((w) => w.id === staffId) ?? wallet) : wallet;
+    if (!payee || !totals || chargeSats === null) return;
+
+    // A fetched rate that has gone stale is refused, not used: the merchant needs to see the
+    // price move before a customer is quoted it.
+    if (settings.autoRate && quote) {
+      try {
+        requireFresh(quote);
+      } catch (e) {
+        setStatus(e instanceof Error ? e.message : 'the rate is stale — refresh it first');
+        return;
+      }
+    }
+
+    // Split: a percentage of this sale is billed to a second wallet, with its own address.
+    // Both legs are ordinary invoices, so both obey the index rule.
+    const leg2Wallet = split && splitWalletId && splitWalletId !== payee.id
+      ? wallets.find((w) => w.id === splitWalletId)
+      : null;
+    const pct = (() => {
+      const n = Number(splitPercent);
+      if (!Number.isInteger(n) || n <= 0 || n >= 100) return 0n;
+      return BigInt(n);
+    })();
+    const leg2Atoms = leg2Wallet && pct > 0n ? (chargeSats * pct) / 100n : 0n;
+    if (leg2Atoms > 0n && leg2Atoms >= chargeSats) {
+      setStatus('a split needs two positive amounts — adjust the percentage');
+      return;
+    }
+    const primaryAtoms = chargeSats - leg2Atoms;
+
+    const book = ledger.book(payee.id);
     const lines = cart.map((l) => ({
       name: l.item.name,
       quantity: l.quantity,
@@ -149,23 +288,54 @@ export default function Till() {
 
     try {
       const created = createInvoice({
-        wallet,
+        wallet: payee,
         book,
-        amountAtoms: chargeSats,
-        amountMinor: totals.roundedTotalMinor,
+        amountAtoms: primaryAtoms,
+        amountMinor: (totals.roundedTotalMinor * primaryAtoms) / chargeSats,
         currency: settings.currency,
         rateMinorPerCoin: parseRate(rate, settings.currency),
         lines,
-        buildAddress: (index) => deriveForAccount(wallet, index),
-        note: tipJar ? 'tip jar' : '',
+        buildAddress: (index) => deriveForAccount(payee, index),
+        note: tipJar ? `tip jar${staffId ? ` for ${settings.staff.find((s) => s.walletId === staffId)?.name ?? ''}` : ''}` : '',
       });
       // The address is about to reach a payer, so the index is burned now — not at
       // creation, so an abandoned cart never consumes one.
-      ledger.setBook(wallet.id, burnInvoiceIndex(created.invoice, created.book));
+      ledger.setBook(payee.id, burnInvoiceIndex(created.invoice, created.book));
       ledger.putInvoice(created.invoice);
       setInvoice(created.invoice);
       setReceipt(null);
+      setProof(null);
       setStatus('waiting');
+
+      if (leg2Wallet && leg2Atoms > 0n) {
+        const second = createInvoice({
+          wallet: leg2Wallet,
+          book: ledger.book(leg2Wallet.id),
+          amountAtoms: leg2Atoms,
+          amountMinor: totals.roundedTotalMinor - (totals.roundedTotalMinor * primaryAtoms) / chargeSats,
+          currency: settings.currency,
+          rateMinorPerCoin: parseRate(rate, settings.currency),
+          buildAddress: (index) => deriveForAccount(leg2Wallet, index),
+          note: `split with ${payee.label}`,
+        });
+        ledger.setBook(leg2Wallet.id, burnInvoiceIndex(second.invoice, second.book));
+        ledger.putInvoice(second.invoice);
+        setLeg2(second.invoice);
+      } else {
+        setLeg2(null);
+      }
+
+      publishToDisplay({
+        kind: 'pay',
+        uri: paymentUri('bitcoin', {
+          address: created.invoice.address,
+          amountSats: created.invoice.amountAtoms,
+          label: payee.label,
+        }),
+        sats: created.invoice.amountAtoms.toString(),
+        label: payee.label,
+        status: 'awaiting',
+      });
     } catch (e) {
       setStatus(e instanceof Error ? e.message : 'could not create the invoice');
     }
@@ -186,12 +356,52 @@ export default function Till() {
         const updated = completeIfConfirmed(applyStatus(target, next));
         ledger.putInvoice(updated);
         setInvoice((cur) => (cur && cur.id === updated.id ? updated : cur));
-        if (updated.status === 'complete') setReceipt(updated);
+        publishToDisplay({
+          kind: 'status',
+          sats: updated.amountAtoms.toString(),
+          label: updated.walletLabel,
+          status: updated.status === 'complete' ? 'paid' : updated.status === 'seen' ? 'seen' : 'awaiting',
+        });
+        if (updated.status === 'complete' && leg2 && leg2.status !== 'complete') {
+          // A split sale is not a sale until both legs are in. Say so rather than printing a
+          // receipt for half a payment.
+          try {
+            const secondAccount = wallets.find((w) => w.id === leg2.walletId);
+            const secondTarget = secondAccount ? targetFor(secondAccount.networkId, settings.explorerUrl) : null;
+            if (secondTarget) {
+              const secondActivity = await fetchAddressActivity(secondTarget, leg2.address);
+              const secondNext = statusFromObservation(leg2, { activity: secondActivity });
+              const secondUpdated = completeIfConfirmed(applyStatus(leg2, secondNext));
+              ledger.putInvoice(secondUpdated);
+              setLeg2(secondUpdated);
+              if (secondUpdated.status !== 'complete') {
+                setStatus('first wallet paid — waiting for the second leg');
+                return;
+              }
+            }
+          } catch {
+            setStatus('first wallet paid — could not check the second leg');
+            return;
+          }
+        }
+        if (updated.status === 'complete') {
+          // The day's anchor depends on the day digest, which is computed elsewhere; a receipt
+          // made before the day is stamped carries a dash, and says so.
+          const anchor = ledger.load().anchors.find((a) => a.date === updated.createdAt.slice(0, 10));
+          setProof({
+            id: updated.id,
+            address: updated.address,
+            amountAtoms: updated.amountAtoms,
+            createdAt: updated.createdAt,
+            dayDigestHex: anchor?.status === 'submitted' ? anchor.digestHex : null,
+          });
+          setReceipt(updated);
+        }
       } catch (e) {
         setStatus(e instanceof Error ? e.message : 'could not reach the explorer');
       }
     },
-    [ledger, settings.explorerUrl, wallets],
+    [leg2, ledger, settings.explorerUrl, wallets],
   );
 
   // Poll only while a payment screen is open. Never in the background: a till that chatters
@@ -226,12 +436,23 @@ export default function Till() {
     const updated = markManualPaid(invoice);
     ledger.putInvoice(updated);
     setInvoice(updated);
+    const anchor = ledger.load().anchors.find((a) => a.date === updated.createdAt.slice(0, 10));
+    setProof({
+      id: updated.id,
+      address: updated.address,
+      amountAtoms: updated.amountAtoms,
+      createdAt: updated.createdAt,
+      dayDigestHex: anchor?.status === 'submitted' ? anchor.digestHex : null,
+    });
     setReceipt(updated);
+    publishToDisplay({ kind: 'status', sats: updated.amountAtoms.toString(), label: updated.walletLabel, status: 'paid' });
     await callAgent('slip:paid', { invoice: updated, manual: true });
   }
 
   async function finish() {
     if (receipt) await callAgent('slip:paid', { invoice: receipt, manual: receipt.manual });
+    publishToDisplay({ kind: 'clear' });
+    setProof(null);
     setReceipt(null);
     setInvoice(null);
     setCart([]);
@@ -327,6 +548,41 @@ export default function Till() {
           </button>
         </div>
 
+        {leg2 && (
+          <div className="mt-4 rounded-xl border border-line p-3" data-split-leg="2">
+            <p className="eyebrow">Second leg · {leg2.walletLabel}</p>
+            <div className="mt-2 flex flex-wrap items-start gap-3">
+              <div
+                className="h-40 w-40 shrink-0 rounded-lg bg-white p-1"
+                dangerouslySetInnerHTML={{
+                  __html: qrSvg(
+                    paymentUri('bitcoin', {
+                      address: leg2.address,
+                      amountSats: leg2.amountAtoms,
+                      label: leg2.walletLabel,
+                    }),
+                    4,
+                  ),
+                }}
+              />
+              <div className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
+                <p className="figure text-sm text-ink">{formatSats(leg2.amountAtoms)}</p>
+                <p>
+                  {leg2.status === 'complete'
+                    ? 'this leg is paid'
+                    : leg2.status === 'seen'
+                      ? 'seen in the mempool — not mined yet'
+                      : 'waiting for payment'}
+                </p>
+                <p className="mt-1 break-all font-mono text-[10px]">{leg2.address}</p>
+                <p className="mt-1 text-warn">
+                  A split sale is one sale: the receipt appears when both legs are paid.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {status && <p className="mt-2 text-[11px] text-muted">{status}</p>}
       </section>
     );
@@ -365,13 +621,31 @@ export default function Till() {
             </p>
             <button
               type="button"
-              onClick={() => window.print()}
+              onClick={() => printReceipt(receipt, proof, settings.businessName, settings.receiptFooter)}
               className="mt-2 rounded-lg border border-line px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
             >
               print receipt
             </button>
           </div>
         </div>
+
+        {proof && (
+          <div className="mt-3 flex flex-wrap items-start gap-3 border-t border-line pt-3">
+            <div
+              className="h-28 w-28 rounded-lg bg-white p-1"
+              dangerouslySetInnerHTML={{ __html: qrSvg(formatProof(proof), 4) }}
+            />
+            <div className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
+              <p className="text-ink">Proof the customer keeps</p>
+              <p className="mt-0.5">
+                Scanning this shows the invoice, the address, the amount and — if the day was
+                stamped — the day digest. It is a record, not a signature: slip holds no key that
+                could sign one.
+              </p>
+              <p className="mt-1 break-all font-mono text-[10px]">{formatProof(proof)}</p>
+            </div>
+          </div>
+        )}
 
         <button
           type="button"
@@ -537,6 +811,78 @@ export default function Till() {
             </div>
           </div>
 
+          {tipJar && settings.staff.length > 0 && (
+            <label className="mt-2 block" htmlFor="tl-staff">
+              <span className="eyebrow">Whose tips are these</span>
+              <select
+                id="tl-staff"
+                value={staffId}
+                onChange={(e) => setStaffId(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+              >
+                <option value="">the shop&apos;s wallet</option>
+                {settings.staff
+                  .filter((s) => wallets.some((w) => w.id === s.walletId))
+                  .map((s) => (
+                    <option key={s.walletId} value={s.walletId}>
+                      {s.name} — their own wallet
+                    </option>
+                  ))}
+              </select>
+            </label>
+          )}
+
+          <label className="mt-2 flex items-start gap-2 text-xs" htmlFor="tl-split">
+            <input
+              id="tl-split"
+              type="checkbox"
+              checked={split}
+              onChange={(e) => setSplit(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>
+              Split this sale across two wallets
+              <span className="mt-0.5 block text-[10px] text-muted">
+                Each leg gets its own address and its own QR. The receipt waits for both.
+              </span>
+            </span>
+          </label>
+          {split && (
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <label className="block" htmlFor="tl-split-wallet">
+                <span className="eyebrow">Second wallet</span>
+                <select
+                  id="tl-split-wallet"
+                  value={splitWalletId}
+                  onChange={(e) => setSplitWalletId(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+                >
+                  <option value="">— choose —</option>
+                  {wallets
+                    .filter((w) => w.id !== walletId)
+                    .map((w) => (
+                      <option key={w.id} value={w.id}>
+                        {w.label}
+                      </option>
+                    ))}
+                </select>
+              </label>
+              <label className="block" htmlFor="tl-split-pct">
+                <span className="eyebrow">Percent to the second wallet</span>
+                <input
+                  id="tl-split-pct"
+                  value={splitPercent}
+                  onChange={(e) => setSplitPercent(e.target.value)}
+                  inputMode="numeric"
+                  className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+                />
+              </label>
+            </div>
+          )}
+
+          {rateNote && <p className="mt-1 text-[10px] text-muted">{rateNote}</p>}
+          {sweepNote && <p className="mt-1 text-[10px] text-muted">Reconciliation: {sweepNote}</p>}
+
           {cart.length > 0 && (
             <ul className="mt-3 space-y-1">
               {cart.map((l) => (
@@ -563,6 +909,9 @@ export default function Till() {
                 ['Tax', formatFiat({ minor: totals.taxMinor, currency: settings.currency })],
                 ['Total', formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })],
                 ['Charge', chargeSats === null ? 'set a rate' : formatSats(chargeSats)],
+                ...(split
+                  ? [['Split', `${splitPercent}% to ${wallets.find((w) => w.id === splitWalletId)?.label ?? '—'}`] as [string, string]]
+                  : []),
               ].map(([k, v]) => (
                 <div key={k} className="rounded-lg border border-line px-2 py-1">
                   <dt className="text-[10px] uppercase tracking-wider text-muted">{k}</dt>
@@ -581,6 +930,16 @@ export default function Till() {
             >
               charge {chargeSats !== null ? formatSats(chargeSats) : ''}
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                const opened = openCustomerDisplay();
+                setStatus(opened ? 'customer screen opened' : 'your browser blocked the second window — allow pop-ups for slip');
+              }}
+              className="rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+            >
+              customer screen
+            </button>
             <span className="text-[11px] text-muted">
               today on this wallet: <span className="figure">{formatSats(walletTakings)}</span>
             </span>
@@ -590,6 +949,51 @@ export default function Till() {
       )}
     </section>
   );
+}
+
+/**
+ * A printed receipt is paper, and paper is ink. This builds a white sheet with black text in its
+ * own window instead of calling window.print() on the dark till, which would either waste a
+ * cartridge or come out unreadable.
+ */
+function printReceipt(
+  invoice: Invoice,
+  proof: ReceiptProof | null,
+  shopName: string,
+  footer: string,
+): void {
+  const esc = (s: string) => s.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]!);
+  const at = (invoice.confirmedAt ?? invoice.createdAt).slice(0, 16).replace('T', ' ');
+  const html = `<!doctype html><title>receipt ${esc(invoice.id)}</title>
+<style>
+  @page { margin: 10mm }
+  body { font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; color: #000; background: #fff; margin: 0 }
+  h1 { font-size: 15px; margin: 0 0 2px }
+  .muted { color: #444 }
+  hr { border: 0; border-top: 1px solid #000; margin: 8px 0 }
+  .big { font-size: 20px; font-weight: 700; margin: 4px 0 }
+  code { font-size: 10px; word-break: break-all }
+  table { width: 100%; border-collapse: collapse }
+  td { padding: 1px 0; vertical-align: top }
+</style>
+<h1>${esc(shopName || 'slip')}</h1>
+<div class="muted">${esc(at)} UTC</div>
+<hr>
+<div class="big">${formatSats(invoice.amountAtoms)}</div>
+<div>${esc(formatFiat({ minor: invoice.amountMinor, currency: invoice.currency }))}</div>
+<hr>
+<table>
+  <tr><td>Invoice</td><td>${esc(invoice.id)}</td></tr>
+  <tr><td>Wallet</td><td>${esc(invoice.walletLabel)}</td></tr>
+  <tr><td>Address</td><td><code>${esc(invoice.address)}</code></td></tr>
+  <tr><td>Index</td><td>${invoice.index === null ? 'fixed address' : `#${invoice.index}`}</td></tr>
+  <tr><td>Status</td><td>${invoice.manual ? 'confirmed by a human' : 'observed by slip at the address above'}</td></tr>
+</table>
+${proof ? `<hr><div class="muted">Proof</div><code>${esc(formatProof(proof))}</code>` : ''}
+<hr>
+<div class="muted">${esc(footer || 'Thank you')}</div>
+<div class="muted">slip · watch-only · no keys, no server</div>`;
+  openPrintable(html, 'slip-receipt', 'width=380,height=620');
 }
 
 function parseFiatSafe(text: string, currency: string): bigint | null {

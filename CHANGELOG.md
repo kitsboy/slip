@@ -1,5 +1,11 @@
 # Changelog
 
+- **v0.13.1** — 2026-10-31T14:35:24Z — `1ed0cc05f889` — scanning wired into pairing and receipt checking
+
+- **v0.13.0** — 2026-10-31T14:33:10Z — `4fa4a5a04f75` — P11: sales history and day close, CSV, refunds, split payment, silent payments, offline reconcile, camera scan, install, printable receipts
+
+- **v0.12.0** — 2026-10-31T14:11:30Z — `e4de228eee3d` — P10: lightning, day anchoring, pairing, watchlist, customer screen, receipt proofs, rate feed
+
 - **v0.11.1** — 2026-10-31T13:48:34Z — `1e16f7daa0a7` — payment screen: remove a placeholder artefact from the rate line
 
 - **v0.11.0** — 2026-10-31T13:43:02Z — `47048b2cbea8` — till, payment detection, receipts, standing requests, agent surface, feature map + video script

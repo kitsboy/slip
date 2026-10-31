@@ -214,3 +214,71 @@ pretending the till saw it.
 The agent surface returns copies from storage and emits events. There is no method that writes,
 signs or sends, so a future bot can report and reconcile but can never move money. Tests assert
 `readOnly === true`.
+
+### D-33 — Lightning is LNURL-pay against the merchant's own address, never a node
+slip asks the merchant's Lightning address for an invoice at the exact amount. Settlement is
+only reported when that wallet's own `verify` URL returns `settled: true`. A wallet that offers
+no verify URL is labelled unverifiable and falls back to a manual confirmation — a Lightning
+payment nobody can check must not look checked.
+
+### D-34 — A day digest is computed locally; stamping is opt-in and never called a confirmation
+`dayDigest` hashes completed invoices for one date into a deterministic SHA-256 (sorted ids, no
+timestamps inside the hash). Submitting it to a calendar is a separate, explicit action, and the
+wording that follows is "submitted", not "confirmed": the Bitcoin attestation arrives in the
+calendar's own time and slip will not claim it early.
+
+### D-35 — Pairing is public material, and imports arrive unchecked
+The app has nothing secret to move, so pairing is a QR of an xpub/descriptor/address. The
+receiving device deliberately does NOT acknowledge address 0/0: it has not compared anything
+against the owner's wallet, and `UNCHECKED` on screen is the only honest state until a human looks.
+
+### D-36 — A rate has an age, and a stale rate is refused
+Quotes carry `fetchedAt`, `ageSeconds` and `stale`; `requireFresh` is called before pricing and a
+stale quote stops the sale with a plain sentence. The source shown is the endpoint that actually
+answered — a merchant pointing at their own node must never be told the number came from
+mempool.space.
+
+### D-37 — One rate request per minute, deduplicated on the promise
+A remount (React StrictMode, or a panel re-render) joins the in-flight request instead of
+starting a second one. Asking a price feed four times a minute is a privacy leak and a way to be
+rate-limited exactly when a queue forms. A failed request is evicted so the next attempt is real.
+
+### D-38 — The customer screen is a second window of the same file
+`?display=1` renders only the QR, the amount and the status, and reads nothing from the books.
+It is fed over `BroadcastChannel`, which never leaves the device; if the channel is unavailable
+the screen says it is not connected rather than showing a stale total.
+
+### D-39 — The backup carries the books
+Accounts, PIN and shift log were never enough: the invoices are what a merchant cannot recreate.
+The `.slip` file now includes the ledger in the same wire shape the app already writes (decimal
+strings, so no precision loss), and the restore message states whether the file had them.
+
+### D-40 — Receipt proofs are records, not signatures
+`SLIP1|…` names the invoice, address, amount, time and (when anchored) the day digest. slip holds
+no key that could sign, so the proof is honest about being a record; the Check-a-receipt panel
+compares it against the local books and refuses to call an unknown proof "checked".
+
+### D-41 — A refund is a record, never a transaction
+slip has no keys, so it cannot send money back. `checkRefund` caps a refund at what was received
+minus what was already refunded, and every refund names its method (on-chain, Lightning, cash,
+goodwill) so the day close can separate money that left the wallet from money that left the drawer.
+The UI states that slip did not move anything.
+
+### D-42 — A swept payment is `complete`, not `confirmed`
+The reconciliation sweep promoted a mined, fully-covered invoice to `confirmed` — which the day
+close ignores, because only `complete` sales are takings. A sale could therefore be paid, receipted
+and invisible in the Z-report. The sweep now runs `completeIfConfirmed` and a test locks it.
+
+### D-43 — Silent Payments can never be watched by slip, and the UI says so
+Detecting an sp1 payment needs the wallet's scan key. slip refuses private material, so an sp1
+address is a receive destination only: validated, shown as a BIP-21 QR, and recorded as a manual
+confirmation. Claiming auto-detection would require breaking the one rule.
+
+### D-44 — A split sale is one sale
+Both legs are ordinary invoices with their own reserved index, but the receipt is only issued when
+both are complete — half a payment must not look like a finished sale.
+
+### D-45 — Printing goes through a Blob, not `document.write`
+The bundle scanner bans `document.write`, and rightly: it is how an injection becomes executable.
+Printable receipts and close sheets are built as HTML strings in their own window via a Blob URL,
+white background and black text because paper is ink.
