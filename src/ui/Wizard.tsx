@@ -133,6 +133,22 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
             <li>· you paste public keys only — never a private one</li>
             <li>· start on a test network until a full sale works</li>
           </ul>
+
+          <div className="mt-4 rounded-lg border border-line p-3">
+            <p className="text-xs">
+              <strong>No wallet yet?</strong> Open the demo shop — a pretend café in its own drawer, with a
+              simulated explorer, so you can take a sale in about a minute. It is also always in the
+              Manual.
+            </p>
+            <a
+              href="?demo=1"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="mt-2 inline-block rounded-lg border border-accent px-3 py-1.5 text-[10px] uppercase tracking-wider text-accent"
+            >
+              open the demo shop
+            </a>
+          </div>
         </div>
       )}
 
