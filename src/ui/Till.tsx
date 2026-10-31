@@ -297,8 +297,8 @@ export default function Till() {
 
             <p className="mt-2 text-[11px] text-muted">
               {formatFiat({ minor: invoice.amountMinor, currency: invoice.currency })} at the rate you
-              entered · <span className="figure">{invoice.rateMinorPerCoin ? formatSats(0n).replace('0 sats', '') : ''}</span>
-              {invoice.rateAt ? `rate read ${invoice.rateAt.slice(11, 16)}` : ''}
+              entered
+              {invoice.rateAt ? ` · rate read ${invoice.rateAt.slice(11, 16)} UTC` : ''}
             </p>
           </div>
         </div>

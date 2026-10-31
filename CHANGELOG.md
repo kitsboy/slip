@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.11.1** — 2026-10-31T13:48:34Z — `1e16f7daa0a7` — payment screen: remove a placeholder artefact from the rate line
+
 - **v0.11.0** — 2026-10-31T13:43:02Z — `47048b2cbea8` — till, payment detection, receipts, standing requests, agent surface, feature map + video script
 
 - **v0.9.1** — 2026-10-31T13:02:54Z — `7ac955498a96` — colour names in text so identification never relies on colour alone
