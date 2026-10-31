@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.8.1** — 2026-10-31T00:55:41Z — `b83e4b7dc341` — light-theme contrast raised
+
 - **v0.8.0** — 2026-10-31T00:53:05Z — `9344ac85e9da` — settings, themes, wipe, restore preview, CI, lint, artifact scan
 
 - **v0.7.0** — 2026-10-30T23:42:39Z — `3289a3729328` — five-screen setup wizard with a tested derivation gate

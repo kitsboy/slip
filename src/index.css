@@ -25,9 +25,11 @@
   --slip-surface: #ffffff;
   --slip-surface-2: #fbfaf8;
   --slip-ink: #0d1117;
-  --slip-muted: #5b6673;
-  --slip-line: #e2dfd9;
-  --slip-line-strong: #cfcbc3;
+  --slip-muted: #4d5763;
+  /* Light-mode borders were so faint the cards read as one plane. Raised until an input
+     edge is visible at arm's length on a phone in daylight. */
+  --slip-line: #d3cec6;
+  --slip-line-strong: #b4ada2;
   --slip-accent-soft: rgba(247, 147, 26, 0.14);
   --slip-bad: #c2262a;
   color-scheme: light;
