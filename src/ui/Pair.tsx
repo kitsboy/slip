@@ -12,10 +12,11 @@ import { createRepository, statusOf, validateAccountInput, type CounterAccount, 
 import { pairCode, readPairCode, type PairedWallet } from '../core/pair';
 import { renderQrSvg } from '../core/qr';
 import { ScanField } from './Scan';
+import { store as appStore } from '../core/storage';
 
 export default function Pair() {
   const [accounts, setAccounts] = useState<CounterAccount[]>(
-    () => createRepository(window.localStorage).load().accounts,
+    () => createRepository(appStore()).load().accounts,
   );
   const [showing, setShowing] = useState<CounterAccount | null>(null);
   const [incoming, setIncoming] = useState('');
@@ -64,7 +65,7 @@ export default function Pair() {
       setNote({ kind: 'bad', text: validation.error });
       return;
     }
-    const repo = createRepository(window.localStorage);
+    const repo = createRepository(appStore());
     const account = repo.addAccount(validation);
     setAccounts(repo.load().accounts);
     setPreview(null);

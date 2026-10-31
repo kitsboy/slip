@@ -22,6 +22,7 @@ import {
 import { createRepository, validateAccountInput } from '../core/accounts';
 import { hashPin, isValidPin } from '../core/pin';
 import type { Coin, NetworkId } from '../core/network';
+import { store as appStore } from '../core/storage';
 
 const NETWORKS: Array<{ id: NetworkId; coin: Coin; label: string }> = [
   { id: 'btc-signet', coin: 'btc', label: 'Bitcoin Signet (test)' },
@@ -72,7 +73,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
 
   const saveWallet = useCallback(() => {
     if (!validation || !validation.ok || !checked) return;
-    const repo = createRepository(window.localStorage);
+    const repo = createRepository(appStore());
     const account = repo.addAccount(validation);
     repo.acknowledge(account.id);
     void repo.recordShift('account-added', account, null, 'created during setup');
@@ -86,14 +87,14 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
       setMessage('A PIN is 4 to 8 digits.');
       return;
     }
-    const repo = createRepository(window.localStorage);
+    const repo = createRepository(appStore());
     repo.setPin(await hashPin(pin));
     void repo.recordShift('pin-set', null, null, 'PIN set during setup');
     setMessage('PIN set — only a hash is stored on this device.');
   }
 
   function finish() {
-    const store = window.localStorage;
+    const store = appStore();
     saveSettings(store, { ...settings, onboardedAt: new Date().toISOString() });
     onDone();
   }

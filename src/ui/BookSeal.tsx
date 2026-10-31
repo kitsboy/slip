@@ -13,18 +13,19 @@ import { dayDigest } from '../core/anchor';
 import { createLedger } from '../core/ledger';
 import { shortDigest } from '../core/freshness';
 import { loadSettings } from '../core/settings';
+import { store as appStore } from '../core/storage';
 
 export default function BookSeal() {
   const [digest, setDigest] = useState<string | null>(null);
   const [count, setCount] = useState(0);
   // A quiet counter can switch this off; the digest stays available in the Day book panel.
-  const [enabled] = useState(() => loadSettings(window.localStorage).settings.assist.bookSeal);
+  const [enabled] = useState(() => loadSettings(appStore()).settings.assist.bookSeal);
 
   useEffect(() => {
     let cancelled = false;
     const compute = async () => {
       try {
-        const invoices = createLedger(window.localStorage).load().invoices;
+        const invoices = createLedger(appStore()).load().invoices;
         const today = new Date().toISOString().slice(0, 10);
         const book = await dayDigest(invoices, today);
         if (cancelled) return;

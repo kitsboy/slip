@@ -39,6 +39,10 @@ import { closeTab, park, repeatable, tabLabel, tabSubtotalMinor, toTabLine, type
 import FreshnessRing from './FreshnessRing';
 import Explain from './Explain';
 import { openPrintable } from './print';
+import { paymentLabel } from '../core/brand';
+import { registerDemoSale } from '../demo/fakeExplorer';
+import { isDemo } from '../core/storage';
+import { store as appStore } from '../core/storage';
 
 interface CartLine {
   readonly item: CatalogItem;
@@ -65,7 +69,7 @@ function qrSvg(text: string, scale = 5): string {
 }
 
 export default function Till() {
-  const [settings, setSettings] = useState(() => loadSettings(window.localStorage).settings);
+  const [settings, setSettings] = useState(() => loadSettings(appStore()).settings);
   const [wallets, setWallets] = useState<CounterAccount[]>([]);
   const [walletId, setWalletId] = useState<string>('');
   const [items, setItems] = useState<CatalogItem[]>([]);
@@ -91,25 +95,25 @@ export default function Till() {
   const [sweepNote, setSweepNote] = useState<string>('');
   const [tabs, setTabs] = useState<ParkedTab[]>(() => {
     try {
-      return JSON.parse(window.localStorage.getItem(TABS_KEY) ?? '[]') as ParkedTab[];
+      return JSON.parse(appStore().getItem(TABS_KEY) ?? '[]') as ParkedTab[];
     } catch {
       return [];
     }
   });
   const [lastSale, setLastSale] = useState<RepeatSale | null>(() => {
     try {
-      return JSON.parse(window.localStorage.getItem(LAST_SALE_KEY) ?? 'null') as RepeatSale | null;
+      return JSON.parse(appStore().getItem(LAST_SALE_KEY) ?? 'null') as RepeatSale | null;
     } catch {
       return null;
     }
   });
   const poller = useRef<number | null>(null);
 
-  const ledger = useMemo<LedgerRepository>(() => createLedger(window.localStorage), []);
+  const ledger = useMemo<LedgerRepository>(() => createLedger(appStore()), []);
   const wallet = wallets.find((w) => w.id === walletId) ?? null;
 
   const reload = useCallback(() => {
-    const accounts = createRepository(window.localStorage).load().accounts;
+    const accounts = createRepository(appStore()).load().accounts;
     setWallets(accounts);
     setWalletId((current) => current || (accounts.find((a) => statusOf(a) === 'ready')?.id ?? ''));
     const l = ledger.load();
@@ -119,7 +123,7 @@ export default function Till() {
   useEffect(() => {
     reload();
     const onChange = () => reload();
-    const onSettings = () => setSettings(loadSettings(window.localStorage).settings);
+    const onSettings = () => setSettings(loadSettings(appStore()).settings);
     window.addEventListener('slip:settings-changed', onSettings);
     window.addEventListener('slip:data-changed', onChange);
     const onNet = () => setOnline(navigator.onLine);
@@ -140,7 +144,7 @@ export default function Till() {
    * says what changed. It is a courtesy, not a transaction: a failure changes nothing.
    */
   const reconcile = useCallback(async () => {
-    const accounts = createRepository(window.localStorage).load().accounts;
+    const accounts = createRepository(appStore()).load().accounts;
     const l = ledger.load();
     if (l.invoices.length === 0) return;
     const runner = async (target: typeof l.invoices[number]) => {
@@ -270,7 +274,7 @@ export default function Till() {
 
   function saveTabs(next: ParkedTab[]) {
     setTabs(next);
-    window.localStorage.setItem(TABS_KEY, JSON.stringify(next));
+    appStore().setItem(TABS_KEY, JSON.stringify(next));
   }
 
   function parkCurrent() {
@@ -327,6 +331,12 @@ export default function Till() {
     setTipJar(false);
     setStatus('last sale loaded — check the total, then charge');
   }
+
+  // A demo shop has no rate to type and nobody to ask: prefill a plausible one so the walkthrough
+  // reaches a QR in two taps. It is still an ordinary, visible, editable field.
+  useEffect(() => {
+    if (isDemo && rate.trim() === '') setRate('60000.00');
+  }, [rate]);
 
   function charge() {
     // In tip-jar mode a named staff member's own wallet takes the money, so their tips land in
@@ -418,6 +428,9 @@ export default function Till() {
       // creation, so an abandoned cart never consumes one.
       ledger.setBook(payee.id, burnInvoiceIndex(created.invoice, created.book));
       ledger.putInvoice(created.invoice);
+      // In the demo the explorer is simulated: it needs to know the amount so it can "confirm"
+      // after a few seconds and the walkthrough can show the whole sequence.
+      if (isDemo) registerDemoSale(created.invoice.address, created.invoice.amountAtoms);
       setInvoice(created.invoice);
       setReceipt(null);
       setProof(null);
@@ -446,7 +459,7 @@ export default function Till() {
         uri: paymentUri('bitcoin', {
           address: created.invoice.address,
           amountSats: created.invoice.amountAtoms,
-          label: payee.label,
+          label: paymentLabel(payee.label, settings.signature),
         }),
         sats: created.invoice.amountAtoms.toString(),
         label: payee.label,
@@ -529,9 +542,12 @@ export default function Till() {
   useEffect(() => {
     if (poller.current) window.clearInterval(poller.current);
     if (!invoice || invoice.status === 'complete') return;
-    poller.current = window.setInterval(() => {
-      void check(invoice);
-    }, POLL_MS);
+    poller.current = window.setInterval(
+      () => {
+        void check(invoice);
+      },
+      isDemo ? 2_000 : POLL_MS,
+    );
     return () => {
       if (poller.current) window.clearInterval(poller.current);
     };
@@ -581,7 +597,7 @@ export default function Till() {
           at: new Date().toISOString(),
         };
         setLastSale(sale);
-        window.localStorage.setItem(LAST_SALE_KEY, JSON.stringify(sale));
+        appStore().setItem(LAST_SALE_KEY, JSON.stringify(sale));
       }
       await callAgent('slip:paid', { invoice: receipt, manual: receipt.manual });
     }
@@ -604,7 +620,7 @@ export default function Till() {
     const uri = paymentUri('bitcoin', {
       address: invoice.address,
       amountSats: invoice.amountAtoms,
-      label: invoice.walletLabel,
+      label: paymentLabel(invoice.walletLabel, settings.signature),
     });
     const pending = invoice.status === 'awaiting' || invoice.status === 'seen';
     return (

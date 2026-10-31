@@ -33,6 +33,7 @@ import type { ScriptType } from '../core/keys';
 import { loadSettings } from '../core/settings';
 import { fetchAddressActivity, formatAtoms, targetFor } from '../core/providers/esplora';
 import type { AccountPurpose, WalletColour } from '../core/accounts';
+import { store as appStore } from '../core/storage';
 
 const NETWORKS: Array<{ id: NetworkId; coin: Coin; label: string }> = [
   { id: 'btc-mainnet', coin: 'btc', label: 'Bitcoin' },
@@ -59,7 +60,7 @@ let usingMemory = false;
 
 function repo(): Repository {
   try {
-    const ls = window.localStorage;
+    const ls = appStore();
     ls.getItem(STORAGE_KEY_PROBE); // throws when storage is blocked, not when it is empty
     return createRepository(ls);
   } catch {
@@ -146,7 +147,7 @@ export default function Counters() {
    * scan a whole chain and saying otherwise would be a lie with a number attached.
    */
   async function checkBalance(account: CounterAccount) {
-    const { settings } = loadSettings(window.localStorage);
+    const { settings } = loadSettings(appStore());
     const target = targetFor(account.networkId, settings.explorerUrl);
     if (!target) {
       setBalances((b) => ({
@@ -240,16 +241,16 @@ export default function Counters() {
     refresh();
     // The next person should not have to guess what is in flight. The note is built from state
     // that already exists — nothing is invented.
-    const settings = loadSettings(window.localStorage).settings;
+    const settings = loadSettings(appStore()).settings;
     if (settings.assist.handoverNote) {
-      const ledger = createLedger(window.localStorage);
+      const ledger = createLedger(appStore());
       const data = ledger.load();
       const today = new Date().toISOString().slice(0, 10);
       const note = buildHandover({
         staffName: staff,
         parkedTabs: (() => {
           try {
-            return (JSON.parse(window.localStorage.getItem('slip.tabs.v1') ?? '[]') as unknown[]).length;
+            return (JSON.parse(appStore().getItem('slip.tabs.v1') ?? '[]') as unknown[]).length;
           } catch {
             return 0;
           }

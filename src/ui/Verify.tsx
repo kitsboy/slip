@@ -16,9 +16,10 @@ import { formatProof, parseProof, proofMatchesInvoice, type ReceiptProof } from 
 import { renderQrSvg } from '../core/qr';
 import { formatSats } from '../core/money';
 import { ScanField } from './Scan';
+import { store as appStore } from '../core/storage';
 
 export default function Verify() {
-  const ledger = useMemo(() => createLedger(window.localStorage), []);
+  const ledger = useMemo(() => createLedger(appStore()), []);
   const [text, setText] = useState('');
   const [chosen, setChosen] = useState<ReceiptProof | null>(null);
   const [result, setResult] = useState<{ kind: 'ok' | 'warn' | 'bad'; text: string } | null>(null);

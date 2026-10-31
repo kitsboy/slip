@@ -12,21 +12,24 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createLedger } from '../core/ledger';
 import { closeReport, dayClose, daysWithSales, salesCsv, type SaleRow } from '../core/history';
+import { findSales } from '../core/findsale';
 import { METHOD_LABEL, checkRefund, makeRefund, refundedSoFar, type RefundMethod } from '../core/refunds';
 import { loadSettings } from '../core/settings';
 import { formatSats } from '../core/money';
 import { ScanField } from './Scan';
 import { escapeHtml, openPrintable } from './print';
+import { store as appStore } from '../core/storage';
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
 export default function History() {
-  const ledger = useMemo(() => createLedger(window.localStorage), []);
-  const settings = useMemo(() => loadSettings(window.localStorage).settings, []);
+  const ledger = useMemo(() => createLedger(appStore()), []);
+  const settings = useMemo(() => loadSettings(appStore()).settings, []);
   const [version, setVersion] = useState(0);
   const [date, setDate] = useState(today());
+  const [find, setFind] = useState('');
 
   // The reconciliation sweep can complete a sale while this panel is open; without this the
   // day close would quietly show the numbers from before the sweep.
@@ -43,6 +46,14 @@ export default function History() {
   }, [data.invoices, date]);
 
   const close = useMemo(() => dayClose(data.invoices, data.refunds, date), [data, date]);
+
+  // The search runs over the day's rows, so a match keeps the day's totals beside it.
+  const visibleRows = useMemo(() => {
+    if (find.trim().length < 2) return close.rows;
+    const matched = new Set(findSales(data.invoices, find, 40).map((m) => m.invoice.id));
+    const rows = close.rows.filter((r) => matched.has(r.id));
+    return rows.length > 0 ? rows : close.rows;
+  }, [find, close.rows, data.invoices]);
 
   const [refunding, setRefunding] = useState<SaleRow | null>(null);
   const [atoms, setAtoms] = useState('');
@@ -211,13 +222,27 @@ export default function History() {
         </p>
       )}
 
+      <label className="mt-3 block" htmlFor="hs-find" data-panel="findsale">
+        <span className="eyebrow">Find a sale</span>
+        <input
+          id="hs-find"
+          value={find}
+          onChange={(e) => setFind(e.target.value)}
+          placeholder="amount, address ending, time, invoice…"
+          className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+        />
+        <span className="mt-1 block text-[10px] text-muted">
+          A customer comes back with a receipt and no invoice number: type what they remember.
+        </span>
+      </label>
+
       {close.count === 0 ? (
         <p className="mt-3 rounded-lg border border-line p-2 text-[11px] text-muted">
           No completed sales on {date}.
         </p>
       ) : (
         <ul className="mt-3 space-y-1">
-          {close.rows.map((row) => (
+          {visibleRows.map((row) => (
             <li key={row.id} className="rounded-lg border border-line p-2">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <span className="text-xs">

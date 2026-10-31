@@ -36,6 +36,16 @@ captions come from the manual cards, so the film can never describe a feature we
 8. **Quiet mode (78–86s)** — Assistance switches: turning the noise off.
 9. **End card (86–90s)** — version + URL.
 
+## New since the last cut
+
+| Asset | Image | Caption |
+|---|---|---|
+| Demo shop | `screenshots/manual/demo-link.png` | A pretend café you can sell in before you own a wallet. |
+| Live 100 sat test | `screenshots/manual/livetest.png` | A real hundred sats, on a rail you choose. |
+| Quiet clock | `screenshots/manual/wallclock.png` | Between customers, a shop — not a spreadsheet. |
+| Customer page | `screenshots/manual/explainer.png` | One plain page for someone who has never used bitcoin. |
+| Weekly letter | `screenshots/manual/letter.png` | A week, written as sentences. |
+
 ## Still to record (needs a human at the counter)
 
 - A real customer scanning a QR (hands, phone, café background).

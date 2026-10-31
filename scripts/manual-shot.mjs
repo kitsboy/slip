@@ -68,7 +68,14 @@ await context.addInitScript(
       seenAt: day + 'T09:01:00.000Z', confirmedAt: day + 'T09:01:00.000Z', manual: false, note: '', ...over,
     });
     localStorage.setItem('slip.accounts.v1', JSON.stringify({ version: 1, accounts: [wallet('w1', 'Front counter', 'blue'), wallet('w2', 'Back bar', 'teal')], activeAccountId: 'w1', pinHash: null, savedAt: stamp }));
-    localStorage.setItem('slip.settings.v1', JSON.stringify({ businessName: 'Café Nord', currency: 'USD', taxBps: 0, taxInclusive: false, tipPresetsBps: [0, 1000], receiptFooter: 'Thank you', explorerUrl: '', rateEndpoint: '', autoRate: false, staff: [{ name: 'Ana', walletId: 'w2' }], language: 'en', onboardedAt: stamp }));
+    localStorage.setItem('slip.settings.v1', JSON.stringify({
+      businessName: 'Café Nord', currency: 'USD', taxBps: 0, taxInclusive: false,
+      tipPresetsBps: [0, 1000], receiptFooter: 'Thank you', explorerUrl: '', rateEndpoint: '',
+      autoRate: false, staff: [{ name: 'Ana', walletId: 'w2' }], language: 'en', onboardedAt: stamp,
+      signature: 'giveabit.io',
+      // The optional panels are on for the manual, so their cards can be photographed.
+      assist: { explainNumbers: true, rehearsal: false, hints: true, freshnessRings: true, bookSeal: true, handoverNote: true, counterCard: true, wallClock: true, weeklyLetter: true, liveTest: true },
+    }));
     localStorage.setItem('slip.ledger.v1', JSON.stringify({ version: 1, items: [{ id: 'i1', name: 'Espresso', priceMinor: '350', priceCurrency: 'FIAT', category: 'Drinks', emoji: '☕', taxBps: 0, sort: 1, template: 'cafe' }, { id: 'i2', name: 'Croissant', priceMinor: '400', priceCurrency: 'FIAT', category: 'Bakery', emoji: '🥐', taxBps: 0, sort: 2, template: 'cafe' }], invoices: [inv('inv_a'), inv('inv_b', { amountAtoms: '5000', manual: true, walletId: 'w2', walletLabel: 'Back bar' }), inv('inv_c', { amountAtoms: '7000', walletId: 'ln:shop@x', walletLabel: 'Lightning', note: 'lightning' })], requests: [], books: {}, watches: [{ id: 'w_a', label: 'Landlord', address: 'bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu', networkId: 'btc-mainnet', note: '', addedAt: stamp }], anchors: [], refunds: [] }));
   },
   [ZPUB, today],
@@ -85,6 +92,18 @@ await page.waitForTimeout(900);
 let captured = 0;
 const missing = [];
 for (const id of ids) {
+  // The customer page is a route, not a panel on the till.
+  if (id === 'explainer') {
+    await page.goto(`http://127.0.0.1:${PORT}/?explain=1`, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('[data-panel="explainer"]');
+    await page.locator('[data-panel="explainer"]').screenshot({ path: join(ROOT, `screenshots/manual/${id}.png`) });
+    await page.goto(`http://127.0.0.1:${PORT}/`, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('h1');
+    await page.waitForTimeout(500);
+    captured += 1;
+    console.log(`shot ${id}`);
+    continue;
+  }
   const panel = page.locator(`[data-panel="${id}"]`).first();
   if ((await panel.count()) === 0) {
     missing.push(id);

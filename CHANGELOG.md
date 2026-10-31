@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.17.0** — 2026-10-31T20:19:16Z — `99542764a8d4` — P14: demo shop in its own drawer, live 100-sat test, quiet clock, find a sale, customer page, weekly letter, credit line
+
 - **v0.16.0** — 2026-10-31T19:18:45Z — `b83a6f64870f` — P13: assistance switches, explain-a-number, rehearsal, self test, handover note, counter card, content log
 
 - **v0.14.0** — 2026-10-31T16:24:58Z — `35ef2f8048ce` — P12: manual generated from code, docs gate, manual screenshots, freshness rings, tamper-evident footer, parked tabs, repeat last

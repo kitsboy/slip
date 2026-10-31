@@ -8,6 +8,8 @@
 
 import { useMemo, useState } from 'react';
 import { MANUAL_GROUPS, searchManual } from '../manual/entries';
+import { renderQrSvg } from '../core/qr';
+import { BRAND_GLYPH, BRAND_NAME } from '../core/brand';
 
 export default function Manual() {
   const [query, setQuery] = useState('');
@@ -21,6 +23,36 @@ export default function Manual() {
         Written for a shop, not an engineer. Each card says what a panel is for, the steps, and the
         one limit you should know before you rely on it.
       </p>
+
+      <div className="mt-3 rounded-xl border border-warn/50 bg-warn/5 p-3" data-panel="demo-link">
+        <p className="text-xs">
+          <strong>Try it without a wallet.</strong> Open the demo café: a pretend shop in its own
+          drawer, with a simulated explorer. Nothing leaves the device and your real books are never
+          touched.
+        </p>
+        <a
+          href="?demo=1"
+          target="_blank"
+          rel="noreferrer noopener"
+          className="mt-2 inline-block rounded-lg border border-warn px-3 py-1.5 text-[10px] uppercase tracking-wider text-warn"
+        >
+          open the demo shop
+        </a>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-start gap-3">
+        <div
+          className="h-28 w-28 shrink-0 rounded-lg bg-white p-1"
+          dangerouslySetInnerHTML={{
+            __html: renderQrSvg(`${window.location.origin}${window.location.pathname}?explain=1`, { scale: 4, margin: 2 }),
+          }}
+        />
+        <p className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
+          <strong className="text-ink">A QR for your customers.</strong> Print this and stand it beside
+          the till: it opens one plain page explaining what they are paying, who holds the money, and
+          why no receipt is emailed.
+        </p>
+      </div>
 
       <label className="mt-3 block" htmlFor="mn-search">
         <span className="eyebrow">Search</span>

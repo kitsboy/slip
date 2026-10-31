@@ -17,11 +17,12 @@ import { printCounterCard } from './counterCard';
 import { buildLabel } from '../core/buildinfo';
 import { createRepository, SHIFT_STORAGE_KEY, STORAGE_KEY } from '../core/accounts';
 import { SETTINGS_KEY } from '../core/settings';
+import { store as appStore } from '../core/storage';
 
 const COMMON = ['USD', 'CAD', 'EUR', 'GBP', 'AUD', 'JPY', 'CHF', 'MXN', 'KWD', 'VND'];
 
 export default function Settings() {
-  const store = window.localStorage;
+  const store = appStore();
   const loaded = loadSettings(store);
 
   const [businessName, setBusinessName] = useState(loaded.settings.businessName);
@@ -33,6 +34,7 @@ export default function Settings() {
   const [autoRate, setAutoRate] = useState(loaded.settings.autoRate);
   const [staff, setStaff] = useState<{ name: string; walletId: string }[]>([...loaded.settings.staff]);
   const [assist, setAssist] = useState<AssistOptions>({ ...loaded.settings.assist });
+  const [signature, setSignature] = useState(loaded.settings.signature);
   const [newStaff, setNewStaff] = useState('');
   const [newStaffWallet, setNewStaffWallet] = useState('');
   const wallets = createRepository(store).load().accounts;
@@ -54,6 +56,7 @@ export default function Settings() {
       autoRate,
       staff,
       assist,
+      signature,
       language: 'en',
       onboardedAt: loaded.settings.onboardedAt ?? new Date().toISOString(),
     });
@@ -251,6 +254,20 @@ export default function Settings() {
           <span className="text-[10px] text-muted">remember to press Save settings</span>
         </div>
       </div>
+
+      <label className="mt-3 block" htmlFor="st-signature">
+        <span className="eyebrow">Credit on payment labels (empty = say nothing)</span>
+        <input
+          id="st-signature"
+          value={signature}
+          onChange={(e) => setSignature(e.target.value)}
+          placeholder="giveabit.io"
+          className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
+        />
+        <span className="mt-1 block text-[10px] text-muted">
+          Rides on the BIP-21 label a customer’s wallet already shows — never a logo across the till.
+        </span>
+      </label>
 
       <div className="mt-4 rounded-lg border border-line p-2" data-panel="assist">
         <span className="eyebrow">Assistance</span>

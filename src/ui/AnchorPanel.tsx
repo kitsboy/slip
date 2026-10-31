@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createLedger } from '../core/ledger';
 import { CALENDARS, dayDigest, describeAnchor, submitAnchor, verifyLocally, type Anchor, type DayBook } from '../core/anchor';
 import { formatSats } from '../core/money';
+import { store as appStore } from '../core/storage';
 
 function recentDays(count: number): string[] {
   const out: string[] = [];
@@ -27,7 +28,7 @@ function recentDays(count: number): string[] {
 }
 
 export default function AnchorPanel() {
-  const ledger = useMemo(() => createLedger(window.localStorage), []);
+  const ledger = useMemo(() => createLedger(appStore()), []);
   const days = useMemo(() => recentDays(7), []);
   const [date, setDate] = useState(days[0]!);
   const [book, setBook] = useState<DayBook | null>(null);

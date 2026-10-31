@@ -325,3 +325,26 @@ switch the merchant just flicked is visible without a reload — otherwise the s
 No `npm run film` yet. Instead every release adds to `docs/CONTENT-LOG.md`: captured panels,
 suggested beats, and the shots that need a human at a counter. The video will be cut from assets the
 build produced, not from mock-ups.
+
+### D-55 — The demo is a drawer, not a mode
+`?demo=1` swaps every storage call for a `slip.demo.` prefix (core/storage.ts), seeds a café and
+replaces `fetch` with a local simulator. The demo therefore cannot read or overwrite a real shop's
+books, and cannot reach the internet even if a future panel tries to.
+
+### D-56 — Demo payments confirm themselves, and say so
+A simulated explorer confirms a new sale after four seconds so a stranger can see the whole
+sequence in a minute. The banner says the explorer is simulated, every sale is inside the demo
+drawer, and leaving wipes it.
+
+### D-57 — The 100 sat test is real money, deliberately tiny
+It is off by default and opt-in per merchant, because it spends their money (or faucet test coins).
+It creates an invoice and watches an address — the same two capabilities as the till, neither of
+which can spend.
+
+### D-58 — Branding rides on a field that already exists
+The credit is a suffix on the BIP-21 label (and a quiet footer mark), never a logo across the till.
+It is removable in one field, and it is true: Give A Bit built this.
+
+### D-59 — Optional surfaces are switches, not pages
+Clock, letter, live test, explanations, rehearsal and the rest all ship behind Settings → Assistance
+so a vendor can hand over a quiet till and a merchant can add depth as they grow.

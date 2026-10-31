@@ -39,6 +39,11 @@ export interface ShopSettings {
    * ship it quiet by default.
    */
   readonly assist: AssistOptions;
+  /**
+   * The small credit that rides on a payment label. Empty means "say nothing", which a shop is
+   * free to choose; the app never stamps itself across the screen.
+   */
+  readonly signature: string;
   readonly language: 'en';
   readonly onboardedAt: string | null;
 }
@@ -58,6 +63,12 @@ export interface AssistOptions {
   readonly handoverNote: boolean;
   /** The printable counter card (rules for staff). Always available from Settings when off. */
   readonly counterCard: boolean;
+  /** A big quiet clock with today's takings, for the hours between customers. */
+  readonly wallClock: boolean;
+  /** The weekly letter: a week's takings written as sentences, printable. */
+  readonly weeklyLetter: boolean;
+  /** The real-money 100 sat test. Off by default: it spends money, however little. */
+  readonly liveTest: boolean;
 }
 
 export const DEFAULT_ASSIST: AssistOptions = {
@@ -68,6 +79,9 @@ export const DEFAULT_ASSIST: AssistOptions = {
   bookSeal: true,
   handoverNote: true,
   counterCard: true,
+  wallClock: false,
+  weeklyLetter: false,
+  liveTest: false,
 };
 
 export const ASSIST_LABELS: Readonly<Record<keyof AssistOptions, { title: string; why: string }>> = {
@@ -78,6 +92,9 @@ export const ASSIST_LABELS: Readonly<Record<keyof AssistOptions, { title: string
   bookSeal: { title: 'Show the day digest in the footer', why: 'Today\u2019s book hash, changing as sales land. Quiet proof, or noise — your call.' },
   handoverNote: { title: 'Note when the till changes hands', why: 'A three-line summary for whoever takes over: parked sales, refunds, stale rate.' },
   counterCard: { title: 'Offer the printable counter card', why: 'A one-page A4 of the rules for staff, for the wall behind the till.' },
+  wallClock: { title: 'Quiet clock mode', why: 'A big clock with today\u2019s takings, for the gaps between customers.' },
+  weeklyLetter: { title: 'Weekly letter', why: 'A week of takings written as sentences you can print and keep.' },
+  liveTest: { title: 'Live 100 sat test', why: 'A real invoice for one hundred sats, on Lightning or signet, to prove a rail works before you trust it.' },
 };
 
 export const SETTINGS_KEY = 'slip.settings.v1';
@@ -94,6 +111,7 @@ export const DEFAULT_SETTINGS: ShopSettings = {
   autoRate: false,
   staff: [],
   assist: DEFAULT_ASSIST,
+  signature: 'giveabit.io',
   language: 'en',
   onboardedAt: null,
 };
@@ -224,6 +242,11 @@ export function sanitizeSettings(raw: unknown): { settings: ShopSettings; warnin
       autoRate: Boolean(input.autoRate),
       // Unknown keys are dropped rather than trusted, so an older settings blob cannot switch on
       // a behaviour this build does not have.
+      signature: (() => {
+        if (typeof input.signature !== 'string') return 'giveabit.io';
+        const clean = input.signature.trim().slice(0, 40);
+        return /^[\w .@:/+-]*$/.test(clean) ? clean : 'giveabit.io';
+      })(),
       assist: (() => {
         const raw = (input.assist ?? {}) as Partial<Record<keyof AssistOptions, unknown>>;
         const out = { ...DEFAULT_ASSIST };

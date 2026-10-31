@@ -22,11 +22,12 @@ import {
 import { fiatToAtoms, formatFiat, formatSats, parseFiat, parseRate } from '../core/money';
 import { loadSettings } from '../core/settings';
 import { paymentUri, renderQrSvg } from '../core/qr';
+import { store as appStore } from '../core/storage';
 
 export default function Requests() {
-  const settings = useMemo(() => loadSettings(window.localStorage).settings, []);
-  const ledger = useMemo(() => createLedger(window.localStorage), []);
-  const accounts = useMemo<CounterAccount[]>(() => createRepository(window.localStorage).load().accounts, []);
+  const settings = useMemo(() => loadSettings(appStore()).settings, []);
+  const ledger = useMemo(() => createLedger(appStore()), []);
+  const accounts = useMemo<CounterAccount[]>(() => createRepository(appStore()).load().accounts, []);
 
   const [label, setLabel] = useState('');
   const [walletId, setWalletId] = useState(accounts.find((a) => statusOf(a) === 'ready')?.id ?? '');

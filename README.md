@@ -91,7 +91,13 @@ NWC, 19 further languages, iOS App Store build, thermal printing, kiosk, peer sy
 | Freshness | Age rings on fetched numbers, from the same rule that refuses a stale rate |
 | Book seal | Today's digest in the footer, changing as sales land |
 | Parked tabs | Up to five held sales, resumed in one tap; repeat-last for the usual order |
-| Assistance | Seven switches so the screen can be quiet; flip them in Settings |
+| Assistance | Ten switches so the screen can be quiet; flip them in Settings |
+| Demo shop | `?demo=1`: a pretend café in its own drawer, zero network, auto-confirming sales |
+| Live 100 sat test | A real invoice on Lightning or signet, to prove a rail before you trust it |
+| Find a sale | Amount, address ending, time or invoice id |
+| Quiet clock | Time, today's takings, last sale — for the gaps |
+| Customer page | `?explain=1`: what they are paying, who holds it |
+| Weekly letter | A week in sentences, printable, never emailed |
 | Explain a number | Tap a figure for one plain sentence and its caveat |
 | Rehearsal | Practise a sale: real QR, no books, no index |
 | Self test | Five fixed vectors in the browser — proves the file's arithmetic |

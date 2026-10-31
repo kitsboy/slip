@@ -15,6 +15,7 @@ import { fetchAddressActivity, formatAtoms, targetFor } from '../core/providers/
 import { formatSats } from '../core/money';
 import type { NetworkId } from '../core/network';
 import { ALL_NETWORK_IDS, networkById } from '../core/network';
+import { store as appStore } from '../core/storage';
 
 interface Seen {
   readonly atoms: bigint;
@@ -25,8 +26,8 @@ interface Seen {
 }
 
 export default function Watchlist() {
-  const ledger = useMemo(() => createLedger(window.localStorage), []);
-  const settings = useMemo(() => loadSettings(window.localStorage).settings, []);
+  const ledger = useMemo(() => createLedger(appStore()), []);
+  const settings = useMemo(() => loadSettings(appStore()).settings, []);
   const [watches, setWatches] = useState<Watch[]>(() => ledger.load().watches);
   const [label, setLabel] = useState('');
   const [address, setAddress] = useState('');

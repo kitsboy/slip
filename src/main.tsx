@@ -2,7 +2,12 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import CustomerDisplay from './ui/CustomerDisplay';
+import DemoBanner from './ui/DemoBanner';
+import Explainer from './ui/Explainer';
+import { installFakeExplorer } from './demo/fakeExplorer';
+import { seedDemo } from './demo/scenario';
 import './index.css';
+import { store as appStore } from './core/storage';
 
 const el = document.getElementById('root');
 if (!el) throw new Error('slip: #root missing');
@@ -51,7 +56,7 @@ window.slip = {
   readOnly: true,
   wallets: () => {
     try {
-      const raw = window.localStorage.getItem('slip.accounts.v1');
+      const raw = appStore().getItem('slip.accounts.v1');
       return raw ? (JSON.parse(raw).accounts ?? []) : [];
     } catch {
       return [];
@@ -59,7 +64,7 @@ window.slip = {
   },
   invoices: () => {
     try {
-      const raw = window.localStorage.getItem('slip.ledger.v1');
+      const raw = appStore().getItem('slip.ledger.v1');
       return raw ? (JSON.parse(raw).invoices ?? []) : [];
     } catch {
       return [];
@@ -67,7 +72,7 @@ window.slip = {
   },
   requests: () => {
     try {
-      const raw = window.localStorage.getItem('slip.ledger.v1');
+      const raw = appStore().getItem('slip.ledger.v1');
       return raw ? (JSON.parse(raw).requests ?? []) : [];
     } catch {
       return [];
@@ -75,7 +80,7 @@ window.slip = {
   },
   today: (walletId: string) => {
     try {
-      const raw = window.localStorage.getItem('slip.ledger.v1');
+      const raw = appStore().getItem('slip.ledger.v1');
       const invoices = raw ? (JSON.parse(raw).invoices ?? []) : [];
       const day = new Date().toISOString().slice(0, 10);
       return invoices
@@ -100,7 +105,29 @@ window.slip = {
  * merchant's books, so a customer cannot see the day's takings by tapping the screen.
  */
 const isDisplay = new URLSearchParams(window.location.search).get('display') === '1';
+const isDemo = new URLSearchParams(window.location.search).get('demo') === '1';
+const isExplain = new URLSearchParams(window.location.search).get('explain') === '1';
+
+/**
+ * Demo boot: seed the demo drawer, then replace fetch with a simulator. Both happen before React
+ * renders, so no panel can make a real request or read a real key on the way up.
+ */
+if (isDemo) {
+  installFakeExplorer();
+  seedDemo();
+}
 
 createRoot(el).render(
-  <React.StrictMode>{isDisplay ? <CustomerDisplay /> : <App />}</React.StrictMode>,
+  <React.StrictMode>
+    {isExplain ? (
+      <Explainer />
+    ) : isDisplay ? (
+      <CustomerDisplay />
+    ) : (
+      <>
+        {isDemo && <DemoBanner />}
+        <App />
+      </>
+    )}
+  </React.StrictMode>,
 );

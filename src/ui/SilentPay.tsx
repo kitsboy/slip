@@ -14,10 +14,11 @@ import { fiatToAtoms, formatFiat, formatSats, parseFiat, parseRate } from '../co
 import { loadSettings } from '../core/settings';
 import { renderQrSvg } from '../core/qr';
 import { ScanField } from './Scan';
+import { store as appStore } from '../core/storage';
 
 export default function SilentPay() {
-  const settings = useMemo(() => loadSettings(window.localStorage).settings, []);
-  const ledger = useMemo(() => createLedger(window.localStorage), []);
+  const settings = useMemo(() => loadSettings(appStore()).settings, []);
+  const ledger = useMemo(() => createLedger(appStore()), []);
   const cap = silentPaymentCapability();
 
   const [address, setAddress] = useState('');

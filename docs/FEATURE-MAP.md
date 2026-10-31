@@ -39,6 +39,13 @@ is covered by tests. Nothing on this page is aspirational.
 | Offline reconciliation | Open sales re-checked on load and whenever the network returns, with what changed | live | `core/reconcile.ts` |
 | Camera & wedge scanning | BarcodeDetector where the browser has it, keyboard-wedge buffer for USB scanners, paste everywhere else | live | `core/scanner.ts`, `ui/Scan.tsx` |
 | Printable receipts | A white, black-text receipt sheet in its own window (ink economy), not the dark UI | live | `ui/print.ts` |
+| Demo shop | `?demo=1` — a seeded café in its own storage drawer, simulated explorer, auto-confirming sales; reachable from the Manual and mentioned in onboarding | live | `demo/scenario.ts`, `demo/fakeExplorer.ts`, `ui/DemoBanner.tsx` |
+| Live 100 sat test | A real invoice for 100 sats on Lightning (your own address) or signet (faucet coins), watched to settlement | live (opt-in) | `ui/LiveTest.tsx` |
+| Quiet clock | A big clock with today's takings and the last sale, for the hours between customers | live (opt-in) | `ui/WallClock.tsx` |
+| Find a sale | Search by amount, address ending, time, wallet or invoice id | live | `core/findsale.ts` |
+| Customer page | `?explain=1` — one plain page for a customer; QR printed from the Manual | live | `ui/Explainer.tsx` |
+| Weekly letter | A week's takings written as sentences, printable; never emailed | live (opt-in) | `core/letter.ts`, `ui/WeeklyLetter.tsx` |
+| Credit line | A signature (default `giveabit.io`) riding on the BIP-21 payment label, plus a quiet footer mark | live | `core/brand.ts` |
 | Assistance switches | Seven toggles (explanations, rehearsal, hints, rings, footer seal, handover note, counter card) so a busy counter can be silent | live | `core/settings.ts`, `ui/Settings.tsx` |
 | Explain a number | Tap a figure for one plain sentence plus its caveat, sourced from `core/explain.ts` | live | `core/explain.ts`, `ui/Explain.tsx` |
 | Rehearsal | A whole sale practised with a real QR, no index reserved, no books written, receipt stamped REHEARSAL | live | `ui/Till.tsx` |

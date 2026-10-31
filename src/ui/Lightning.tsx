@@ -14,6 +14,7 @@ import { fetchPayParams, lightningUri, parseLightningAddress, requestInvoice, ve
 import { loadSettings } from '../core/settings';
 import { fiatToAtoms, formatFiat, formatSats, parseFiat, parseRate } from '../core/money';
 import { renderQrSvg } from '../core/qr';
+import { store as appStore } from '../core/storage';
 
 interface Live {
   readonly address: string;
@@ -25,8 +26,8 @@ interface Live {
 }
 
 export default function Lightning() {
-  const settings = loadSettings(window.localStorage).settings;
-  const ledger = createLedger(window.localStorage);
+  const settings = loadSettings(appStore()).settings;
+  const ledger = createLedger(appStore());
   const [address, setAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [rate, setRate] = useState('');

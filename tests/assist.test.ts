@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_ASSIST, sanitizeSettings } from '../src/core/settings';
+import { findSales } from '../src/core/findsale';
+import { weeklyLetter } from '../src/core/letter';
+import { paymentLabel } from '../src/core/brand';
+import { demoScenario } from '../src/demo/scenario';
+import type { Invoice } from '../src/core/orders';
 import { buildHandover, handoverText } from '../src/core/handover';
 import { allPassed, runSelfTest } from '../src/core/selftest';
 import { EXPLANATIONS, explain } from '../src/core/explain';
@@ -100,5 +105,134 @@ describe('explanations', () => {
   it('never lets a manual confirmation masquerade as an observation', () => {
     expect(explain('rail').caveat).toContain('manual');
     expect(explain('refund').caveat).toContain('cannot send money');
+  });
+});
+
+describe('find a sale', () => {
+  const sale = (over: Partial<Invoice> = {}): Invoice => ({
+    id: 'inv_find_01',
+    walletId: 'w1',
+    walletLabel: 'Front counter',
+    address: 'bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu',
+    index: 0,
+    amountAtoms: 17_084n,
+    amountMinor: 1025n,
+    currency: 'USD',
+    rateMinorPerCoin: 6_000_000n,
+    rateAt: '2026-10-31T09:00:00.000Z',
+    lines: [],
+    createdAt: '2026-10-31T09:14:00.000Z',
+    expiresAt: '2026-10-31T09:29:00.000Z',
+    status: 'complete',
+    seenAt: '2026-10-31T09:15:00.000Z',
+    confirmedAt: '2026-10-31T09:16:00.000Z',
+    manual: false,
+    note: '',
+    ...over,
+  });
+
+  it('finds by exact amount, not by a substring of it', () => {
+    expect(findSales([sale()], '17084').map((m) => m.because)).toContain('exact amount');
+    expect(findSales([sale()], '170')).toHaveLength(0);
+  });
+
+  it('finds by the end of an address, the way a person reads it off a receipt', () => {
+    const matches = findSales([sale()], '306fyu');
+    expect(matches[0]?.because).toBe('address');
+  });
+
+  it('finds by time, invoice id and wallet', () => {
+    expect(findSales([sale()], '09:14')[0]?.because).toBe('time');
+    expect(findSales([sale()], 'inv_find')[0]?.because).toBe('invoice number');
+    expect(findSales([sale()], 'front')[0]?.because).toBe('wallet');
+  });
+
+  it('ignores a query too short to mean anything', () => {
+    expect(findSales([sale()], '1')).toHaveLength(0);
+  });
+});
+
+describe('weekly letter', () => {
+  const mk = (id: string, at: string, atoms: bigint, manual = false) => ({
+    id, walletId: 'w1', walletLabel: 'Front counter', address: 'bc1q', index: 0,
+    amountAtoms: atoms, amountMinor: 0n, currency: 'USD', rateMinorPerCoin: null, rateAt: null,
+    lines: [], createdAt: at, expiresAt: at, status: 'complete' as const, seenAt: null,
+    confirmedAt: at, manual, note: '',
+  });
+
+  it('sums the week and subtracts refunds', () => {
+    const letter = weeklyLetter({
+      invoices: [mk('a', '2026-10-30T09:00:00.000Z', 10_000n), mk('b', '2026-10-28T10:00:00.000Z', 5_000n)],
+      refunds: [{ id: 'r1', invoiceId: 'a', atoms: 2_000n, method: 'cash', reason: 'x', at: '2026-10-30T11:00:00.000Z', reference: '' }],
+      parkedTabs: 1,
+      shopName: 'Café Nord',
+      now: new Date('2026-10-31T12:00:00Z'),
+    });
+    expect(letter.netAtoms).toBe(13_000n);
+    expect(letter.sales).toBe(2);
+    expect(letter.lines.join(' ')).toContain('2 sales');
+    expect(letter.lines.join(' ')).toContain('1 sale still parked');
+  });
+
+  it('says out loud how much of the week was a human’s word', () => {
+    const letter = weeklyLetter({
+      invoices: [mk('a', '2026-10-30T09:00:00.000Z', 10_000n, true)],
+      refunds: [],
+      parkedTabs: 0,
+      shopName: 'Café',
+      now: new Date('2026-10-31T12:00:00Z'),
+    });
+    expect(letter.lines.join(' ')).toContain('confirmed by a human');
+  });
+
+  it('is honest about an empty week', () => {
+    const letter = weeklyLetter({ invoices: [], refunds: [], parkedTabs: 0, shopName: '', now: new Date('2026-10-31T12:00:00Z') });
+    expect(letter.sales).toBe(0);
+    expect(letter.lines[0]).toContain('No sales this week');
+  });
+});
+
+describe('the credit line', () => {
+  it('rides on the payment label beside the shop', () => {
+    expect(paymentLabel('Front counter', 'giveabit.io')).toBe('Front counter · giveabit.io');
+  });
+
+  it('says nothing when a shop turns it off', () => {
+    expect(paymentLabel('Front counter', '   ')).toBe('Front counter');
+  });
+
+  it('never lets the credit push the shop out of the label', () => {
+    const label = paymentLabel('A'.repeat(120), 'giveabit.io', 40);
+    expect(label.startsWith('A'.repeat(29))).toBe(true);
+    expect(label.length).toBeLessThanOrEqual(40);
+  });
+
+  it('rejects a signature with characters a URL would choke on', () => {
+    const { settings } = sanitizeSettings({ signature: 'bad<script>' });
+    expect(settings.signature).toBe('giveabit.io');
+    const { settings: clean } = sanitizeSettings({ signature: '' });
+    expect(clean.signature).toBe('');
+  });
+});
+
+describe('the demo scenario', () => {
+  const scenario = demoScenario(new Date('2026-10-31T12:00:00Z'));
+  const ledger = scenario.ledger as { invoices: unknown[]; refunds: unknown[]; requests: unknown[] };
+  const accounts = scenario.accounts as { accounts: unknown[] };
+
+  it('is a shop, not a blank page', () => {
+    expect(accounts.accounts).toHaveLength(3);
+    expect(ledger.invoices).toHaveLength(40);
+    expect(ledger.refunds).toHaveLength(1);
+    expect(ledger.requests).toHaveLength(1);
+  });
+
+  it('is deterministic, so the demo and the video match', () => {
+    const again = demoScenario(new Date('2026-10-31T12:00:00Z'));
+    expect(JSON.stringify(again)).toBe(JSON.stringify(scenario));
+  });
+
+  it('contains no key material of any kind', () => {
+    expect(JSON.stringify(scenario)).not.toMatch(/xprv|yprv|zprv|Ltpv|abandon abandon/);
   });
 });

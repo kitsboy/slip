@@ -21,11 +21,16 @@ import Install from './ui/Install';
 import Manual from './ui/Manual';
 import BookSeal from './ui/BookSeal';
 import SelfTest from './ui/SelfTest';
+import WallClock from './ui/WallClock';
+import WeeklyLetter from './ui/WeeklyLetter';
+import LiveTest from './ui/LiveTest';
+import { loadSettings } from './core/settings';
 import Status from './ui/Status';
 import { applyTheme, loadTheme, nextTheme, saveTheme, systemTheme, themeLabel, type Theme } from './core/theme';
 import Wizard from './ui/Wizard';
 import { buildLabel } from './core/buildinfo';
 import { isOnboarded } from './core/settings';
+import { store as appStore } from './core/storage';
 
 /**
  * slip — the shell.
@@ -46,13 +51,14 @@ const TRUST: ReadonlyArray<readonly [string, string]> = [
 ];
 
 export default function App() {
+  const assist = loadSettings(appStore()).settings.assist;
   // The wizard is a guided path, not a gate: a shop owner gets walked through it, a
   // visitor evaluating slip still sees what it is. Never force a stranger through five
   // screens before they can read the page.
   const [wizardOpen, setWizardOpen] = useState(false);
   const [theme, setTheme] = useState<Theme>(() => {
     try {
-      const store = window.localStorage;
+      const store = appStore();
       const prefersLight =
         typeof window.matchMedia === 'function'
           ? window.matchMedia('(prefers-color-scheme: light)').matches
@@ -66,14 +72,14 @@ export default function App() {
   useEffect(() => {
     applyTheme(theme, document.documentElement);
     try {
-      saveTheme(window.localStorage, theme);
+      saveTheme(appStore(), theme);
     } catch {
       /* private mode: the choice simply does not persist */
     }
   }, [theme]);
   const onboarded = (() => {
     try {
-      return isOnboarded(window.localStorage);
+      return isOnboarded(appStore());
     } catch {
       return false;
     }
@@ -168,6 +174,8 @@ export default function App() {
           ))}
         </section>
 
+        {assist.wallClock && <WallClock />}
+
         <Counters />
 
         <Till />
@@ -201,6 +209,10 @@ export default function App() {
 
         <SelfTest />
 
+        {assist.liveTest && <LiveTest />}
+
+        {assist.weeklyLetter && <WeeklyLetter />}
+
         <Manual />
 
         <Services />
@@ -220,6 +232,19 @@ export default function App() {
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-2 text-center">
           <span className="chip figure">{buildLabel()}</span>
           <BookSeal />
+          {loadSettings(appStore()).settings.signature.trim() && (
+            <span className="inline-flex items-center gap-1 text-[10px] text-muted" data-brand="giveabit">
+              <span aria-hidden>₿</span>
+              <a
+                href="https://giveabit.io"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="underline decoration-dotted hover:text-ink"
+              >
+                {loadSettings(appStore()).settings.signature.trim()}
+              </a>
+            </span>
+          )}
           <Status />
           <Install />
           <RequestCounter />

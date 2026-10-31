@@ -12,6 +12,7 @@ import { createRepository, type CounterAccount } from '../core/accounts';
 import { createBackup, describeBackup, passphraseStrength, restoreBackup } from '../core/backup';
 import { exportLogLines, staffSummary, verifyLog, type ShiftLog } from '../core/shifts';
 import { LEDGER_KEY } from '../core/ledger';
+import { store as appStore } from '../core/storage';
 
 interface BackupState {
   accounts: CounterAccount[];
@@ -45,7 +46,7 @@ export default function Backup() {
   const fileInput = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(() => {
-    const repo = createRepository(window.localStorage);
+    const repo = createRepository(appStore());
     setAccounts(repo.load().accounts);
     const shifts = repo.shifts();
     setLog(shifts);
@@ -64,7 +65,7 @@ export default function Backup() {
   async function exportFile() {
     // Read the live store: a counter added in another panel must be in the backup even if
     // this component has not re-rendered yet.
-    const live = createRepository(window.localStorage).load().accounts;
+    const live = createRepository(appStore()).load().accounts;
     if (live.length === 0) {
       setNote({ kind: 'warn', text: 'there is nothing to back up yet — add a counter first' });
       return;
@@ -75,8 +76,8 @@ export default function Backup() {
     }
     setBusy(true);
     try {
-      const repo = createRepository(window.localStorage);
-      const rawLedger = window.localStorage.getItem(LEDGER_KEY);
+      const repo = createRepository(appStore());
+      const rawLedger = appStore().getItem(LEDGER_KEY);
       const state: BackupState = {
         accounts: repo.load().accounts,
         activeAccountId: repo.load().activeAccountId,
@@ -139,17 +140,17 @@ export default function Backup() {
         setNote({ kind: 'bad', text: 'that file does not contain slip counters' });
         return;
       }
-      const repo = createRepository(window.localStorage);
+      const repo = createRepository(appStore());
       const env = repo.load();
       repo.save({ ...env, accounts: state.accounts, activeAccountId: state.activeAccountId ?? null });
       // The PIN travels with the backup: a restored till with no PIN would silently drop
       // the hand-off protection the merchant thinks they still have.
       repo.setPin(state.pinHash ?? null);
-      window.localStorage.setItem('slip.shifts.v1', JSON.stringify(state.shifts ?? { version: 1, events: [] }));
+      appStore().setItem('slip.shifts.v1', JSON.stringify(state.shifts ?? { version: 1, events: [] }));
       // Restore the books too, and say so when the file predates them rather than pretending
       // the history came back.
       const hadLedger = state.ledger !== undefined && state.ledger !== null;
-      if (hadLedger) window.localStorage.setItem(LEDGER_KEY, JSON.stringify(state.ledger));
+      if (hadLedger) appStore().setItem(LEDGER_KEY, JSON.stringify(state.ledger));
       setNote({
         kind: 'ok',
         text: `restored ${state.accounts.length} counter(s), ${state.pinHash ? 'the PIN' : 'no PIN'}${hadLedger ? ' and the books' : ' — no books in that file (older backup)'}, from a backup made ${head.createdAt.slice(0, 10)}.`,

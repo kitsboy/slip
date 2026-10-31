@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { explain, type ExplainId } from '../core/explain';
 import { loadSettings } from '../core/settings';
+import { store as appStore } from '../core/storage';
 
 export interface ExplainProps {
   readonly id: ExplainId;
@@ -16,7 +17,7 @@ export interface ExplainProps {
 }
 
 export default function Explain({ id, children }: ExplainProps) {
-  const enabled = loadSettings(window.localStorage).settings.assist.explainNumbers;
+  const enabled = loadSettings(appStore()).settings.assist.explainNumbers;
   const [open, setOpen] = useState(false);
   if (!enabled) return <>{children}</>;
 
