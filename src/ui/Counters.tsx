@@ -309,6 +309,7 @@ export default function Counters() {
               </div>
               <p className="mt-1 break-all font-mono text-[11px] text-muted">{a.firstAddress}</p>
               <p className="mt-0.5 text-[10px] uppercase tracking-wider text-muted">
+                {WALLET_COLOURS.find((c) => c.id === a.colour)?.label ?? '—'} ·{' '}
                 {purposeLabel(a.purpose)} · {a.networkId} · {a.scriptType} · fp {a.fingerprintHex}
               </p>
               {a.note && <p className="mt-0.5 text-[11px] text-muted">{a.note}</p>}
@@ -453,7 +454,9 @@ export default function Counters() {
         </div>
 
         <fieldset className="mt-2">
-          <legend className="text-[11px] uppercase tracking-widest text-muted">Colour</legend>
+          <legend className="text-[11px] uppercase tracking-widest text-muted">
+            Colour — <span className="text-ink">{WALLET_COLOURS.find((c) => c.id === colour)?.label}</span>
+          </legend>
           <div className="mt-1 flex flex-wrap gap-2">
             {WALLET_COLOURS.map((c) => (
               <button
