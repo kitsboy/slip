@@ -37,6 +37,7 @@ import { publishToDisplay, openCustomerDisplay } from './CustomerDisplay';
 import { describeSweep, sweep } from '../core/reconcile';
 import { closeTab, park, repeatable, tabLabel, tabSubtotalMinor, toTabLine, type ParkedTab, type RepeatSale } from '../core/tabs';
 import FreshnessRing from './FreshnessRing';
+import Explain from './Explain';
 import { openPrintable } from './print';
 
 interface CartLine {
@@ -64,7 +65,7 @@ function qrSvg(text: string, scale = 5): string {
 }
 
 export default function Till() {
-  const settings = useMemo(() => loadSettings(window.localStorage).settings, []);
+  const [settings, setSettings] = useState(() => loadSettings(window.localStorage).settings);
   const [wallets, setWallets] = useState<CounterAccount[]>([]);
   const [walletId, setWalletId] = useState<string>('');
   const [items, setItems] = useState<CatalogItem[]>([]);
@@ -118,12 +119,15 @@ export default function Till() {
   useEffect(() => {
     reload();
     const onChange = () => reload();
+    const onSettings = () => setSettings(loadSettings(window.localStorage).settings);
+    window.addEventListener('slip:settings-changed', onSettings);
     window.addEventListener('slip:data-changed', onChange);
     const onNet = () => setOnline(navigator.onLine);
     window.addEventListener('online', onNet);
     window.addEventListener('offline', onNet);
     return () => {
       window.removeEventListener('slip:data-changed', onChange);
+      window.removeEventListener('slip:settings-changed', onSettings);
       window.removeEventListener('online', onNet);
       window.removeEventListener('offline', onNet);
       if (poller.current) window.clearInterval(poller.current);
@@ -358,6 +362,38 @@ export default function Till() {
     }
     const primaryAtoms = chargeSats - leg2Atoms;
 
+    if (settings.assist.rehearsal) {
+      // A rehearsal shows the real QR and the real flow, but reserves no index and writes no
+      // books: a practice sale must not become a sale. The first address is used because it is
+      // already public to the merchant and nothing new is revealed.
+      const now = new Date();
+      setInvoice({
+        id: `inv_rehearsal_${now.getTime().toString(36)}`,
+        walletId: payee.id,
+        walletLabel: payee.label,
+        address: payee.firstAddress,
+        index: null,
+        amountAtoms: chargeSats,
+        amountMinor: totals.roundedTotalMinor,
+        currency: settings.currency,
+        rateMinorPerCoin: parseRate(rate, settings.currency),
+        rateAt: now.toISOString(),
+        lines: [],
+        createdAt: now.toISOString(),
+        expiresAt: new Date(now.getTime() + 15 * 60_000).toISOString(),
+        status: 'awaiting',
+        seenAt: null,
+        confirmedAt: null,
+        manual: false,
+        note: 'rehearsal',
+      });
+      setReceipt(null);
+      setProof(null);
+      setLeg2(null);
+      setStatus('rehearsal — nothing is being watched and nothing will be recorded');
+      return;
+    }
+
     const book = ledger.book(payee.id);
     const lines = cart.map((l) => ({
       name: l.item.name,
@@ -423,6 +459,10 @@ export default function Till() {
 
   const check = useCallback(
     async (target: Invoice) => {
+      if (target.note === 'rehearsal') {
+        setStatus('this is a rehearsal — no payment is expected and nothing is being watched');
+        return;
+      }
       const account = wallets.find((w) => w.id === target.walletId);
       if (!account) return;
       const t = targetFor(account.networkId, settings.explorerUrl);
@@ -514,7 +554,8 @@ export default function Till() {
   async function markPaid() {
     if (!invoice) return;
     const updated = markManualPaid(invoice);
-    ledger.putInvoice(updated);
+    // A rehearsal never touches the books, even when the merchant confirms it.
+    if (invoice.note !== 'rehearsal') ledger.putInvoice(updated);
     setInvoice(updated);
     const anchor = ledger.load().anchors.find((a) => a.date === updated.createdAt.slice(0, 10));
     setProof({
@@ -691,7 +732,11 @@ export default function Till() {
       <section className="mt-6 panel">
         <p className="eyebrow">Receipt</p>
         <h2 className="panel-title mt-1">
-          {receipt.manual ? 'Marked paid by you' : 'Paid — seen on chain'}
+          {receipt.note === 'rehearsal'
+            ? 'REHEARSAL — nothing was charged'
+            : receipt.manual
+              ? 'Marked paid by you'
+              : 'Paid — seen on chain'}
         </h2>
         <p className="mt-1 text-xs text-muted">
           {settings.businessName || 'Your shop'} ·{' '}
@@ -725,7 +770,7 @@ export default function Till() {
           </div>
         </div>
 
-        {proof && (
+        {proof && receipt.note !== 'rehearsal' && (
           <div className="mt-3 flex flex-wrap items-start gap-3 border-t border-line pt-3">
             <div
               className="h-28 w-28 rounded-lg bg-white p-1"
@@ -1021,7 +1066,7 @@ export default function Till() {
 
           {rateNote && (
             <p className="mt-1 flex items-center gap-2 text-[10px] text-muted">
-              {quote && <FreshnessRing fetchedAt={quote.fetchedAt} />}
+              {quote && settings.assist.freshnessRings && <FreshnessRing fetchedAt={quote.fetchedAt} />}
               <span>{rateNote}</span>
             </p>
           )}
@@ -1059,7 +1104,9 @@ export default function Till() {
               ].map(([k, v]) => (
                 <div key={k} className="rounded-lg border border-line px-2 py-1">
                   <dt className="text-[10px] uppercase tracking-wider text-muted">{k}</dt>
-                  <dd className="figure mt-0.5 text-xs">{v}</dd>
+                  <dd className="figure mt-0.5 text-xs">
+                {k === 'Charge' ? <Explain id="charge">{v}</Explain> : v}
+              </dd>
                 </div>
               ))}
             </dl>
@@ -1072,7 +1119,7 @@ export default function Till() {
               disabled={!wallet || !totals || chargeSats === null}
               className="rounded-lg border border-accent bg-accent/10 px-4 py-2 text-xs uppercase tracking-wider text-accent disabled:border-line disabled:text-muted"
             >
-              charge {chargeSats !== null ? formatSats(chargeSats) : ''}
+              {settings.assist.rehearsal ? 'rehearse' : 'charge'} {chargeSats !== null ? formatSats(chargeSats) : ''}
             </button>
             <button
               type="button"

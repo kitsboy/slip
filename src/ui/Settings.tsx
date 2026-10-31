@@ -12,7 +12,9 @@
 
 import { useState } from 'react';
 import { CURRENCIES } from '../core/currencies';
-import { loadSettings, sanitizeSettings, saveSettings } from '../core/settings';
+import { ASSIST_LABELS, DEFAULT_ASSIST, loadSettings, sanitizeSettings, saveSettings, type AssistOptions } from '../core/settings';
+import { printCounterCard } from './counterCard';
+import { buildLabel } from '../core/buildinfo';
 import { createRepository, SHIFT_STORAGE_KEY, STORAGE_KEY } from '../core/accounts';
 import { SETTINGS_KEY } from '../core/settings';
 
@@ -30,6 +32,7 @@ export default function Settings() {
   const [rateEndpoint, setRateEndpoint] = useState(loaded.settings.rateEndpoint);
   const [autoRate, setAutoRate] = useState(loaded.settings.autoRate);
   const [staff, setStaff] = useState<{ name: string; walletId: string }[]>([...loaded.settings.staff]);
+  const [assist, setAssist] = useState<AssistOptions>({ ...loaded.settings.assist });
   const [newStaff, setNewStaff] = useState('');
   const [newStaffWallet, setNewStaffWallet] = useState('');
   const wallets = createRepository(store).load().accounts;
@@ -50,11 +53,15 @@ export default function Settings() {
       rateEndpoint,
       autoRate,
       staff,
+      assist,
       language: 'en',
       onboardedAt: loaded.settings.onboardedAt ?? new Date().toISOString(),
     });
 
     saveSettings(store, settings);
+    // Other panels read settings once at mount; without this a merchant would have to reload the
+    // page to feel a switch they just flicked.
+    window.dispatchEvent(new Event('slip:settings-changed'));
     setBusinessName(settings.businessName);
     setTaxPercent(String(settings.taxBps / 100));
     setNote(
@@ -242,6 +249,46 @@ export default function Settings() {
             add
           </button>
           <span className="text-[10px] text-muted">remember to press Save settings</span>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-line p-2" data-panel="assist">
+        <span className="eyebrow">Assistance</span>
+        <p className="mt-1 text-[11px] leading-relaxed text-muted">
+          Every switch here adds words or widgets to the screen. A busy counter can turn them all off;
+          a first week can leave them on. Nothing here changes what slip does with money.
+        </p>
+        <ul className="mt-2 space-y-2">
+          {(Object.keys(DEFAULT_ASSIST) as (keyof AssistOptions)[]).map((key) => (
+            <li key={key} className="flex items-start gap-2">
+              <input
+                id={`as-${key}`}
+                type="checkbox"
+                checked={assist[key]}
+                onChange={(e) => setAssist((cur) => ({ ...cur, [key]: e.target.checked }))}
+                className="mt-0.5"
+              />
+              <label htmlFor={`as-${key}`} className="text-xs">
+                {ASSIST_LABELS[key].title}
+                <span className="mt-0.5 block text-[10px] leading-relaxed text-muted">{ASSIST_LABELS[key].why}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              const ok = printCounterCard({ shopName: businessName, version: buildLabel() });
+              if (!ok) setNote({ kind: 'warn', text: 'allow pop-ups to print the counter card' });
+            }}
+            className="rounded-lg border border-line px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
+          >
+            print the counter card
+          </button>
+          <span className="text-[10px] text-muted">
+            One A4 sheet of the rules, for the wall behind the till.
+          </span>
         </div>
       </div>
 

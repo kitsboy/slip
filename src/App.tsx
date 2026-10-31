@@ -20,6 +20,7 @@ import SilentPay from './ui/SilentPay';
 import Install from './ui/Install';
 import Manual from './ui/Manual';
 import BookSeal from './ui/BookSeal';
+import SelfTest from './ui/SelfTest';
 import Status from './ui/Status';
 import { applyTheme, loadTheme, nextTheme, saveTheme, systemTheme, themeLabel, type Theme } from './core/theme';
 import Wizard from './ui/Wizard';
@@ -197,6 +198,8 @@ export default function App() {
           <PriceCheck />
           <AddressCheck />
         </div>
+
+        <SelfTest />
 
         <Manual />
 

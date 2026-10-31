@@ -12,10 +12,13 @@ import { useEffect, useState } from 'react';
 import { dayDigest } from '../core/anchor';
 import { createLedger } from '../core/ledger';
 import { shortDigest } from '../core/freshness';
+import { loadSettings } from '../core/settings';
 
 export default function BookSeal() {
   const [digest, setDigest] = useState<string | null>(null);
   const [count, setCount] = useState(0);
+  // A quiet counter can switch this off; the digest stays available in the Day book panel.
+  const [enabled] = useState(() => loadSettings(window.localStorage).settings.assist.bookSeal);
 
   useEffect(() => {
     let cancelled = false;
@@ -40,7 +43,7 @@ export default function BookSeal() {
     };
   }, []);
 
-  if (!digest) return null;
+  if (!enabled || !digest) return null;
 
   return (
     <span

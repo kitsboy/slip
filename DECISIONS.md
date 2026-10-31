@@ -301,3 +301,27 @@ disabled can never disagree.
 ### D-49 — Parked tabs reserve nothing
 A parked sale keeps its lines, note and wallet choice — no address, no index. The index is still
 reserved at charge time, so parking five sales cannot consume five addresses or reveal them.
+
+### D-50 — Assistance is a switchboard, not a personality
+Every helper that adds words to the screen sits behind a Settings switch, so a vendor can ship the
+till quiet and a first-week merchant can turn teaching on. The switches are stored like any other
+setting and sanitised strictly: an unknown key is dropped rather than trusted.
+
+### D-51 — A rehearsal reserves nothing and writes nothing
+The rehearsal shows the wallet's existing first address, never a fresh index, and it never writes an
+invoice — including when the merchant confirms it. A practice sale that touched the books would be
+worse than no rehearsal at all.
+
+### D-52 — The self test proves arithmetic, not safety
+The button runs five fixed vectors in the browser against known answers. It catches a corrupted or
+half-downloaded file. The screen says plainly what it does not prove, because a green tick people
+over-trust is a liability.
+
+### D-53 — Settings changes propagate immediately
+Panels read settings at mount. Saving dispatches `slip:settings-changed` and the till re-reads, so a
+switch the merchant just flicked is visible without a reload — otherwise the switch reads as broken.
+
+### D-54 — The film is deferred deliberately, and the content log accumulates instead
+No `npm run film` yet. Instead every release adds to `docs/CONTENT-LOG.md`: captured panels,
+suggested beats, and the shots that need a human at a counter. The video will be cut from assets the
+build produced, not from mock-ups.

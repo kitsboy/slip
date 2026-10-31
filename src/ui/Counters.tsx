@@ -24,6 +24,8 @@ import {
   type Repository,
 } from '../core/accounts';
 import { hashPin, isValidPin, validateHandoff, verifyPin } from '../core/pin';
+import { createLedger } from '../core/ledger';
+import { buildHandover } from '../core/handover';
 import { paymentUri } from '../core/qr';
 import { renderQrSvg } from '../core/qr';
 import type { Coin, NetworkId } from '../core/network';
@@ -236,7 +238,33 @@ export default function Counters() {
     repo().setHandoff(verdict.accountId, verdict.staffName);
     void repo().recordShift('handoff', target, verdict.staffName, 'till handed over');
     refresh();
-    setMessage({ kind: 'ok', text: `Till handed to ${verdict.staffName}.` });
+    // The next person should not have to guess what is in flight. The note is built from state
+    // that already exists — nothing is invented.
+    const settings = loadSettings(window.localStorage).settings;
+    if (settings.assist.handoverNote) {
+      const ledger = createLedger(window.localStorage);
+      const data = ledger.load();
+      const today = new Date().toISOString().slice(0, 10);
+      const note = buildHandover({
+        staffName: staff,
+        parkedTabs: (() => {
+          try {
+            return (JSON.parse(window.localStorage.getItem('slip.tabs.v1') ?? '[]') as unknown[]).length;
+          } catch {
+            return 0;
+          }
+        })(),
+        openSales: data.invoices.filter((i) => i.status === 'awaiting' || i.status === 'seen').length,
+        refundsToday: data.refunds.filter((r) => r.at.startsWith(today)).length,
+        takingsToday: data.invoices
+          .filter((i) => i.status === 'complete' && i.createdAt.slice(0, 10) === today)
+          .reduce((s, i) => s + i.amountAtoms, 0n),
+        rateAgeSeconds: null,
+      });
+      setMessage({ kind: 'ok', text: `Till handed to ${verdict.staffName}. ${note.lines.join(' · ')}` });
+    } else {
+      setMessage({ kind: 'ok', text: `Till handed to ${verdict.staffName}.` });
+    }
     setStaffInput('');
     setPinInput('');
   }

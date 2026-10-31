@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.16.0** — 2026-10-31T19:18:45Z — `b83a6f64870f` — P13: assistance switches, explain-a-number, rehearsal, self test, handover note, counter card, content log
+
 - **v0.14.0** — 2026-10-31T16:24:58Z — `35ef2f8048ce` — P12: manual generated from code, docs gate, manual screenshots, freshness rings, tamper-evident footer, parked tabs, repeat last
 
 - **v0.13.1** — 2026-10-31T14:35:24Z — `1ed0cc05f889` — scanning wired into pairing and receipt checking

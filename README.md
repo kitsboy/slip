@@ -91,6 +91,12 @@ NWC, 19 further languages, iOS App Store build, thermal printing, kiosk, peer sy
 | Freshness | Age rings on fetched numbers, from the same rule that refuses a stale rate |
 | Book seal | Today's digest in the footer, changing as sales land |
 | Parked tabs | Up to five held sales, resumed in one tap; repeat-last for the usual order |
+| Assistance | Seven switches so the screen can be quiet; flip them in Settings |
+| Explain a number | Tap a figure for one plain sentence and its caveat |
+| Rehearsal | Practise a sale: real QR, no books, no index |
+| Self test | Five fixed vectors in the browser — proves the file's arithmetic |
+| Handover note | Three generated lines for the next shift |
+| Counter card | A4 rules sheet for the wall behind the till |
 
 ## Live
 

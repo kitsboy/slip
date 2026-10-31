@@ -161,6 +161,39 @@ Any field with a **camera** button can scan a QR where the browser supports it; 
 keyboard-wedge scanner just types into the field. If a browser has no barcode reader, the button is
 absent rather than dead.
 
+## 3o. Turn the noise down
+
+Settings → **Assistance**. Seven switches, all off-able:
+
+| Switch | What it adds |
+|---|---|
+| Explain a number when I tap it | One plain sentence about a figure, plus its catch |
+| Rehearsal mode | Practise a sale; nothing is written and nothing is watched |
+| Show hints | Short helper lines under fields |
+| Show age rings | A ring that drains as a rate or balance gets older |
+| Show the day digest in the footer | Today's book hash |
+| Note when the till changes hands | Three lines for the next person |
+| Offer the printable counter card | The A4 rules sheet |
+
+Press **Save settings** — the till updates immediately, no reload.
+
+## 3p. Rehearse before a customer is waiting
+
+Switch rehearsal on, then press **rehearse** instead of charge. You get the real QR and the real
+flow, and the receipt says **REHEARSAL — nothing was charged**. No address is reserved and nothing
+is written to the books.
+
+## 3q. Prove the copy works
+
+Self test panel → **run the check**. Five ticks: address derivation, amount parsing, sats pricing,
+QR encoding, receipt proof. It proves the maths has not been altered — not that the whole app is
+safe. There is still nowhere to paste a key.
+
+## 3r. The counter card
+
+Settings → Assistance → **print the counter card**. One A4 sheet, black on white: the three rules,
+what to do on shift, and the never-list. Tape it behind the till.
+
 ## 4. Hand the till to a member of staff
 
 1. Set a **till PIN** (4–8 digits) once. Only a hash of it is stored on the device — the PIN

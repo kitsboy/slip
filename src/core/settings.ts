@@ -33,9 +33,52 @@ export interface ShopSettings {
   readonly autoRate: boolean;
   /** Staff who can own a tip jar — each name points at a wallet id. Public keys only. */
   readonly staff: readonly { readonly name: string; readonly walletId: string }[];
+  /**
+   * Assistance. Every one of these adds words or widgets to the screen, so each is a switch: a
+   * merchant who wants a clean counter turns things off, and a vendor shipping to a busy shop can
+   * ship it quiet by default.
+   */
+  readonly assist: AssistOptions;
   readonly language: 'en';
   readonly onboardedAt: string | null;
 }
+
+export interface AssistOptions {
+  /** Tap a figure to see one plain sentence about what it is. */
+  readonly explainNumbers: boolean;
+  /** Practise a sale end to end with no ledger entry and no money expected. */
+  readonly rehearsal: boolean;
+  /** Small hints under fields, for a first week of use. */
+  readonly hints: boolean;
+  /** Age rings on fetched numbers (rate, balance). */
+  readonly freshnessRings: boolean;
+  /** The day digest in the footer. */
+  readonly bookSeal: boolean;
+  /** A three-line note when the till changes hands. */
+  readonly handoverNote: boolean;
+  /** The printable counter card (rules for staff). Always available from Settings when off. */
+  readonly counterCard: boolean;
+}
+
+export const DEFAULT_ASSIST: AssistOptions = {
+  explainNumbers: true,
+  rehearsal: false,
+  hints: true,
+  freshnessRings: true,
+  bookSeal: true,
+  handoverNote: true,
+  counterCard: true,
+};
+
+export const ASSIST_LABELS: Readonly<Record<keyof AssistOptions, { title: string; why: string }>> = {
+  explainNumbers: { title: 'Explain a number when I tap it', why: 'One plain sentence about what a figure means. Nothing changes, nothing is sent.' },
+  rehearsal: { title: 'Rehearsal mode', why: 'Practise a whole sale with a real QR. No ledger entry, no proof, and the receipt says REHEARSAL.' },
+  hints: { title: 'Show hints', why: 'Short helper lines under fields, for the first week or two.' },
+  freshnessRings: { title: 'Show age rings', why: 'A ring that drains as a rate or balance gets older. Turn it off if you read ages elsewhere.' },
+  bookSeal: { title: 'Show the day digest in the footer', why: 'Today\u2019s book hash, changing as sales land. Quiet proof, or noise — your call.' },
+  handoverNote: { title: 'Note when the till changes hands', why: 'A three-line summary for whoever takes over: parked sales, refunds, stale rate.' },
+  counterCard: { title: 'Offer the printable counter card', why: 'A one-page A4 of the rules for staff, for the wall behind the till.' },
+};
 
 export const SETTINGS_KEY = 'slip.settings.v1';
 
@@ -50,6 +93,7 @@ export const DEFAULT_SETTINGS: ShopSettings = {
   rateEndpoint: '',
   autoRate: false,
   staff: [],
+  assist: DEFAULT_ASSIST,
   language: 'en',
   onboardedAt: null,
 };
@@ -178,6 +222,16 @@ export function sanitizeSettings(raw: unknown): { settings: ShopSettings; warnin
       })(),
       // Auto-rate without an endpoint is a promise the app cannot keep, so it is off.
       autoRate: Boolean(input.autoRate),
+      // Unknown keys are dropped rather than trusted, so an older settings blob cannot switch on
+      // a behaviour this build does not have.
+      assist: (() => {
+        const raw = (input.assist ?? {}) as Partial<Record<keyof AssistOptions, unknown>>;
+        const out = { ...DEFAULT_ASSIST };
+        for (const key of Object.keys(DEFAULT_ASSIST) as (keyof AssistOptions)[]) {
+          if (typeof raw[key] === 'boolean') out[key] = raw[key] as boolean;
+        }
+        return out;
+      })(),
       staff: Array.isArray(input.staff)
         ? input.staff
             .filter(

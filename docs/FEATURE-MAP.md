@@ -39,6 +39,12 @@ is covered by tests. Nothing on this page is aspirational.
 | Offline reconciliation | Open sales re-checked on load and whenever the network returns, with what changed | live | `core/reconcile.ts` |
 | Camera & wedge scanning | BarcodeDetector where the browser has it, keyboard-wedge buffer for USB scanners, paste everywhere else | live | `core/scanner.ts`, `ui/Scan.tsx` |
 | Printable receipts | A white, black-text receipt sheet in its own window (ink economy), not the dark UI | live | `ui/print.ts` |
+| Assistance switches | Seven toggles (explanations, rehearsal, hints, rings, footer seal, handover note, counter card) so a busy counter can be silent | live | `core/settings.ts`, `ui/Settings.tsx` |
+| Explain a number | Tap a figure for one plain sentence plus its caveat, sourced from `core/explain.ts` | live | `core/explain.ts`, `ui/Explain.tsx` |
+| Rehearsal | A whole sale practised with a real QR, no index reserved, no books written, receipt stamped REHEARSAL | live | `ui/Till.tsx` |
+| Self test | Five fixed vectors (derivation, amount, sats, QR, proof) run in the browser, no network | live | `core/selftest.ts`, `ui/SelfTest.tsx` |
+| Handover note | Three generated lines for whoever takes the till: parked sales, open payments, refunds, stale rate | live | `core/handover.ts`, `ui/Counters.tsx` |
+| Counter card | A4 white/black sheet of the three rules and the never-list, for the wall | live | `ui/counterCard.ts` |
 | In-app manual | Every panel declares its own card (why, steps, limit); the page is generated from those declarations | live | `src/manual/entries.ts`, `ui/Manual.tsx` |
 | Docs gate | `npm run docs:audit` fails on a panel with no card, a card pointing at a missing file, or a FEATURE-MAP path that no longer exists | live | `scripts/docs-audit.mjs` |
 | Manual screenshots | `npm run manual` photographs every documented panel at 2× from the built app | live | `scripts/manual-shot.mjs` |
