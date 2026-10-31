@@ -81,7 +81,8 @@ check('summary says no till yet', /cannot take a payment yet/.test(await page.lo
 await page.getByRole('button', { name: 'Finish setup' }).click();
 await page.waitForSelector('h1');
 const after = await page.locator('body').innerText();
-check('finishing returns to the workbench', /Counters & staff hand-off/.test(after));
+// The section was renamed: a "counter" is now one kind of wallet, and the heading says so.
+check('finishing returns to the workbench', /Wallets & staff hand-off/.test(after), after.slice(0, 120));
 check('onboarding is remembered', /run setup again/i.test(after));
 
 // The counter created during setup is real and usable.

@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.9.0** — 2026-10-31T12:58:28Z — `1c6152d295f8` — multiple labelled wallets with colours, pubkey/address support, public explorer with custom endpoint
+
 - **v0.8.1** — 2026-10-31T00:55:41Z — `b83e4b7dc341` — light-theme contrast raised
 
 - **v0.8.0** — 2026-10-31T00:53:05Z — `9344ac85e9da` — settings, themes, wipe, restore preview, CI, lint, artifact scan

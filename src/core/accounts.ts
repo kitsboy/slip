@@ -18,9 +18,56 @@ import { parseExtendedKey, resolveScript, type ScriptType } from './keys';
 import { previewAddresses, type DerivedAddress } from './derive';
 import { networkById, type Coin, type NetworkId } from './network';
 import { parseDescriptor, type DescriptorScriptType } from './descriptors';
+import { encodeAddress, slipNetwork } from './derive';
+import { checkAddress } from './addresses';
 import { appendEvent, emptyLog, type ShiftEventKind, type ShiftLog } from './shifts';
 
 export type AccountStatus = 'unchecked' | 'ready';
+
+/**
+ * What a wallet is for. Purely local labelling — slip never infers it, and it changes
+ * nothing about how addresses are derived. It exists so a person holding four wallets can
+ * tell them apart at a glance instead of re-reading xpubs.
+ */
+export type AccountPurpose = 'till' | 'work' | 'family' | 'personal' | 'other';
+
+export const ACCOUNT_PURPOSES: ReadonlyArray<{ id: AccountPurpose; label: string }> = [
+  { id: 'till', label: 'Till / shop counter' },
+  { id: 'work', label: 'Work (from my employer)' },
+  { id: 'family', label: 'Family (parents, joint)' },
+  { id: 'personal', label: 'Personal' },
+  { id: 'other', label: 'Other' },
+];
+
+/** A fixed palette rather than a colour picker: eight legible choices beat infinite bad ones. */
+export type WalletColour =
+  | 'orange'
+  | 'blue'
+  | 'green'
+  | 'purple'
+  | 'pink'
+  | 'teal'
+  | 'amber'
+  | 'slate';
+
+export const WALLET_COLOURS: ReadonlyArray<{ id: WalletColour; label: string; hex: string }> = [
+  { id: 'orange', label: 'Orange', hex: '#f7931a' },
+  { id: 'blue', label: 'Blue', hex: '#4c8dff' },
+  { id: 'green', label: 'Green', hex: '#34c77b' },
+  { id: 'purple', label: 'Purple', hex: '#a374ff' },
+  { id: 'pink', label: 'Pink', hex: '#ef6ea8' },
+  { id: 'teal', label: 'Teal', hex: '#2ec5c0' },
+  { id: 'amber', label: 'Amber', hex: '#e6a700' },
+  { id: 'slate', label: 'Slate', hex: '#8b98a5' },
+];
+
+export function colourHex(colour: WalletColour): string {
+  return WALLET_COLOURS.find((c) => c.id === colour)?.hex ?? '#8b98a5';
+}
+
+export function purposeLabel(purpose: AccountPurpose): string {
+  return ACCOUNT_PURPOSES.find((p) => p.id === purpose)?.label ?? 'Other';
+}
 
 export interface CounterAccount {
   readonly id: string;
@@ -30,8 +77,16 @@ export interface CounterAccount {
   readonly networkId: NetworkId;
   /** Wider than ScriptType: a descriptor can also describe wsh(sortedmulti(…)). */
   readonly scriptType: DescriptorScriptType;
-  /** How the key arrived: a bare SLIP-132 xpub, or a BIP-380 output descriptor. */
-  readonly source: 'xpub' | 'descriptor';
+  /**
+   * How the material arrived: an extended key, a BIP-380 descriptor, a single public key
+   * (one address, not a chain), or a plain address.
+   */
+  readonly source: 'xpub' | 'descriptor' | 'pubkey' | 'address';
+  /** Local labelling only — never derived, never sent anywhere. */
+  readonly colour: WalletColour;
+  readonly purpose: AccountPurpose;
+  /** Free text the owner attaches, e.g. "mum's rent account". */
+  readonly note: string;
   readonly fingerprintHex: string;
   readonly prefix: string;
   /** First receiving address, kept so the check can be re-shown without re-deriving. */
@@ -45,10 +100,14 @@ export interface CounterAccount {
 
 export interface AccountDraft {
   readonly label: string;
+  /** The pasted material: xpub, descriptor, raw public key, or address. */
   readonly xpub: string;
   readonly coin: Coin;
   readonly networkId: NetworkId;
   readonly scriptType?: ScriptType;
+  readonly colour?: WalletColour;
+  readonly purpose?: AccountPurpose;
+  readonly note?: string;
 }
 
 export type AccountValidation =
@@ -70,12 +129,25 @@ export function looksLikeDescriptor(raw: string): boolean {
   return /^\s*(wpkh|pkh|sh|tr|wsh|sortedmulti)\s*\(/i.test(raw);
 }
 
+/** Colour/purpose/note defaults, so every path produces a complete account. */
+function labelling(input: AccountDraft): { colour: WalletColour; purpose: AccountPurpose; note: string } {
+  return {
+    colour: input.colour ?? 'orange',
+    purpose: input.purpose ?? 'till',
+    note: (input.note ?? '').slice(0, 120),
+  };
+}
+
 /**
- * Validates pasted wallet material — a BIP-380 descriptor OR a bare SLIP-132 xpub —
- * into an account draft with its derivation preview.
+ * Validates pasted wallet material — a BIP-380 descriptor, a bare SLIP-132 xpub, a single
+ * public key, or a plain address — into an account draft with its derivation preview.
  */
 export function validateAccountInput(input: AccountDraft): AccountValidation {
   if (looksLikeDescriptor(input.xpub)) return validateDescriptorAccount(input);
+
+  const raw = input.xpub.trim();
+  if (/^[0-9a-fA-F]{66}$/.test(raw)) return validatePubkeyAccount(input, raw);
+  if (looksLikeAddress(raw)) return validateAddressAccount(input, raw);
 
   // The key is parsed FIRST: a pasted seed phrase must be refused loudly even if the
   // name field is also wrong, and the refusal never echoes the material.
@@ -142,9 +214,114 @@ export function validateAccountInput(input: AccountDraft): AccountValidation {
       firstAddress: first.address,
       acknowledgedAt: null,
       preview,
+      ...labelling(input),
     },
     warnings,
   };
+}
+
+/** A base58 or bech32 address, as opposed to key material. */
+function looksLikeAddress(raw: string): boolean {
+  return /^(bc1|tb1|bcrt1|ltc1|tltc1|[13mn2LMQ])[a-zA-Z0-9]{20,}$/.test(raw);
+}
+
+/**
+ * A single public key. It has exactly one address, so there is no index to reserve and no
+ * chain to walk — the honest label is "one address", not "a wallet".
+ */
+function validatePubkeyAccount(input: AccountDraft, hex: string): AccountValidation {
+  const label = input.label.trim();
+  if (label.length < 2) return { ok: false, error: 'give the wallet a name (at least 2 characters)' };
+
+  const net = networkById(input.networkId);
+  if (net.coin !== input.coin) {
+    return { ok: false, error: `network ${input.networkId} is not a ${input.coin.toUpperCase()} network` };
+  }
+
+  const pubkey = hexToBytes(hex);
+  if (pubkey[0] !== 0x02 && pubkey[0] !== 0x03) {
+    return { ok: false, error: 'that is not a compressed public key (it must start with 02 or 03)' };
+  }
+
+  const scriptType = input.scriptType ?? 'p2wpkh';
+  let address: string;
+  try {
+    address = encodeAddress(pubkey, scriptType, slipNetwork(input.networkId));
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'could not encode an address from that key' };
+  }
+
+  return {
+    ok: true,
+    draft: {
+      label,
+      xpub: raw_hex(hex),
+      coin: input.coin,
+      networkId: input.networkId,
+      scriptType,
+      source: 'pubkey',
+      fingerprintHex: '--------',
+      prefix: 'pubkey',
+      firstAddress: address,
+      acknowledgedAt: null,
+      preview: [
+        { address, path: 'single', publicKey: pubkey, scriptType: scriptType === 'p2tr' ? 'p2tr' : scriptType },
+      ],
+      ...labelling(input),
+    },
+    warnings: [
+      'A single public key has exactly ONE address. It cannot be rotated, so every payment to it is publicly linked — fine for a savings address, wrong for a till.',
+    ],
+  };
+}
+
+/**
+ * A plain address. Nothing to derive, nothing to index: slip can only watch it.
+ */
+function validateAddressAccount(input: AccountDraft, address: string): AccountValidation {
+  const label = input.label.trim();
+  if (label.length < 2) return { ok: false, error: 'give the wallet a name (at least 2 characters)' };
+
+  const net = networkById(input.networkId);
+  if (net.coin !== input.coin) {
+    return { ok: false, error: `network ${input.networkId} is not a ${input.coin.toUpperCase()} network` };
+  }
+
+  const check = checkAddress(address, input.networkId);
+  if (!check.ok) return { ok: false, error: check.problem ?? 'that address does not belong to this network' };
+
+  const scriptType = check.scriptType ?? 'p2wpkh';
+  return {
+    ok: true,
+    draft: {
+      label,
+      xpub: address,
+      coin: input.coin,
+      networkId: input.networkId,
+      scriptType,
+      source: 'address',
+      fingerprintHex: '--------',
+      prefix: 'address',
+      firstAddress: address,
+      acknowledgedAt: null,
+      preview: [{ address, path: 'single', publicKey: new Uint8Array(0), scriptType }],
+      ...labelling(input),
+    },
+    warnings: [
+      ...check.warnings,
+      'A fixed address cannot be rotated, so payments to it are publicly linkable. Use it for a specific deposit, not as a permanent till.',
+    ],
+  };
+}
+
+function hexToBytes(hex: string): Uint8Array {
+  const out = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < out.length; i++) out[i] = Number.parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  return out;
+}
+
+function raw_hex(hex: string): string {
+  return hex.toLowerCase();
 }
 
 function validateDescriptorAccount(input: AccountDraft): AccountValidation {
@@ -208,6 +385,7 @@ function validateDescriptorAccount(input: AccountDraft): AccountValidation {
       firstAddress: first.address,
       acknowledgedAt: null,
       preview,
+      ...labelling(input),
     },
     warnings,
   };
@@ -273,9 +451,18 @@ export function createRepository(store: KeyValueStore): Repository {
     try {
       const parsed = JSON.parse(raw) as Partial<Envelope>;
       if (parsed.version !== 1 || !Array.isArray(parsed.accounts)) return { ...EMPTY, accounts: [] };
+      // Migrate records written before colour/purpose existed: an account that appears
+      // without a colour renders as a grey blob the owner cannot tell apart from its
+      // neighbours, which defeats the point of labelling.
+      const migrated = (parsed.accounts as Array<Partial<CounterAccount>>).map((a, i) => ({
+        ...a,
+        colour: a.colour ?? WALLET_COLOURS[i % WALLET_COLOURS.length]!.id,
+        purpose: a.purpose ?? 'till',
+        note: a.note ?? '',
+      })) as CounterAccount[];
       return {
         version: 1,
-        accounts: parsed.accounts as CounterAccount[],
+        accounts: migrated,
         activeAccountId: parsed.activeAccountId ?? null,
         currentStaff: parsed.currentStaff ?? null,
         pinHash: parsed.pinHash ?? null,
@@ -308,6 +495,9 @@ export function createRepository(store: KeyValueStore): Repository {
         createdAt: new Date().toISOString(),
         staffName: null,
         nextIndex: 0,
+        colour: v.draft.colour,
+        purpose: v.draft.purpose,
+        note: v.draft.note,
       };
       write({ ...env, accounts: [...env.accounts, account] });
       return account;

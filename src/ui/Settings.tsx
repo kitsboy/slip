@@ -26,6 +26,7 @@ export default function Settings() {
   const [currency, setCurrency] = useState(loaded.settings.currency);
   const [taxPercent, setTaxPercent] = useState(String(loaded.settings.taxBps / 100));
   const [receiptFooter, setReceiptFooter] = useState(loaded.settings.receiptFooter);
+  const [explorerUrl, setExplorerUrl] = useState(loaded.settings.explorerUrl);
   const [note, setNote] = useState<{ kind: 'ok' | 'warn' | 'bad'; text: string } | null>(
     loaded.warnings.length > 0 ? { kind: 'warn', text: loaded.warnings.join(' · ') } : null,
   );
@@ -39,6 +40,7 @@ export default function Settings() {
       taxInclusive: loaded.settings.taxInclusive,
       tipPresetsBps: loaded.settings.tipPresetsBps,
       receiptFooter,
+      explorerUrl,
       language: 'en',
       onboardedAt: loaded.settings.onboardedAt ?? new Date().toISOString(),
     });
@@ -119,6 +121,22 @@ export default function Settings() {
           />
         </label>
       </div>
+
+      <label className="mt-3 block" htmlFor="st-explorer">
+        <span className="eyebrow">Chain-data endpoint (leave empty for the public explorer)</span>
+        <input
+          id="st-explorer"
+          value={explorerUrl}
+          onChange={(e) => setExplorerUrl(e.target.value)}
+          spellCheck={false}
+          placeholder="https://mempool.space/api — or your own https://node.local/api"
+          className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
+        />
+      </label>
+      <p className="mt-1 text-[11px] leading-relaxed text-muted">
+        A public explorer learns which addresses you ask about, and your IP. Point this at your own
+        Esplora / electrs and it learns nothing. slip never sends anything else.
+      </p>
 
       <button
         type="button"

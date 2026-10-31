@@ -233,6 +233,103 @@ describe('counters from descriptors', () => {
   });
 });
 
+
+// ---------------------------------------------------------------------------
+// Wallets you hold for other people: pubkey-only, plain address, labels
+// ---------------------------------------------------------------------------
+
+describe('wallet shapes', () => {
+  // The generator point G: a public vector, so a wrong encoder fails here loudly.
+  const PUBKEY = '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798';
+  const PUBKEY_ADDRESS = 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4'; // BIP-173 vector
+  const ADDRESS = 'bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu';
+
+  it('accepts a single public key and says plainly that it is one address', () => {
+    const v = validateAccountInput({
+      label: "Mum's savings",
+      xpub: PUBKEY,
+      coin: 'btc',
+      networkId: 'btc-mainnet',
+      purpose: 'family',
+      colour: 'teal',
+      note: 'rent',
+    });
+    expect(v.ok).toBe(true);
+    if (!v.ok) return;
+    expect(v.draft.source).toBe('pubkey');
+    expect(v.draft.firstAddress).toBe(PUBKEY_ADDRESS);
+    expect(v.draft.preview).toHaveLength(1);
+    expect(v.draft.colour).toBe('teal');
+    expect(v.draft.purpose).toBe('family');
+    expect(v.draft.note).toBe('rent');
+    expect(v.warnings.join(' ')).toMatch(/exactly ONE address/);
+  });
+
+  it('accepts a plain address for a one-off deposit', () => {
+    const v = validateAccountInput({
+      label: 'Work deposit',
+      xpub: ADDRESS,
+      coin: 'btc',
+      networkId: 'btc-mainnet',
+      purpose: 'work',
+    });
+    expect(v.ok).toBe(true);
+    if (!v.ok) return;
+    expect(v.draft.source).toBe('address');
+    expect(v.draft.firstAddress).toBe(ADDRESS);
+    expect(v.warnings.join(' ')).toMatch(/cannot be rotated/);
+  });
+
+  it('refuses an address from the wrong chain', () => {
+    const v = validateAccountInput({
+      label: 'Work deposit',
+      xpub: ADDRESS,
+      coin: 'ltc',
+      networkId: 'ltc-mainnet',
+    });
+    expect(v.ok).toBe(false);
+    if (!v.ok) expect(v.error).toMatch(/Bitcoin, not Litecoin/);
+  });
+
+  it('refuses a malformed public key rather than deriving nonsense', () => {
+    const v = validateAccountInput({
+      label: 'Bad key',
+      xpub: '04' + 'ab'.repeat(32),
+      coin: 'btc',
+      networkId: 'btc-mainnet',
+    });
+    expect(v.ok).toBe(false);
+  });
+
+  it('carries colour/purpose through the repository and defaults them for old records', () => {
+    const store = memoryStore();
+    const repo = createRepository(store);
+    const v = validateAccountInput({
+      label: 'Work',
+      xpub: ZPUB,
+      coin: 'btc',
+      networkId: 'btc-mainnet',
+      colour: 'blue',
+      purpose: 'work',
+    });
+    if (!v.ok) throw new Error(v.error);
+    const acct = repo.addAccount(v);
+    expect(acct.colour).toBe('blue');
+    expect(acct.purpose).toBe('work');
+
+    // an account written before colours existed must not render colourless
+    const legacy = { ...acct } as Record<string, unknown>;
+    delete legacy.colour;
+    delete legacy.purpose;
+    delete legacy.note;
+    store.setItem(STORAGE_KEY, JSON.stringify({ version: 1, accounts: [legacy], activeAccountId: null, currentStaff: null, pinHash: null }));
+    const migrated = createRepository(store).load().accounts[0]!;
+    expect(migrated.colour).toBe('orange');
+    expect(migrated.purpose).toBe('till');
+    expect(migrated.note).toBe('');
+  });
+});
+
 // ---------------------------------------------------------------------------
 // The shift log is written alongside the accounts
 // ---------------------------------------------------------------------------

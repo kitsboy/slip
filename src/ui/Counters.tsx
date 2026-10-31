@@ -12,8 +12,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  ACCOUNT_PURPOSES,
+  WALLET_COLOURS,
+  colourHex,
   createMemoryStore,
   createRepository,
+  purposeLabel,
   statusOf,
   validateAccountInput,
   type CounterAccount,
@@ -24,6 +28,9 @@ import { paymentUri } from '../core/qr';
 import { renderQrSvg } from '../core/qr';
 import type { Coin, NetworkId } from '../core/network';
 import type { ScriptType } from '../core/keys';
+import { loadSettings } from '../core/settings';
+import { fetchAddressActivity, formatAtoms, targetFor } from '../core/providers/esplora';
+import type { AccountPurpose, WalletColour } from '../core/accounts';
 
 const NETWORKS: Array<{ id: NetworkId; coin: Coin; label: string }> = [
   { id: 'btc-mainnet', coin: 'btc', label: 'Bitcoin' },
@@ -75,6 +82,10 @@ export default function Counters() {
   const [scriptType, setScriptType] = useState<ScriptType | 'auto'>('auto');
   const [xpub, setXpub] = useState('');
   const [checked, setChecked] = useState(false);
+  const [colour, setColour] = useState<WalletColour>('orange');
+  const [purpose, setPurpose] = useState<AccountPurpose>('till');
+  const [note, setNote] = useState('');
+  const [balances, setBalances] = useState<Record<string, { text: string; source: string; at: string }>>({});
   const [message, setMessage] = useState<{ kind: 'ok' | 'warn' | 'bad'; text: string } | null>(null);
 
   // which account's receive QR is open (address 0/0 only — a preview, never an invoice)
@@ -118,11 +129,52 @@ export default function Counters() {
       xpub,
       coin,
       networkId,
+      colour,
+      purpose,
+      note,
       ...(scriptType === 'auto' ? {} : { scriptType }),
     });
-  }, [xpub, label, coin, networkId, scriptType]);
+  }, [xpub, label, coin, networkId, scriptType, colour, purpose, note]);
 
   const activeAccount = accounts.find((a) => a.id === activeId) ?? null;
+
+  /**
+   * Live balance for one address, from the configured explorer (public by default).
+   * It is explicitly ONE address — address 0/0 — not "the wallet", because slip does not
+   * scan a whole chain and saying otherwise would be a lie with a number attached.
+   */
+  async function checkBalance(account: CounterAccount) {
+    const { settings } = loadSettings(window.localStorage);
+    const target = targetFor(account.networkId, settings.explorerUrl);
+    if (!target) {
+      setBalances((b) => ({
+        ...b,
+        [account.id]: { text: 'no explorer', source: 'none configured', at: '—' },
+      }));
+      return;
+    }
+    setBalances((b) => ({ ...b, [account.id]: { text: 'checking…', source: '', at: '' } }));
+    try {
+      const activity = await fetchAddressActivity(target, account.firstAddress);
+      setBalances((b) => ({
+        ...b,
+        [account.id]: {
+          text: `${formatAtoms(activity.confirmedBalanceAtoms, account.coin)} · ${activity.receivedAtoms > 0n ? 'used' : 'unused'}`,
+          source: target.kind === 'public' ? new URL(target.baseUrl).host : 'your node',
+          at: activity.fetchedAt.slice(11, 16),
+        },
+      }));
+    } catch (e) {
+      setBalances((b) => ({
+        ...b,
+        [account.id]: {
+          text: e instanceof Error ? e.message : 'lookup failed',
+          source: target.kind === 'public' ? new URL(target.baseUrl).host : 'your node',
+          at: '—',
+        },
+      }));
+    }
+  }
 
   function addAccount() {
     if (!validation || !validation.ok) return;
@@ -206,11 +258,14 @@ export default function Counters() {
 
   return (
     <section className="mt-6 panel">
-      <h2 className="panel-title">Counters &amp; staff hand-off</h2>
+      <h2 className="panel-title">Wallets &amp; staff hand-off</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">
-        One account per till, truck or staff member — each a <span className="text-ink">BIP-85</span>{' '}
-        child account you derived on your own signer and imported here as an xpub. slip never derives
-        BIP-85 itself, because that needs your master private key.
+        One entry per wallet you need to watch — your own, your employer's, your parents' — each
+        with its own colour and label so you can tell them apart at a glance. A wallet is any of:
+        an <span className="text-ink">xpub</span>, a <span className="text-ink">BIP-380
+        descriptor</span> (multisig included), a single public key, or a plain address. For a{' '}
+        <span className="text-ink">BIP-85</span> child account you import the child xpub your own
+        signer produced — slip never derives BIP-85 itself, because that needs your master key.
       </p>
 
       {staff && (
@@ -236,7 +291,14 @@ export default function Counters() {
           {accounts.map((a) => (
             <li key={a.id} className="rounded-lg border border-line p-3">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <span className="text-sm font-medium">{a.label}</span>
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  <span
+                    aria-hidden
+                    className="inline-block h-3 w-3 shrink-0 rounded-full"
+                    style={{ backgroundColor: colourHex(a.colour) }}
+                  />
+                  {a.label}
+                </span>
                 <span
                   className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wider ${
                     statusOf(a) === 'ready' ? 'border-good text-good' : 'border-warn text-warn'
@@ -247,8 +309,24 @@ export default function Counters() {
               </div>
               <p className="mt-1 break-all font-mono text-[11px] text-muted">{a.firstAddress}</p>
               <p className="mt-0.5 text-[10px] uppercase tracking-wider text-muted">
-                {a.networkId} · {a.scriptType} · fp {a.fingerprintHex}
+                {purposeLabel(a.purpose)} · {a.networkId} · {a.scriptType} · fp {a.fingerprintHex}
               </p>
+              {a.note && <p className="mt-0.5 text-[11px] text-muted">{a.note}</p>}
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void checkBalance(a)}
+                  className="rounded border border-line px-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+                >
+                  check balance
+                </button>
+                {balances[a.id] && (
+                  <span className="text-[11px] text-muted">
+                    <span className="figure text-ink">{balances[a.id]!.text}</span> · from{' '}
+                    {balances[a.id]!.source} at {balances[a.id]!.at}
+                  </span>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={() => setQrFor(qrFor === a.id ? null : a.id)}
@@ -301,7 +379,7 @@ export default function Counters() {
       )}
 
       <div className="mt-5 border-t border-line pt-4">
-        <h3 className="text-sm font-semibold">Add a counter</h3>
+        <h3 className="text-sm font-semibold">Add a wallet</h3>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
           <label className="block" htmlFor="ct-label">
             <span className="text-[11px] uppercase tracking-widest text-muted">Name</span>
@@ -346,9 +424,55 @@ export default function Counters() {
           </label>
         </div>
 
+        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+          <label className="block" htmlFor="ct-purpose">
+            <span className="text-[11px] uppercase tracking-widest text-muted">What is it for</span>
+            <select
+              id="ct-purpose"
+              value={purpose}
+              onChange={(e) => setPurpose(e.target.value as AccountPurpose)}
+              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            >
+              {ACCOUNT_PURPOSES.map((p2) => (
+                <option key={p2.id} value={p2.id}>
+                  {p2.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block" htmlFor="ct-note">
+            <span className="text-[11px] uppercase tracking-widest text-muted">Note (optional)</span>
+            <input
+              id="ct-note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="mum's rent account"
+              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            />
+          </label>
+        </div>
+
+        <fieldset className="mt-2">
+          <legend className="text-[11px] uppercase tracking-widest text-muted">Colour</legend>
+          <div className="mt-1 flex flex-wrap gap-2">
+            {WALLET_COLOURS.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setColour(c.id)}
+                aria-label={`Colour ${c.label}`}
+                aria-pressed={colour === c.id}
+                title={c.label}
+                className={`h-8 w-8 rounded-full border-2 ${colour === c.id ? 'border-ink' : 'border-transparent'}`}
+                style={{ backgroundColor: c.hex }}
+              />
+            ))}
+          </div>
+        </fieldset>
+
         <label className="mt-2 block" htmlFor="ct-xpub">
           <span className="text-[11px] uppercase tracking-widest text-muted">
-            Child account xpub
+            xpub · descriptor · public key · address
           </span>
           <textarea
             id="ct-xpub"

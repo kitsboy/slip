@@ -173,3 +173,23 @@ GitHub Actions runs typecheck, lint, tests, build, then `scripts/scan-bundle.sh`
 on `eval(`, `new Function`, tracker hosts, private-key-shaped strings, and any claim of a
 payment the engine cannot observe. A green CI now means the artifact *could* be published,
 not merely that the source compiles.
+
+### D-26 — "Wallet" is the unit; a till is one *purpose* of a wallet
+Cam holds several wallets for different reasons: his employer's (BIP-85 child), his parents'
+(multisig or BIP-85), his own (a single pubkey). They are all watch-only, so the same record
+serves all of them — with `purpose` and `colour` as local labelling only, never derived and
+never sent anywhere. A "counter" is now just `purpose: 'till'`.
+
+### D-27 — Four kinds of material, four honest labels
+An xpub (a chain of addresses), a descriptor (policy, including multisig), a single public
+key (exactly one address, cannot rotate), and a plain address (cannot rotate, cannot be
+verified as yours). The last two warn at paste time, because "one address forever" is a
+privacy decision, not a detail.
+
+### D-28 — Public explorer by default, endpoint is a setting
+`mempool.space` for Bitcoin (all three networks except testnet3 default) and
+`litecoinspace.org` for LTC mainnet; **Litecoin testnet has no dependable public Esplora and
+the app says so** rather than failing silently at sale time. The merchant's own
+Esplora/electrs URL goes in Settings. Balances are per *address 0/0*, labelled with their
+source and fetch time — never "your wallet balance", which slip cannot know without scanning
+a chain it does not index.

@@ -17,6 +17,12 @@ export interface ShopSettings {
   /** Tip presets in basis points, e.g. [0, 1000, 1500, 2000]. */
   readonly tipPresetsBps: readonly number[];
   readonly receiptFooter: string;
+  /**
+   * Chain-data endpoint. Empty means "use the public explorer for this network". A
+   * merchant's own Esplora/electrs URL goes here; it is the difference between a third
+   * party learning every address we watch and nobody learning anything.
+   */
+  readonly explorerUrl: string;
   readonly language: 'en';
   readonly onboardedAt: string | null;
 }
@@ -30,6 +36,7 @@ export const DEFAULT_SETTINGS: ShopSettings = {
   taxInclusive: false,
   tipPresetsBps: [0, 1000, 1500, 2000],
   receiptFooter: '',
+  explorerUrl: '',
   language: 'en',
   onboardedAt: null,
 };
@@ -138,6 +145,15 @@ export function sanitizeSettings(raw: unknown): { settings: ShopSettings; warnin
       taxInclusive: Boolean(input.taxInclusive),
       tipPresetsBps: presets.length > 0 ? [...new Set(presets)].sort((a, b) => a - b) : DEFAULT_SETTINGS.tipPresetsBps,
       receiptFooter: typeof input.receiptFooter === 'string' ? input.receiptFooter.slice(0, 200) : '',
+      explorerUrl: (() => {
+        const url = typeof input.explorerUrl === 'string' ? input.explorerUrl.trim() : '';
+        if (url === '') return '';
+        if (!/^https?:\/\/[^\s]+$/i.test(url)) {
+          warnings.push(`explorer URL "${url.slice(0, 40)}" is not an http(s) URL — ignored, using the public default`);
+          return '';
+        }
+        return url.replace(/\/+$/, '');
+      })(),
       language: 'en',
       onboardedAt: typeof input.onboardedAt === 'string' ? input.onboardedAt : null,
     },
