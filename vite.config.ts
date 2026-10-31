@@ -100,6 +100,7 @@ function hashReportPlugin() {
           `${sha}  index.html\n`,
           'utf8',
         );
+        // eslint-disable-next-line no-console -- the build report IS the output here
         console.log(
           `\n  slip v${VERSION} (${COMMIT}) built ${BUILT_AT}` +
             `\n  dist/index.html  ${(buf.byteLength / 1024).toFixed(1)} KB\n  sha256           ${sha}\n`,

@@ -134,6 +134,7 @@ export function paymentUri(kind: PaymentKind, payload: PaymentPayload): string {
   if (address.length === 0) fail('bitcoin: an address is required');
   // A space or control char in the address would silently truncate the path
   // component when a wallet parses it.
+  // eslint-disable-next-line no-control-regex -- matching control characters is the point
   if (/[\s\u0000-\u001f]/.test(address)) fail(`bitcoin: address contains whitespace or control characters`);
 
   const params: string[] = [];

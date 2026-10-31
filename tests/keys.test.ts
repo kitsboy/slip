@@ -10,7 +10,6 @@ import {
 
 const ZPUB =
   'zpub6rFR7y4Q2AijBEqTUquhVz398htDFrtymD9xYYfG1m4wAcvPhXNfE3EfH1r1ADqtfSdVCToUG868RvUUkgDKf31mGDtKsAYz2oz2AGutZYs';
-const XPUB_T = 'tpubDC8msFGeGuwnKG9Upg7DM2b4DaCaFVXyWBhLwQ1tJUQFzXXxfBSp3HFJUZ8bFzYxYFPy8R3tL2sKv5m4w8bY7J8pXqPU8r7Yh9dGmB4dVVX';
 
 describe('secret refusal', () => {
   it('refuses a 12-word recovery phrase and never repeats it', () => {

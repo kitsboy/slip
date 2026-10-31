@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.8.0** — 2026-10-31T00:53:05Z — `9344ac85e9da` — settings, themes, wipe, restore preview, CI, lint, artifact scan
+
 - **v0.7.0** — 2026-10-30T23:42:39Z — `3289a3729328` — five-screen setup wizard with a tested derivation gate
 
 - **v0.5.2** — 2026-10-30T22:10:59Z — `5642cb87359a` — derivation-index discipline, print/PDF white variant

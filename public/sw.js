@@ -42,3 +42,9 @@ self.addEventListener('fetch', (event) => {
     }),
   );
 });
+
+// The page decides when to take an update. A waiting worker only activates when the
+// merchant presses "new version ready — reload", never underneath a live sale.
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+});

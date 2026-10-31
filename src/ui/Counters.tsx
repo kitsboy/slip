@@ -85,7 +85,9 @@ export default function Counters() {
   const [pinInput, setPinInput] = useState('');
   const [newPin, setNewPin] = useState('');
 
-  const refresh = useCallback(() => {
+  // Reading and announcing are separate on purpose: a panel that dispatches the change
+  // event must not also listen to it, or refresh() calls itself forever.
+  const readState = useCallback(() => {
     const r = repo();
     setAccounts(r.load().accounts);
     setActiveId(r.load().activeAccountId);
@@ -93,7 +95,19 @@ export default function Counters() {
     setPinSet(Boolean(r.pinHash()));
   }, []);
 
-  useEffect(refresh, [refresh]);
+  const refresh = useCallback(() => {
+    readState();
+    // Sibling panels (Backup, Settings) read the same store; tell them it moved rather
+    // than duplicating state and letting one panel act on a stale list.
+    window.dispatchEvent(new Event('slip:data-changed'));
+  }, [readState]);
+
+  useEffect(() => {
+    readState();
+    const onChange = () => readState();
+    window.addEventListener('slip:data-changed', onChange);
+    return () => window.removeEventListener('slip:data-changed', onChange);
+  }, [readState]);
 
   const coin = useMemo(() => NETWORKS.find((n) => n.id === networkId)?.coin ?? 'btc', [networkId]);
 

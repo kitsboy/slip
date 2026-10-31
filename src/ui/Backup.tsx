@@ -15,9 +15,17 @@ import { exportLogLines, staffSummary, verifyLog, type ShiftLog } from '../core/
 interface BackupState {
   accounts: CounterAccount[];
   activeAccountId: string | null;
+  /** The till PIN hash. Without it a restore leaves the device unprotected and looks fine. */
+  pinHash: string | null;
   shifts: ShiftLog;
   app: 'slip';
   savedAt: string;
+}
+
+interface PendingRestore {
+  readonly file: File;
+  readonly createdAt: string;
+  readonly bytes: number;
 }
 
 export default function Backup() {
@@ -26,6 +34,7 @@ export default function Backup() {
   const [verified, setVerified] = useState<{ ok: boolean; reason?: string } | null>(null);
   const [passphrase, setPassphrase] = useState('');
   const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<PendingRestore | null>(null);
   const [note, setNote] = useState<{ kind: 'ok' | 'warn' | 'bad'; text: string } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -37,11 +46,23 @@ export default function Backup() {
     void verifyLog(shifts).then((r) => setVerified({ ok: r.ok, ...(r.reason ? { reason: r.reason } : {}) }));
   }, []);
 
-  useEffect(refresh, [refresh]);
+  useEffect(() => {
+    refresh();
+    const onChange = () => refresh();
+    window.addEventListener('slip:data-changed', onChange);
+    return () => window.removeEventListener('slip:data-changed', onChange);
+  }, [refresh]);
 
   const strength = passphrase ? passphraseStrength(passphrase) : null;
 
   async function exportFile() {
+    // Read the live store: a counter added in another panel must be in the backup even if
+    // this component has not re-rendered yet.
+    const live = createRepository(window.localStorage).load().accounts;
+    if (live.length === 0) {
+      setNote({ kind: 'warn', text: 'there is nothing to back up yet — add a counter first' });
+      return;
+    }
     if (!strength?.ok) {
       setNote({ kind: 'warn', text: strength?.reason ?? 'choose a passphrase first' });
       return;
@@ -52,6 +73,7 @@ export default function Backup() {
       const state: BackupState = {
         accounts: repo.load().accounts,
         activeAccountId: repo.load().activeAccountId,
+        pinHash: repo.load().pinHash,
         shifts: repo.shifts(),
         app: 'slip',
         savedAt: new Date().toISOString(),
@@ -76,6 +98,22 @@ export default function Backup() {
     }
   }
 
+  /** Reads the file header only — no passphrase, nothing written. */
+  async function inspectFile(file: File) {
+    try {
+      const text = await file.text();
+      const head = describeBackup(text);
+      setPending({ file, createdAt: head.createdAt, bytes: head.bytes });
+      setNote({
+        kind: 'warn',
+        text: `backup from ${head.createdAt.slice(0, 10)} (${(head.bytes / 1024).toFixed(1)} KB, encrypted). Restoring REPLACES the counters on this device — enter the passphrase and confirm.`,
+      });
+    } catch (e) {
+      setPending(null);
+      setNote({ kind: 'bad', text: e instanceof Error ? e.message : 'that is not a slip backup' });
+    }
+  }
+
   async function importFile(file: File) {
     setBusy(true);
     try {
@@ -94,12 +132,19 @@ export default function Backup() {
       const repo = createRepository(window.localStorage);
       const env = repo.load();
       repo.save({ ...env, accounts: state.accounts, activeAccountId: state.activeAccountId ?? null });
+      // The PIN travels with the backup: a restored till with no PIN would silently drop
+      // the hand-off protection the merchant thinks they still have.
+      repo.setPin(state.pinHash ?? null);
       window.localStorage.setItem('slip.shifts.v1', JSON.stringify(state.shifts ?? { version: 1, events: [] }));
       setNote({
         kind: 'ok',
-        text: `restored ${state.accounts.length} counter(s) from a backup made ${head.createdAt.slice(0, 10)}.`,
+        text: `restored ${state.accounts.length} counter(s) and ${state.pinHash ? 'the PIN' : 'no PIN'} from a backup made ${head.createdAt.slice(0, 10)}.`,
       });
       setPassphrase('');
+      setPending(null);
+      // Every panel reads the same store; after a restore they all need to re-read, or the
+      // till keeps showing an empty counter list while the data is actually there.
+      window.dispatchEvent(new Event('slip:data-changed'));
       refresh();
     } catch (e) {
       setNote({ kind: 'bad', text: e instanceof Error ? e.message : 'could not read that file' });
@@ -144,7 +189,7 @@ export default function Backup() {
         <button
           type="button"
           onClick={() => void exportFile()}
-          disabled={busy || accounts.length === 0}
+          disabled={busy}
           className="rounded-lg border border-accent px-3 py-2 text-xs uppercase tracking-wider text-accent disabled:border-line disabled:text-muted"
         >
           Export encrypted backup
@@ -172,13 +217,44 @@ export default function Backup() {
           aria-label="Choose a .slip backup file"
           onChange={(e) => {
             const f = e.target.files?.[0];
-            if (f) void importFile(f);
+            if (f) void inspectFile(f);
           }}
         />
         {accounts.length === 0 && (
           <span className="text-[11px] text-muted">add a counter first — there is nothing to back up</span>
         )}
       </div>
+
+      {pending && (
+        <div className="mt-3 rounded-lg border border-warn p-3">
+          <p className="text-xs text-warn">
+            Backup from {pending.createdAt.slice(0, 10)} ({(pending.bytes / 1024).toFixed(1)} KB).
+            Restoring <span className="text-ink">replaces</span> the counters on this device. Enter the
+            passphrase above, then confirm.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void importFile(pending.file)}
+              disabled={busy || !passphrase}
+              className="rounded-lg border border-warn px-3 py-2 text-[11px] uppercase tracking-wider text-warn disabled:border-line disabled:text-muted"
+            >
+              Confirm restore
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setPending(null);
+                setNote(null);
+                if (fileInput.current) fileInput.current.value = '';
+              }}
+              className="rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {note && (
         <p

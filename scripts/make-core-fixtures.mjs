@@ -18,7 +18,6 @@ import { execFileSync } from 'node:child_process';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { mnemonicToSeedSync } from '@scure/bip39';
 import { HDKey } from '@scure/bip32';
-import { wordlist } from '@scure/bip39/wordlists/english';
 
 const MNEMONIC =
   'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';

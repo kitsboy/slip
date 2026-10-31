@@ -258,7 +258,7 @@ describe('exportLogLines', () => {
     expect(lines).toHaveLength(log.events.length);
     for (const line of lines) {
       expect(line).not.toContain('\n');
-      expect(line).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}  /);
+      expect(line).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2} {2}/);
     }
 
     expect(lines[0]).toBe(

@@ -20,15 +20,13 @@ describe('reserve', () => {
   });
 
   it('never reuses an index that was marked used', () => {
-    let book = emptyBook();
-    const first = reserve(book);
-    book = markUsed(first.book, first.index);
+    const book = markUsed(reserve(emptyBook()).book, 0);
     const second = reserve(book);
     expect(second.index).toBe(1);
   });
 
   it('does not hand out a currently-reserved index', () => {
-    let book = emptyBook();
+    const book = emptyBook();
     const a = reserve(book);
     const b = reserve(a.book);
     expect(b.index).toBe(1);

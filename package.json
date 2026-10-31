@@ -1,21 +1,24 @@
 {
   "name": "slip",
   "private": true,
-  "version": "0.7.0",
+  "version": "0.8.0",
   "type": "module",
   "description": "slip — a non-custodial, serverless, watch-only point-of-sale terminal. Sells pay straight into the merchant's own wallet.",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && bash scripts/scan-bundle.sh dist/index.html",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "tsc --noEmit",
+    "lint": "npx tsc --noEmit && eslint .",
     "test:e2e": "node tests/e2e/keycheck.mjs",
     "fixtures": "node scripts/make-core-fixtures.mjs",
     "deploy": "bash scripts/deploy.sh",
-    "version:show": "node -e \"console.log(require('./package.json').version)\""
+    "version:show": "node -e \"console.log(require('./package.json').version)\"",
+    "format": "prettier --write 'src/**/*.{ts,tsx,css}' 'tests/**/*.{ts,mjs}' 'scripts/**/*.mjs'",
+    "format:check": "prettier --check 'src/**/*.{ts,tsx,css}'",
+    "scan": "bash scripts/scan-bundle.sh dist/index.html"
   },
   "dependencies": {
     "@noble/curves": "1.7.0",
@@ -28,18 +31,23 @@
     "uqr": "0.1.2"
   },
   "devDependencies": {
+    "@eslint/js": "9.17.0",
     "@scure/bip39": "1.5.0",
     "@types/node": "22.10.2",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
     "@vitejs/plugin-react": "4.3.4",
     "autoprefixer": "10.4.20",
+    "eslint": "9.17.0",
+    "globals": "15.14.0",
     "jsdom": "25.0.1",
     "jsqr": "1.4.0",
     "playwright": "1.56.1",
     "postcss": "8.4.49",
+    "prettier": "3.4.2",
     "tailwindcss": "3.4.17",
     "typescript": "5.6.3",
+    "typescript-eslint": "8.18.2",
     "vite": "5.4.11",
     "vite-plugin-singlefile": "2.0.3",
     "vitest": "2.1.8"

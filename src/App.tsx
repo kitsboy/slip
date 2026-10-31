@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import About from './ui/About';
 import Backup from './ui/Backup';
 import AddressCheck from './ui/AddressCheck';
@@ -7,6 +7,9 @@ import KeyCheck from './ui/KeyCheck';
 import PriceCheck from './ui/PriceCheck';
 import RequestCounter from './ui/RequestCounter';
 import Services from './ui/Services';
+import Settings from './ui/Settings';
+import Status from './ui/Status';
+import { applyTheme, loadTheme, nextTheme, saveTheme, systemTheme, themeLabel, type Theme } from './core/theme';
 import Wizard from './ui/Wizard';
 import { buildLabel } from './core/buildinfo';
 import { isOnboarded } from './core/settings';
@@ -20,7 +23,7 @@ import { isOnboarded } from './core/settings';
  * merchant money, so screens land in a fixed order (SLIP-PLAN.md §7).
  */
 
-export const BUILD_STAGE = 'P6 — counters, descriptors, backup, shift log (no till yet)';
+export const BUILD_STAGE = 'P8 — settings, themes, wipe, wizard (no till yet)';
 
 const TRUST: ReadonlyArray<readonly [string, string]> = [
   ['watch-only', 'no key can be pasted'],
@@ -34,6 +37,27 @@ export default function App() {
   // visitor evaluating slip still sees what it is. Never force a stranger through five
   // screens before they can read the page.
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>(() => {
+    try {
+      const store = window.localStorage;
+      const prefersLight =
+        typeof window.matchMedia === 'function'
+          ? window.matchMedia('(prefers-color-scheme: light)').matches
+          : false;
+      return loadTheme(store) ?? systemTheme(prefersLight);
+    } catch {
+      return 'dark';
+    }
+  });
+
+  useEffect(() => {
+    applyTheme(theme, document.documentElement);
+    try {
+      saveTheme(window.localStorage, theme);
+    } catch {
+      /* private mode: the choice simply does not persist */
+    }
+  }, [theme]);
   const onboarded = (() => {
     try {
       return isOnboarded(window.localStorage);
@@ -60,6 +84,15 @@ export default function App() {
           </div>
           <div className="flex items-center gap-2">
             <span className="chip figure hidden sm:inline-flex">{buildLabel()}</span>
+            <button
+              type="button"
+              onClick={() => setTheme(nextTheme(theme))}
+              className="chip hover:text-ink"
+              aria-label={`Theme: ${themeLabel(theme)}. Switch theme.`}
+              title={`Theme: ${themeLabel(theme)}`}
+            >
+              {themeLabel(theme)}
+            </button>
             <button
               type="button"
               onClick={() => setWizardOpen(true)}
@@ -126,6 +159,8 @@ export default function App() {
 
         <Backup />
 
+        <Settings />
+
         <KeyCheck />
 
         <div className="grid gap-3 lg:grid-cols-2 lg:items-start">
@@ -149,6 +184,7 @@ export default function App() {
       <footer className="border-t border-line px-5 py-6">
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-2 text-center">
           <span className="chip figure">{buildLabel()}</span>
+          <Status />
           <RequestCounter />
           <span className="text-[11px] text-muted">
             no accounts · no analytics · no telemetry · MIT licensed

@@ -1,0 +1,46 @@
+name: ci
+
+# The same gates `scripts/deploy.sh` runs locally, so a green CI means the artifact
+# could actually be published — not merely that the source compiles.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npx vitest run
+
+      - name: Build
+        run: npm run build
+
+      - name: Scan the shipped artifact
+        run: bash scripts/scan-bundle.sh dist/index.html
+
+      - name: Publish the hash as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: slip-artifact
+          path: |
+            dist/index.html
+            dist/SHA256SUMS
+            dist/_headers
+          retention-days: 14

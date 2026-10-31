@@ -154,3 +154,22 @@ A deploy run was interrupted after `npm version minor` and before the upload, so
 publish is v0.7.0. `CHANGELOG.md` lists only versions that actually reached the live origin
 (the script appends on success only), so a gap in the numbers is the honest record — not a
 missing entry.
+
+### D-23 — Panels share one store through a DOM event, not duplicated state
+Counters, Backup and Settings all read the same localStorage. Each held its own copy, so a
+counter added in one panel was invisible to another — which is exactly how a backup shipped
+*without the counter it was meant to protect*. They now re-read on a `slip:data-changed`
+event. Reading and announcing are separate functions: a panel that dispatches must not also
+listen, or it refreshes itself forever.
+
+### D-24 — The backup carries the PIN hash
+A restore used to bring back counters and the shift log but not the PIN, leaving a "new"
+device with the hand-off protection silently absent. The PIN hash now travels in the
+encrypted state, and a browser test proves the full loop: set PIN → export → wipe → restore
+→ a hand-off is still refused without the PIN.
+
+### D-25 — CI and the artifact scan mirror `deploy.sh`
+GitHub Actions runs typecheck, lint, tests, build, then `scripts/scan-bundle.sh`, which fails
+on `eval(`, `new Function`, tracker hosts, private-key-shaped strings, and any claim of a
+payment the engine cannot observe. A green CI now means the artifact *could* be published,
+not merely that the source compiles.
