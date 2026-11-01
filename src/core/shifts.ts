@@ -21,6 +21,7 @@
 export const GENESIS_HASH = '0'.repeat(64);
 
 export type ShiftEventKind =
+  | 'open'
   | 'handoff'
   | 'return'
   | 'acknowledge'
@@ -29,6 +30,7 @@ export type ShiftEventKind =
 
 /** The order the day sheet prints in; also the set of kinds this log accepts. */
 export const SHIFT_EVENT_KINDS: readonly ShiftEventKind[] = [
+  'open',
   'handoff',
   'return',
   'acknowledge',
@@ -269,7 +271,8 @@ export function staffSummary(log: ShiftLog): StaffShift[] {
   const shifts: StaffShift[] = [];
 
   log.events.forEach((event, index) => {
-    if (event.kind !== 'handoff') return;
+    // 'open' is a shift starting on its own — the first person in, with nobody to take over from.
+    if (event.kind !== 'handoff' && event.kind !== 'open') return;
 
     let end: ShiftEvent | null = null;
     let nextHandoffAt = log.events.length;
@@ -277,7 +280,7 @@ export function staffSummary(log: ShiftLog): StaffShift[] {
     for (let cursor = index + 1; cursor < log.events.length; cursor += 1) {
       const candidate = log.events[cursor];
       if (!candidate || candidate.accountId !== event.accountId) continue;
-      if (candidate.kind === 'handoff') {
+      if (candidate.kind === 'handoff' || candidate.kind === 'open') {
         nextHandoffAt = cursor;
         break;
       }
@@ -309,6 +312,7 @@ export function staffSummary(log: ShiftLog): StaffShift[] {
 // ---------------------------------------------------------------------------
 
 const KIND_LABEL: Record<ShiftEventKind, string> = {
+  open: 'OPEN',
   handoff: 'HANDOFF',
   return: 'RETURN',
   acknowledge: 'ACKNOWLEDGE',

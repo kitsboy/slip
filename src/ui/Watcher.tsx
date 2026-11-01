@@ -4,6 +4,7 @@ import { describeSweep } from '../core/reconcile';
 import { sweepNow } from '../core/reconcile-run';
 import { loadSettings } from '../core/settings';
 import { isDemo, store as appStore } from '../core/storage';
+import { announceOnce, cueForTransition } from '../core/sound';
 
 /** How often to re-ask while the shop screen is in front of somebody. */
 const VISIBLE_MS = 20_000;
@@ -45,6 +46,13 @@ export default function Watcher() {
         window.dispatchEvent(new CustomEvent('slip:swept', { detail: describeSweep(out.result) }));
         if (!out.changed) return;
         window.dispatchEvent(new Event('slip:data-changed'));
+        // Money can land while the merchant is reading the books, so the cue belongs to the shell
+        // and not to the till. `announceOnce` keeps the till's poller and this sweep from ringing
+        // the same sale twice.
+        for (const change of out.result.changes) {
+          const cue = cueForTransition(change.from, change.to, { short: document.hidden });
+          if (cue) announceOnce(change.invoiceId, cue, { enabled: settings.assist.soundOnPayment });
+        }
         const paid = out.result.changes.filter((c) => c.to === 'complete' || c.to === 'confirmed').length;
         if (document.hidden && paid > 0) {
           unseen.current += paid;

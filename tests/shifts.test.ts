@@ -188,6 +188,17 @@ describe('verifyLog', () => {
 });
 
 describe('staffSummary', () => {
+  it('treats an opening as a shift starting, because the first person in has nobody to take over from', async () => {
+    let log = emptyLog();
+    log = await appendEvent(log, handoff({ kind: 'open', staff: 'Bea', at: T0, detail: 'float 12000' }));
+    log = await appendEvent(log, handoff({ kind: 'return', staff: 'Bea', at: T1 }));
+
+    const [shift] = staffSummary(log);
+    expect(shift?.staff).toBe('Bea');
+    expect(shift?.startedAt).toBe(T0);
+    expect(shift?.endedAt).toBe(T1);
+  });
+
   it('pairs a handoff with the following return for the same account', async () => {
     let log = emptyLog();
     log = await appendEvent(log, handoff({ at: T0 }));

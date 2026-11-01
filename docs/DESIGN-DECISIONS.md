@@ -183,3 +183,66 @@ tracked secret-shaped files and no `api_key|secret|password|token` assignments w
 (`git ls-files` + `git grep`). The README now says what the licence means in practice — read it and
 check that slip does nothing with your keys, report security privately, open an issue before
 anything larger than a fix — and the repo carries a description and topics so it is findable.
+
+---
+
+# Design decisions — the counter pass (v0.25.0)
+
+## D-70 — The till gets an ear, and it is not evidence
+A merchant looking at a customer cannot watch the screen. Three cues cover the three things that
+happen at a counter: **seen** (one soft 659 Hz tone), **paid** (two notes rising, 784 → 1047), and
+**needs a human** (a low 196 Hz double buzz for expired or short). Three oscillators, no audio
+files — a till that downloads a chime is a till that phones home.
+
+Two rules keep it honest. **A cue never changes an invoice**: the badge and the receipt still say
+what slip observed, so muting it costs convenience, never truth. And **one sale chimes once**:
+`announceOnce` dedupes per invoice across the till's poller *and* the shell watcher, because a
+`confirmed → complete` transition would otherwise ring twice and teach a merchant to ignore the
+sound. The AudioContext is primed on the Charge press — the gesture browsers require — so the cue
+that matters later is not the one the browser refuses.
+
+## D-71 — A finished sale ends on the next customer
+The receipt ended on a quiet outline button. The action a cashier wants at that moment is the next
+customer, so it is now the one solid primary: **Next sale**, with **Print receipt** secondary beside
+it and a quiet "Saved in Books — <date>" line. Removing a cart line stays a single tap because it is
+reversible; this is the opposite case, done a hundred times a day.
+
+## D-72 — The day needs a beginning
+The shift log existed but nothing ever opened it: the first event appeared only at a hand-off, so a
+day worked by one person had no start. Opening the till writes one `open` event (who is on, the
+float counted); closing writes `return`, which is what ends a shift. `staffSummary` treats `open`
+exactly as a `handoff` — the first person in has nobody to take over from, but it is still a shift
+starting.
+
+The till's open/closed state is **derived from the hashed log**, not stored beside it: a second copy
+of "is the till open" is a second thing that can disagree with the books. And the card is collapsed
+by default — a one-line invitation with a button — because opening the till is admin, and admin must
+never push the counter off the first screen.
+
+## D-73 — Scanning resolves exactly, or says it cannot
+A bar code is read faster than a human can check it, so a wrong guess is worse than a refusal. A scan
+matches an item id, then an exact name, then the *only* item whose name contains the code; two
+candidates produce "N items match — use the search box", and a code with no match says "nothing in
+your catalog is …". A plain amount is offered as an amount instead, because a shop that sells one
+thing by weight has no catalogue to scan against. A wedge scanner types and presses Enter; a camera
+is offered only where the browser has a native detector.
+
+## D-74 — Money waiting outranks admin, and never lies
+Open sales sit above the counter in one quiet line: oldest first, amount, age, tap to resume. Three
+at most, with "+N more in Books" — a strip that fills the screen stops being quiet. The tilt is
+deliberate: the oldest sale is the one most likely to have been forgotten. A cancelled sale leaves
+the strip immediately (`abandon()` refreshes it), because a "waiting" line for a dead invoice is
+exactly the kind of small lie this product refuses. An expired-but-open sale stays and says "late":
+its address can still catch a late payment.
+
+## D-75 — An open sale that expired is late, not gone
+`awaitingSales` keeps `awaiting` and `seen` only, and marks one past its own expiry as `stale`
+without hiding it. Hiding it would be the comfortable choice and the dishonest one: the address is
+still live and a customer can still pay it.
+
+## D-76 — The till says what it is doing
+The idle status chip read "Awaiting payment", describing a payment that did not exist yet. It now
+reads "Watching for payments" online and "Offline — not watching" offline, pinned by
+`tests/e2e/polish.mjs`. The counter shortcuts (`/` search, `c` charge, `n` next sale, `p` print) are
+letter keys only and never fire while a field has focus — someone typing a customer's name must not
+start a sale.

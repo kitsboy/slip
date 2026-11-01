@@ -103,7 +103,7 @@ await page.waitForTimeout(400);
 const till = page.locator('[data-panel="till"]');
 await till.scrollIntoViewIfNeeded();
 const tillText = await till.innerText();
-check('the status chip says what it is doing, not "detection live"', /Awaiting payment|not watching/i.test(tillText), tillText.slice(0, 120));
+check('the status chip says what it is doing, not "detection live"', /Watching for payments|not watching/i.test(tillText), tillText.slice(0, 120));
 check('no debug-sounding reconciliation line', !/Reconciliation:/.test(tillText));
 check('custom amount explains that it adds to the items', /added to the items/i.test(tillText));
 check('the stale "Not a till yet" banner is gone', !/Not a till yet/.test(await body()));

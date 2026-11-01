@@ -105,7 +105,7 @@ check('receipt says paid and seen on chain', /Paid — seen on chain/.test(recei
 check('receipt carries a proof QR', (await page.locator('svg').count()) > 0);
 check('receipt names the invoice and index', /Invoice inv_/.test(receipt) && /index #0/.test(receipt));
 
-await page.getByRole('button', { name: 'new sale' }).click();
+await page.getByRole('button', { name: 'Next sale' }).click();
 await page.waitForTimeout(300);
 
 // --- the next sale must use a DIFFERENT index -------------------------------

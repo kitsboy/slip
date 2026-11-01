@@ -42,6 +42,10 @@ import { paymentLabel } from '../core/brand';
 import { registerDemoSale } from '../demo/fakeExplorer';
 import { isDemo } from '../core/storage';
 import { store as appStore } from '../core/storage';
+import AwaitingStrip from './AwaitingStrip';
+import OpenTill, { type OpenShift } from './OpenTill';
+import ScanToCart from './ScanToCart';
+import { announceOnce, cueForTransition, primeAudio } from '../core/sound';
 
 interface CartLine {
   readonly item: CatalogItem;
@@ -92,6 +96,12 @@ export default function Till() {
   const [splitWalletId, setSplitWalletId] = useState('');
   const [splitPercent, setSplitPercent] = useState('50');
   const [sweepNote, setSweepNote] = useState<string>('');
+  /** Open sales, for the strip above the counter. Refreshed with the rest of the ledger. */
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  /** The shift, derived from the hashed log — never from a second store of its own. */
+  const [shift, setShift] = useState<OpenShift | null>(null);
+  const [shiftBusy, setShiftBusy] = useState(false);
+  const [shiftError, setShiftError] = useState<string | null>(null);
   const [tabs, setTabs] = useState<ParkedTab[]>(() => {
     try {
       return JSON.parse(appStore().getItem(TABS_KEY) ?? '[]') as ParkedTab[];
@@ -117,7 +127,43 @@ export default function Till() {
     setWalletId((current) => current || (accounts.find((a) => statusOf(a) === 'ready')?.id ?? ''));
     const l = ledger.load();
     setItems(l.items);
+    setInvoices(l.invoices);
   }, [ledger]);
+
+  /**
+   * The till is open when the last event for the active counter today is `open` or `handoff`.
+   * Derived from the hashed log rather than kept beside it: a second copy of "is the till open"
+   * is a second thing that can disagree with the books.
+   */
+  const loadShift = useCallback(() => {
+    const repo = createRepository(appStore());
+    const account = repo.active();
+    if (!account) {
+      setShift(null);
+      return;
+    }
+    const log = repo.shifts();
+    const today = new Date().toISOString().slice(0, 10);
+    const events = log.events.filter((e) => e.accountId === account.id && e.at.slice(0, 10) === today);
+    const last = events[events.length - 1];
+    if (!last || (last.kind !== 'open' && last.kind !== 'handoff')) {
+      setShift(null);
+      return;
+    }
+    const counted = last.detail?.match(/float\s+(\d+)/i)?.[1];
+    setShift({
+      staff: last.staff ?? 'unassigned',
+      since: last.at,
+      floatMinor: counted ? BigInt(counted) : null,
+    });
+  }, []);
+
+  useEffect(() => {
+    loadShift();
+    const onChanged = () => loadShift();
+    window.addEventListener('slip:data-changed', onChanged);
+    return () => window.removeEventListener('slip:data-changed', onChanged);
+  }, [loadShift]);
 
   useEffect(() => {
     reload();
@@ -323,6 +369,9 @@ export default function Till() {
   }, [rate]);
 
   function charge() {
+    // Browsers only allow audio after a gesture. Prime it on the press that starts the sale, so the
+    // cue that matters later is not the one the browser refuses.
+    primeAudio();
     // In tip-jar mode a named staff member's own wallet takes the money, so their tips land in
     // their wallet and not the shop's. It is the same watch-only rule either way.
     const payee = tipJar && staffId ? (wallets.find((w) => w.id === staffId) ?? wallet) : wallet;
@@ -471,6 +520,9 @@ export default function Till() {
         const activity = await fetchAddressActivity(t, target.address);
         const next = statusFromObservation(target, { activity });
         const updated = completeIfConfirmed(applyStatus(target, next));
+        // A cue is a courtesy, never evidence: nothing about the invoice changes here.
+        const cue = cueForTransition(target.status, updated.status);
+        if (cue) announceOnce(updated.id, cue, { enabled: settings.assist.soundOnPayment });
         ledger.putInvoice(updated);
         setInvoice((cur) => (cur && cur.id === updated.id ? updated : cur));
         publishToDisplay({
@@ -518,8 +570,81 @@ export default function Till() {
         setStatus(e instanceof Error ? e.message : 'could not reach the explorer');
       }
     },
-    [leg2, ledger, settings.explorerUrl, wallets],
+    [leg2, ledger, settings.explorerUrl, settings.assist.soundOnPayment, wallets],
   );
+
+  async function openTill(staffName: string, floatMinor: bigint | null) {
+    setShiftBusy(true);
+    setShiftError(null);
+    try {
+      const repo = createRepository(appStore());
+      const account = repo.active();
+      if (!account) throw new Error('no counter chosen yet — add one in Setup first');
+      await repo.recordShift(
+        'open',
+        account,
+        staffName,
+        `float ${floatMinor === null ? 'none' : floatMinor.toString()}`,
+      );
+      loadShift();
+      window.dispatchEvent(new Event('slip:data-changed'));
+    } catch (e) {
+      setShiftError(e instanceof Error ? e.message : 'could not open the till');
+    } finally {
+      setShiftBusy(false);
+    }
+  }
+
+  async function closeTill() {
+    setShiftBusy(true);
+    setShiftError(null);
+    try {
+      const repo = createRepository(appStore());
+      const account = repo.active();
+      if (!account) throw new Error('no counter chosen yet');
+      await repo.recordShift('return', account, shift?.staff ?? null, 'till closed from the counter');
+      loadShift();
+      window.dispatchEvent(new Event('slip:data-changed'));
+    } catch (e) {
+      setShiftError(e instanceof Error ? e.message : 'could not close the till');
+    } finally {
+      setShiftBusy(false);
+    }
+  }
+
+  /**
+   * Counter shortcuts: `/` search, `c` charge, `n` next sale, `p` print. Letter keys only, and
+   * never while a field has focus — someone typing a customer's name must not fire a sale.
+   */
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const el = event.target as HTMLElement | null;
+      const typing =
+        el !== null &&
+        (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
+      if (typing) return;
+
+      if (event.key === '/') {
+        const field = document.getElementById('tl-search');
+        if (!field) return;
+        event.preventDefault();
+        field.focus();
+        return;
+      }
+      if (!receipt) return;
+      if (event.key === 'n') {
+        event.preventDefault();
+        void finish();
+      }
+      if (event.key === 'p') {
+        event.preventDefault();
+        printReceipt(receipt, proof, settings.businessName, settings.receiptFooter);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [receipt, proof, settings.businessName, settings.receiptFooter]);
 
   // Poll only while a payment screen is open. Never in the background: a till that chatters
   // to an explorer while idle is a privacy leak with no benefit.
@@ -549,6 +674,8 @@ export default function Till() {
     }
     setInvoice(null);
     setStatus('');
+    // A cancelled sale leaves the strip at once; a "waiting" line for a dead invoice is a lie.
+    setInvoices(ledger.load().invoices);
   }
 
   async function markPaid() {
@@ -557,6 +684,7 @@ export default function Till() {
     // A rehearsal never touches the books, even when the merchant confirms it.
     if (invoice.note !== 'rehearsal') ledger.putInvoice(updated);
     setInvoice(updated);
+    announceOnce(updated.id, 'paid', { enabled: settings.assist.soundOnPayment });
     const anchor = ledger.load().anchors.find((a) => a.date === updated.createdAt.slice(0, 10));
     setProof({
       id: updated.id,
@@ -760,13 +888,6 @@ export default function Till() {
               Invoice {receipt.id} · wallet {receipt.walletLabel}
               {receipt.index !== null ? ` · index #${receipt.index}` : ' · fixed address'}
             </p>
-            <button
-              type="button"
-              onClick={() => printReceipt(receipt, proof, settings.businessName, settings.receiptFooter)}
-              className="mt-2 rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:text-ink"
-            >
-              print receipt
-            </button>
           </div>
         </div>
 
@@ -788,13 +909,21 @@ export default function Till() {
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={() => void finish()}
-          className="mt-4 rounded-lg border border-accent px-4 py-2 text-xs font-semibold text-accent"
-        >
-          new sale
-        </button>
+        <div className="mt-6 flex flex-wrap items-center gap-2 pb-1">
+          <button type="button" onClick={() => void finish()} className="btn btn-primary">
+            Next sale
+          </button>
+          <button
+            type="button"
+            onClick={() => printReceipt(receipt, proof, settings.businessName, settings.receiptFooter)}
+            className="btn btn-secondary"
+          >
+            Print receipt
+          </button>
+          <span className="text-[11px] text-muted">
+            Saved in Books{receipt.confirmedAt ? ` — ${receipt.confirmedAt.slice(0, 10)}` : ''}
+          </span>
+        </div>
       </section>
     );
   }
@@ -811,9 +940,30 @@ export default function Till() {
           <h2 className="panel-title mt-1">Take a payment</h2>
         </div>
         <span className={`badge ${online ? 'badge-pending' : 'badge-bad'}`}>
-          {online ? 'Awaiting payment' : 'Offline — not watching'}
+          {online ? 'Watching for payments' : 'Offline — not watching'}
         </span>
       </div>
+
+      <AwaitingStrip
+        invoices={invoices}
+        onOpen={(prior) => {
+          setReceipt(null);
+          setInvoice(prior);
+          setStatus('picked the sale back up');
+        }}
+      />
+
+      {wallets.length > 0 && (
+        <OpenTill
+          staff={settings.staff.map((person) => person.name)}
+          shift={shift}
+          currency={settings.currency}
+          busy={shiftBusy}
+          error={shiftError}
+          onOpen={openTill}
+          onClose={closeTill}
+        />
+      )}
 
       {wallets.length === 0 ? (
         <p className="mt-3 rounded-lg border border-warn p-3 text-xs text-warn">
@@ -919,13 +1069,25 @@ export default function Till() {
                   </button>
                 ))}
               </div>
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="search items"
-                aria-label="Search items"
-                className="mt-2 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
-              />
+              <div className="mt-2 flex flex-wrap items-start gap-2">
+                <input
+                  id="tl-search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="search items"
+                  aria-label="Search items"
+                  className="min-w-0 flex-1 rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+                />
+                <ScanToCart
+                  items={items}
+                  currency={settings.currency}
+                  onPick={addLine}
+                  onAmount={(raw) => {
+                    setCustom(raw);
+                    setStatus('amount from the scan is in the custom field — check it, then charge');
+                  }}
+                />
+              </div>
               <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {visible.map((i) => (
                   <button

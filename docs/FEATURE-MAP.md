@@ -56,6 +56,12 @@ is covered by tests. Nothing on this page is aspirational.
 | Docs gate | `npm run docs:audit` fails on a panel with no card, a card pointing at a missing file, or a FEATURE-MAP path that no longer exists | live | `scripts/docs-audit.mjs` |
 | Manual screenshots | `npm run manual` photographs every documented panel at 2× from the built app | live | `scripts/manual-shot.mjs` |
 | Freshness ring | Every fetched number carries an age ring driven by the same rule that refuses a stale rate | live | `core/freshness.ts`, `ui/FreshnessRing.tsx` |
+| Sound on payment | Three synthesised cues (seen, paid, needs-you), no audio files, switchable, deduped so one sale chimes once | live | `core/sound.ts`, `ui/Till.tsx`, `ui/Watcher.tsx` |
+| Next sale | A finished sale ends on one primary action that clears the cart and keeps the shift | live | `ui/Till.tsx` |
+| Open and close the till | One line to start the day (who is on, float counted) and one to end it, both hashed into the shift log | live | `ui/OpenTill.tsx`, `core/shifts.ts` |
+| Waiting strip | Open sales above the counter, oldest first, with age; tap to pick one back up | live | `core/awaiting.ts`, `ui/AwaitingStrip.tsx` |
+| Scan into the cart | Wedge scanner, camera QR or a typed code resolved against the catalog — exact match only | live | `ui/ScanToCart.tsx` |
+| Counter shortcuts | `/` search, `c` charge, `n` next sale, `p` print — never while a field has focus | live | `ui/Till.tsx` |
 | Tamper-evident footer | Today's completed-sales digest in the footer, changing as sales land | live | `ui/BookSeal.tsx` |
 | Parked tabs | Up to five half-built sales parked and resumed; no address is reserved until charged | live | `core/tabs.ts` |
 | Repeat last sale | One tap to reload the previous order | live | `core/tabs.ts` |

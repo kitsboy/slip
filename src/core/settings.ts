@@ -67,6 +67,8 @@ export interface AssistOptions {
   readonly wallClock: boolean;
   /** The weekly letter: a week's takings written as sentences, printable. */
   readonly weeklyLetter: boolean;
+  /** A short chime when money lands. A cue is a courtesy; it never changes an invoice. */
+  readonly soundOnPayment: boolean;
   /** The real-money 100 sat test. Off by default: it spends money, however little. */
   readonly liveTest: boolean;
 }
@@ -81,6 +83,7 @@ export const DEFAULT_ASSIST: AssistOptions = {
   counterCard: true,
   wallClock: false,
   weeklyLetter: false,
+  soundOnPayment: true,
   liveTest: false,
 };
 
@@ -94,6 +97,7 @@ export const ASSIST_LABELS: Readonly<Record<keyof AssistOptions, { title: string
   counterCard: { title: 'Offer the printable counter card', why: 'A one-page A4 of the rules for staff, for the wall behind the till.' },
   wallClock: { title: 'Quiet clock mode', why: 'A big clock with today\u2019s takings, for the gaps between customers.' },
   weeklyLetter: { title: 'Weekly letter', why: 'A week of takings written as sentences you can print and keep.' },
+  soundOnPayment: { title: 'Chime when money lands', why: 'A short tone when a sale settles, and a duller one when money is seen but not yet mined. It never changes an invoice. Mute it in a quiet shop.' },
   liveTest: { title: 'Live 100 sat test', why: 'A real invoice for one hundred sats, on Lightning or signet, to prove a rail works before you trust it.' },
 };
 
@@ -111,9 +115,9 @@ export const ASSIST_GROUPS: ReadonlyArray<{
   },
   {
     id: 'quiet',
-    label: 'Quiet the screen',
+    label: 'Quiet the counter',
     why: 'Turn these off when the counter gets busy.',
-    keys: ['freshnessRings', 'bookSeal', 'wallClock', 'handoverNote', 'counterCard'],
+    keys: ['freshnessRings', 'bookSeal', 'wallClock', 'handoverNote', 'counterCard', 'soundOnPayment'],
   },
   {
     id: 'records',

@@ -49,7 +49,7 @@ check('a demo sale shows a QR', (await page.locator('svg').count()) > 0);
 
 // The simulated explorer confirms after a few seconds; the till polls every two.
 // Wait for the receipt's own control, not the word "receipt" (the Verify panel has one too).
-await page.waitForSelector('button:has-text("new sale")', { timeout: 25_000 });
+await page.waitForSelector('button:has-text("Next sale")', { timeout: 25_000 });
 const receipt = await body();
 check('the simulated payment completes on its own', /Paid — seen on chain/.test(receipt), receipt.slice(0, 200));
 check('the receipt is a real receipt, in the demo drawer', /Invoice inv_/.test(receipt));

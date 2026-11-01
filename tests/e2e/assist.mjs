@@ -127,7 +127,7 @@ await page.waitForSelector('text=Receipt');
 const rehearsalReceipt = await page.locator('body').innerText();
 check('a rehearsal receipt says REHEARSAL', /REHEARSAL — nothing was charged/.test(rehearsalReceipt), rehearsalReceipt.slice(0, 200));
 check('a rehearsal writes nothing to the books', (await page.evaluate(() => JSON.parse(window.localStorage.getItem('slip.ledger.v1')).invoices.length)) === 0);
-await page.getByRole('button', { name: 'new sale' }).click();
+await page.getByRole('button', { name: 'Next sale' }).click();
 await page.waitForTimeout(300);
 
 // --- self test ----------------------------------------------------------------------

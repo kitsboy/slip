@@ -145,7 +145,7 @@ await page.getByRole('button', { name: /^charge/i }).click();
 await page.waitForSelector('text=Pay exactly');
 await page.getByRole('button', { name: /I have the money/ }).click();
 await page.waitForSelector('text=Receipt');
-await page.getByRole('button', { name: 'new sale' }).click();
+await page.getByRole('button', { name: 'Next sale' }).click();
 await page.waitForTimeout(400);
 check('after a sale, repeat last is offered', (await page.getByRole('button', { name: 'repeat last' }).count()) === 1);
 await page.getByRole('button', { name: 'repeat last' }).click();
