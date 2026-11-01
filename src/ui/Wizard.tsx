@@ -4,6 +4,11 @@
  * The workbench below it answers "what can this do?"; a stranger needs "what do I do
  * first?". Same components, sequenced, with the derivation gate enforced between screens
  * (see `gateFor` — the rule lives in core and is tested, not in a disabled attribute).
+ *
+ * The one rule is demonstrated, not just stated: pasting a seed phrase or a private key into
+ * any key field is refused on the spot, the field is emptied, and nothing is stored. The wizard
+ * ENDS on the compare-address moment — the address 0/0 must be checked against the merchant's own
+ * wallet before the counter opens.
  */
 
 import { useCallback, useMemo, useState } from 'react';
@@ -20,6 +25,7 @@ import {
   type WizardStep,
 } from '../core/settings';
 import { createRepository, validateAccountInput } from '../core/accounts';
+import { assertNotSecret, SecretRefused, type SecretKind } from '../core/keys';
 import { hashPin, isValidPin } from '../core/pin';
 import type { Coin, NetworkId } from '../core/network';
 import { store as appStore } from '../core/storage';
@@ -34,6 +40,13 @@ const NETWORKS: Array<{ id: NetworkId; coin: Coin; label: string }> = [
 
 const COMMON = ['USD', 'CAD', 'EUR', 'GBP', 'AUD', 'JPY', 'CHF', 'MXN', 'KWD', 'VND'];
 
+/** Refusal copy names the KIND and never repeats the material (red = danger only). */
+function refusalCopy(kind: SecretKind): string {
+  return kind === 'seed phrase'
+    ? "That's a recovery phrase. slip can never hold it — paste your public wallet address instead."
+    : "That's a private key. slip can never hold it — paste your public wallet address instead.";
+}
+
 export default function Wizard({ onDone }: { onDone: () => void }) {
   const [step, setStep] = useState<WizardStep>(1);
   const [businessName, setBusinessName] = useState('');
@@ -45,6 +58,10 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
   const [checked, setChecked] = useState(false);
   const [pin, setPin] = useState('');
   const [walletConfirmed, setWalletConfirmed] = useState(false);
+  const [confirmedAddress, setConfirmedAddress] = useState('');
+  const [verifyChecked, setVerifyChecked] = useState(false);
+  const [refusal, setRefusal] = useState<SecretKind | null>(null);
+  const [tryRefusal, setTryRefusal] = useState<SecretKind | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   const coin = NETWORKS.find((n) => n.id === networkId)?.coin ?? 'btc';
@@ -71,6 +88,23 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
     return validateAccountInput({ label: label || 'counter', xpub, coin, networkId });
   }, [xpub, label, coin, networkId]);
 
+  /** Refuse anything that could spend, and never let it sit in the field (or in state). */
+  const changeXpub = useCallback((value: string) => {
+    try {
+      assertNotSecret(value);
+      setXpub(value);
+      setRefusal(null);
+    } catch (e) {
+      if (e instanceof SecretRefused) {
+        setXpub('');
+        setRefusal(e.kind);
+      } else {
+        setXpub(value);
+        setRefusal(null);
+      }
+    }
+  }, []);
+
   const saveWallet = useCallback(() => {
     if (!validation || !validation.ok || !checked) return;
     const repo = createRepository(appStore());
@@ -79,6 +113,8 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
     void repo.recordShift('account-added', account, null, 'created during setup');
     void repo.recordShift('acknowledge', account, null, 'address 0/0 confirmed during setup');
     setWalletConfirmed(true);
+    setConfirmedAddress(account.firstAddress);
+    setVerifyChecked(false);
     setMessage(`${account.label} saved — address 0/0 is ${account.firstAddress}`);
   }, [validation, checked]);
 
@@ -134,19 +170,45 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
             <li>· start on a test network until a full sale works</li>
           </ul>
 
+          {/* The wall, demonstrated offline and on this device. Nothing is written. */}
+          <div className="mt-4 rounded-lg border border-line p-3">
+            <p className="text-xs">
+              <strong>Try it.</strong> Paste a seed phrase or a private key here and watch slip
+              refuse it. Nothing is saved.
+            </p>
+            <input
+              id="wz-try"
+              aria-label="Try pasting a secret — slip will refuse it"
+              onChange={(e) => {
+                try {
+                  assertNotSecret(e.target.value);
+                  setTryRefusal(null);
+                } catch (err) {
+                  if (err instanceof SecretRefused) {
+                    e.target.value = '';
+                    setTryRefusal(err.kind);
+                  }
+                }
+              }}
+              placeholder="paste anything here"
+              spellCheck={false}
+              className="mt-2 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
+            />
+            {tryRefusal && (
+              <p role="alert" className="mt-2 rounded-lg border border-bad p-2 text-xs text-bad">
+                {refusalCopy(tryRefusal)}
+              </p>
+            )}
+          </div>
+
           <div className="mt-4 rounded-lg border border-line p-3">
             <p className="text-xs">
               <strong>No wallet yet?</strong> Open the demo shop — a pretend café in its own drawer, with a
               simulated explorer, so you can take a sale in about a minute. It is also always in the
               Manual.
             </p>
-            <a
-              href="?demo=1"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="mt-2 inline-block rounded-lg border border-accent px-3 py-1.5 text-[10px] uppercase tracking-wider text-accent"
-            >
-              open the demo shop
+            <a href="?demo=1" target="_blank" rel="noreferrer noopener" className="btn btn-secondary mt-2">
+              Pretend shop first
             </a>
           </div>
         </div>
@@ -225,13 +287,19 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
             <textarea
               id="wz-xpub"
               value={xpub}
-              onChange={(e) => setXpub(e.target.value)}
+              onChange={(e) => changeXpub(e.target.value)}
               rows={3}
               spellCheck={false}
               placeholder="zpub6… or wpkh(zpub…/0/*)"
               className="mt-1 w-full resize-y rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
             />
           </label>
+
+          {refusal && (
+            <p role="alert" className="mt-2 rounded-lg border border-bad p-2 text-xs text-bad">
+              {refusalCopy(refusal)}
+            </p>
+          )}
 
           {validation && !validation.ok && (
             <p className="mt-2 rounded-lg border border-warn p-2 text-xs text-warn" role="alert">
@@ -265,9 +333,9 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
                 type="button"
                 onClick={saveWallet}
                 disabled={!checked || walletConfirmed}
-                className="mt-2 rounded-lg border border-accent px-3 py-2 text-xs uppercase tracking-wider text-accent disabled:border-line disabled:text-muted"
+                className="btn btn-primary mt-2"
               >
-                {walletConfirmed ? 'saved' : 'Save wallet'}
+                {walletConfirmed ? 'Saved' : 'Save wallet'}
               </button>
             </>
           )}
@@ -286,11 +354,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
               className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
             />
           </label>
-          <button
-            type="button"
-            onClick={() => void savePin()}
-            className="mt-2 rounded-lg border border-line px-3 py-2 text-xs uppercase tracking-wider text-muted hover:text-ink"
-          >
+          <button type="button" onClick={() => void savePin()} className="btn btn-secondary mt-2">
             Set PIN
           </button>
           <p className="mt-3 text-xs leading-relaxed text-muted">
@@ -303,14 +367,44 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
 
       {step === 5 && (
         <div className="mt-6 panel">
-          <dl className="grid gap-2 sm:grid-cols-2">
+          <p className="eyebrow">Compare once more, then open the counter</p>
+
+          {confirmedAddress ? (
+            <>
+              <p className="mt-2 text-sm leading-relaxed">
+                This is your address 0/0 — the one every sale pays into. Check it against your own
+                wallet before you take money.
+              </p>
+              <code className="mt-2 block break-all rounded-lg border border-accent bg-bg p-4 font-mono text-lg font-semibold leading-relaxed text-ink sm:text-xl">
+                {confirmedAddress}
+              </code>
+              <p className="mt-3 text-sm leading-relaxed">
+                If this address doesn&rsquo;t match the first address in your wallet, go back and check it.
+              </p>
+              <label className="mt-3 flex items-start gap-2 rounded-lg border border-line p-3 text-sm text-ink">
+                <input
+                  type="checkbox"
+                  checked={verifyChecked}
+                  onChange={(e) => setVerifyChecked(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span>I checked address 0/0 in my own wallet and it matches</span>
+              </label>
+            </>
+          ) : (
+            <p className="mt-2 rounded-lg border border-warn p-2 text-xs text-warn">
+              No wallet is confirmed yet. Go back to step 3 and check address 0/0 first.
+            </p>
+          )}
+
+          <dl className="mt-4 grid gap-2 sm:grid-cols-2">
             {[
               ['Shop', businessName || '—'],
               ['Currency', currency],
               ['Tax', `${taxPercent || '0'}%`],
               ['Wallet', walletConfirmed ? 'confirmed' : 'not confirmed'],
               ['PIN', pin ? 'set' : 'not set'],
-              ['Stage', 'no till yet — counters and price maths only'],
+              ['Stage', 'Working till — sell, close the day, prove it'],
             ].map(([k, v]) => (
               <div key={k} className="rounded-lg border border-line px-3 py-2">
                 <dt className="eyebrow">{k}</dt>
@@ -318,10 +412,6 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
               </div>
             ))}
           </dl>
-          <p className="mt-3 text-xs leading-relaxed text-warn">
-            slip cannot take a payment yet. The catalog, invoice and payment engine are the next
-            phases — this setup records your shop so the till can use it the moment they land.
-          </p>
         </div>
       )}
 
@@ -338,18 +428,24 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
       <div className="mt-5 flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={() => setStep(previousStep(step))}
+          onClick={() => {
+            setStep(previousStep(step));
+            setMessage(null);
+          }}
           disabled={step === 1}
-          className="rounded-lg border border-line px-3 py-2 text-xs uppercase tracking-wider text-muted hover:text-ink disabled:opacity-40"
+          className="btn btn-secondary"
         >
           Back
         </button>
         {step < 5 ? (
           <button
             type="button"
-            onClick={() => setStep(nextStep(step))}
+            onClick={() => {
+              setStep(nextStep(step));
+              setMessage(null);
+            }}
             disabled={!gate.canAdvance}
-            className="rounded-lg border border-accent px-4 py-2 text-xs uppercase tracking-wider text-accent disabled:border-line disabled:text-muted"
+            className="btn btn-primary"
           >
             Continue
           </button>
@@ -357,17 +453,14 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
           <button
             type="button"
             onClick={finish}
-            className="rounded-lg border border-accent bg-accent/10 px-4 py-2 text-xs uppercase tracking-wider text-accent"
+            disabled={!walletConfirmed || !verifyChecked}
+            className="btn btn-primary"
           >
             Finish setup
           </button>
         )}
-        <button
-          type="button"
-          onClick={onDone}
-          className="ml-auto text-[11px] uppercase tracking-wider text-muted underline hover:text-ink"
-        >
-          skip to the workbench
+        <button type="button" onClick={onDone} className="btn btn-ghost ml-auto">
+          I know what I&rsquo;m doing — skip to the workbench
         </button>
       </div>
     </div>

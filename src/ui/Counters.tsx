@@ -6,8 +6,8 @@
  * BIP-85-derived child account (imported as an xpub, never derived here), and handing
  * the till over names who is holding it and which counter it is ringing into.
  *
- * Honest stage: this build stores accounts on this device only. There is no till yet, so
- * a hand-off changes who the app says is holding the counter — it cannot take money.
+ * Honest stage: this build takes payments — the till ships. Accounts live on this device only;
+ * a hand-off names who is holding the counter and which counter it is ringing into.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -29,7 +29,8 @@ import { buildHandover } from '../core/handover';
 import { paymentUri } from '../core/qr';
 import { renderQrSvg } from '../core/qr';
 import type { Coin, NetworkId } from '../core/network';
-import type { ScriptType } from '../core/keys';
+import type { ScriptType, SecretKind } from '../core/keys';
+import { assertNotSecret, SecretRefused } from '../core/keys';
 import { loadSettings } from '../core/settings';
 import { fetchAddressActivity, formatAtoms, targetFor } from '../core/providers/esplora';
 import type { AccountPurpose, WalletColour } from '../core/accounts';
@@ -84,6 +85,7 @@ export default function Counters() {
   const [networkId, setNetworkId] = useState<NetworkId>('btc-mainnet');
   const [scriptType, setScriptType] = useState<ScriptType | 'auto'>('auto');
   const [xpub, setXpub] = useState('');
+  const [refusal, setRefusal] = useState<SecretKind | null>(null);
   const [checked, setChecked] = useState(false);
   const [colour, setColour] = useState<WalletColour>('orange');
   const [purpose, setPurpose] = useState<AccountPurpose>('till');
@@ -509,13 +511,37 @@ export default function Counters() {
           <textarea
             id="ct-xpub"
             value={xpub}
-            onChange={(e) => setXpub(e.target.value)}
+            onChange={(e) => {
+              const v = e.target.value;
+              // Refuse anything that could spend, and never let it linger in the field or state.
+              try {
+                assertNotSecret(v);
+                setXpub(v);
+                setRefusal(null);
+              } catch (err) {
+                if (err instanceof SecretRefused) {
+                  setXpub('');
+                  setRefusal(err.kind);
+                } else {
+                  setXpub(v);
+                  setRefusal(null);
+                }
+              }
+            }}
             rows={3}
             spellCheck={false}
             placeholder="zpub6rFR7y4Q2AijB…"
             className="mt-1 w-full resize-y rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
           />
         </label>
+
+        {refusal && (
+          <p role="alert" className="mt-2 rounded-lg border border-bad p-2 text-xs text-bad">
+            {refusal === 'seed phrase'
+              ? "That's a recovery phrase. slip can never hold it — paste your public wallet address instead."
+              : "That's a private key. slip can never hold it — paste your public wallet address instead."}
+          </p>
+        )}
 
         {validation && !validation.ok && (
           <p className="mt-2 rounded-lg border border-warn p-2 text-xs text-warn" role="alert">

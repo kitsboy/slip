@@ -50,3 +50,47 @@ masked earlier by a `| tail` status bug. The fixture now anchors timestamps rela
 - 8 browser suites green: till, features, ops (17/17 after D-58), guide, assist, demo, polish
   (18/18), shell-measure (10/10). `manual-shot` → 21/21 panels.
 - Dark + light till photographed and reviewed: brass primary, steel-blue badge, readable muted text.
+
+---
+
+# Design decisions — the onboarding pass (v0.21.0)
+
+Council ruling: Nova's `ONBOARDING-SPEC.md`. The wizard is where slip makes its biggest promise
+("never a seed phrase"), so the promise is now **demonstrated**, and the flow **ends** on the
+compare-address moment rather than a summary.
+
+## D-59 — The wall is proven on the merchant's own device, offline
+Any key field (wizard and Setup) runs `assertNotSecret` on every change. A pasted 12/24-word seed,
+`xprv`/`tprv`/`zprv`, WIF, or 64-hex key is **refused, the field is emptied, and nothing is
+stored** (no deferred write). The refusal names the kind and **never echoes the material** — a
+refusal that repeats the seed has just written the seed into the DOM. Step 1 adds a non-destructive
+"try it" tile so a first-timer watches the wall refuse a made-up seed themselves.
+
+## D-60 — The wizard ends on compare-address, not a summary
+Step 5 shows the confirmed **address 0/0 large, monospaced, brass-bordered**, states
+"If this address doesn't match the first address in your wallet, go back and check it", and gates
+**Finish setup** behind "I checked address 0/0 in my own wallet and it matches". A summary of shop
+name/currency/tax/PIN follows as secondary detail.
+
+## D-61 — The stale "no till yet" claims are gone (for good)
+The old step 5 read "no till yet — counters and price maths only" and "slip cannot take a payment
+yet…". Both are false and are replaced by "Working till — sell, close the day, prove it". The
+onboarding e2e asserts neither stale sentence can render (QA #14 lesson: a pinned false claim is
+worse than no claim). The same stale claim in the `Counters.tsx` file header was corrected too.
+
+## D-62 — Two doors, one decision each
+Step 1 offers **Pretend shop first** (`?demo=1`, its own drawer) and a plain
+**"I know what I'm doing — skip to the workbench"** escape. Nobody is locked behind five screens.
+Wizard controls are `.btn` sentence-case primaries/secondaries for consistency with the token pass.
+
+## D-63 — The timed metric is a gate, not a hope
+`tests/e2e/onboarding.mjs` measures cold start → `?demo=1` → tap Espresso → tap Charge → "Pay the
+exact amount" and asserts **< 60 s** (observed ~2–5 s in headless). This is the "first real sale
+attempt" budget from the spec.
+
+## Verification evidence (v0.21.0)
+- `tests/e2e/onboarding.mjs` → **22/22** (seed refused + never echoed, xprv refused + never echoed,
+  field empties, honesty fix, address hero, gated finish, <60s metric).
+- All suites green: till, features, ops, guide, assist, demo, polish, onboarding; shell 10/10;
+  manual 21/21; docs-audit pass; vitest 511/511; tsc 0; eslint 0; build 0.
+- Step 1 and step 5 photographed and reviewed: address reads as the hero, verify under it.
