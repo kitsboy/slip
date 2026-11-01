@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.25.0** — 2026-11-01T20:15:06Z — `3479dfe7c1e8` — A till that can be heard: chimes when money lands, a waiting strip for open sales, one tap to open and close the day, scanning straight into the cart, and a clear Next sale
+
 - **v0.24.1** — 2026-11-01T16:55:58Z — `de035b58e714` — one label role, 11px floor, honest hit areas
 
 - **v0.24.0** — 2026-11-01T05:34:23Z — `f8e11eb7e1b6` — Litecoin testnet fixed for real (testnet4 rltc addresses) with a verified default explorer, and the repository is now open source
