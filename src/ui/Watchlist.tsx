@@ -11,6 +11,7 @@ import { useMemo, useState } from 'react';
 import { checkAddress } from '../core/addresses';
 import { createLedger, type Watch } from '../core/ledger';
 import EmptyState from './EmptyState';
+import ConfirmButton from './ConfirmButton';
 import { loadSettings } from '../core/settings';
 import { fetchAddressActivity, formatAtoms, targetFor } from '../core/providers/esplora';
 import { formatSats } from '../core/money';
@@ -71,6 +72,8 @@ export default function Watchlist() {
     const next = watches.filter((w) => w.id !== id);
     ledger.save({ ...ledger.load(), watches: next });
     setWatches(next);
+    // A stale "X added" line under a list that no longer has X is a small lie; clear it.
+    setNote('');
   }
 
   async function check(watch: Watch) {
@@ -219,13 +222,12 @@ export default function Watchlist() {
                   >
                     check
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => remove(w.id)}
+                  <ConfirmButton
+                    label="remove"
+                    confirmLabel="remove again"
+                    onConfirm={() => remove(w.id)}
                     className="rounded border border-line px-2 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
-                  >
-                    remove
-                  </button>
+                  />
                 </div>
               </li>
             );

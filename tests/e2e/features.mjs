@@ -246,6 +246,15 @@ check(
   text.slice(0, 500),
 );
 
+// Two taps, not one: the first press only arms the removal.
+await page.getByRole('button', { name: 'remove', exact: true }).click();
+await page.waitForTimeout(150);
+check('one tap does not remove a watched address', /Landlord/.test(await bodyText()));
+await page.getByRole('button', { name: /remove again/i }).click();
+await page.waitForTimeout(300);
+check('the second tap removes it', !/Landlord/.test(await bodyText()));
+check('the empty watchlist coaches again', /Nothing is being watched yet/.test(await bodyText()));
+
 // --- lightning ----------------------------------------------------------------------
 await showPanel(page, 'lightning');
 await page.locator('#ln-addr').fill('shop@shop.example');

@@ -10,6 +10,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createRepository, type CounterAccount } from '../core/accounts';
 import { createBackup, describeBackup, passphraseStrength, restoreBackup } from '../core/backup';
+import ConfirmButton from './ConfirmButton';
 import { exportLogLines, staffSummary, verifyLog, type ShiftLog } from '../core/shifts';
 import { LEDGER_KEY } from '../core/ledger';
 import { store as appStore } from '../core/storage';
@@ -248,14 +249,13 @@ export default function Backup() {
             passphrase above, then confirm.
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => void importFile(pending.file)}
+            <ConfirmButton
+              label="Confirm restore"
+              confirmLabel="Restore again — this replaces this device"
+              onConfirm={() => void importFile(pending.file)}
               disabled={busy || !passphrase}
               className="rounded-lg border border-warn px-3 py-2 text-[11px] uppercase tracking-wider text-warn disabled:border-line disabled:text-muted"
-            >
-              Confirm restore
-            </button>
+            />
             <button
               type="button"
               onClick={() => {

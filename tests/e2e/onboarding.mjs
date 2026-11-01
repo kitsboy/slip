@@ -58,6 +58,7 @@ check('the try-it field empties itself', (await page.locator('#wz-try').inputVal
 check('the seed is never echoed into the page', !/abandon abandon/i.test(tryText));
 
 // --- Step 2: name the shop --------------------------------------------------
+await page.getByRole('button', { name: 'Continue' }).waitFor({ state: 'visible', timeout: 20000 });
 await page.getByRole('button', { name: 'Continue' }).click();
 await page.waitForSelector('#wz-name', { timeout: 8000 });
 await page.locator('#wz-name').fill('Onboard Café');

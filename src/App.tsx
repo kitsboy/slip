@@ -28,6 +28,7 @@ import { loadSettings } from './core/settings';
 import Status from './ui/Status';
 import { applyTheme, loadTheme, nextTheme, saveTheme, systemTheme, themeLabel, type Theme } from './core/theme';
 import Wizard from './ui/Wizard';
+import Watcher from './ui/Watcher';
 import { buildLabel } from './core/buildinfo';
 import { isOnboarded } from './core/settings';
 import { store as appStore } from './core/storage';
@@ -147,6 +148,7 @@ export default function App() {
 
   return (
     <div className="flex min-h-full flex-col">
+      <Watcher />
       <header className="sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-5 py-3">
           <div className="flex items-center gap-2.5">

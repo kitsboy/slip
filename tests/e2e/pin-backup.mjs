@@ -73,7 +73,10 @@ await page.waitForTimeout(400);
 check('restore asks for confirmation first', (await page.getByRole('button', { name: /Confirm restore/ }).count()) === 1);
 
 await page.fill('#bk-pass', 'correct horse battery staple');
+// Two taps: the first press arms it, the second actually replaces the device.
 await page.getByRole('button', { name: /Confirm restore/ }).click();
+await page.waitForTimeout(200);
+await page.getByRole('button', { name: /Restore again/i }).click();
 await page.waitForTimeout(800);
 const afterRestore = await page.locator('body').innerText();
 check('counter restored', /Front counter/.test(afterRestore));

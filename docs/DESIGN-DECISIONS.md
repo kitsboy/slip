@@ -118,3 +118,41 @@ they were rather than reworded for the sake of churn.
 
 `tests/e2e/states.mjs` runs on a genuinely fresh install and asserts each empty state — the pass is
 proven on a blank shop, not on seeded demo data (which never shows an empty list).
+
+---
+
+# Design decisions — watching and confirm (v0.23.0)
+
+## D-66 — Destructive actions are pressed twice, from one component
+`src/ui/ConfirmButton.tsx` arms on the first press, renames itself ("remove again",
+"Restore again — this replaces this device"), and disarms on a 6s timeout or on blur. Used by the
+watchlist removal and the backup restore. Deliberate exception: the **device wipe** still demands
+the typed word `WIPE`, which is a stronger guard than two taps — replacing it with a double-click
+would be a downgrade dressed as consistency. Cart-line removal stays one tap: it is reversible and
+loses nothing.
+
+A stale "X added" note under a list that no longer contains X was cleared on removal — the e2e
+caught it because it asserted the *absence* of the label.
+
+## D-67 — The watcher belongs to the shell, not the till
+Reconciliation lived in `Till.tsx`, so slip only looked for money while the payment screen happened
+to be open. A merchant reading the books never learned a sale had landed. Now `src/ui/Watcher.tsx`
+mounts once in the app shell and sweeps:
+
+- immediately on load, on `online`, and on every `visibilitychange` back to the foreground;
+- every **20s** while visible, every **90s** while hidden — still watching without hammering a
+  public explorer;
+- never while `navigator.onLine` is false, and never in the demo shop (which runs its own
+  simulated timer and would be raced by a real sweep).
+
+The sweep itself moved to `src/core/reconcile-run.ts` so it can be tested without a browser. The
+till keeps only the *display*: it listens for `slip:swept` and renders "Open sales: …". One poller,
+not two racing the same invoices. When a payment lands while the tab is hidden, the page title gets
+a count (`● 1 paid — slip`) — a merchant should not have to stare at the till to notice.
+
+`tests/e2e/watcher.mjs` seeds one open invoice, opens the app on **Books**, and asserts the invoice
+flips to paid with the till never visible.
+
+**Honest limit, still true:** there is no server, so "background" means "while the app is open
+somewhere". A closed tab cannot watch; the next launch reconciles. This is stated in the UI copy
+rather than implied away.

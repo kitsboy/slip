@@ -34,7 +34,6 @@ import { cancelInvoice, takingsToday } from '../core/orders';
 import { formatProof, type ReceiptProof } from '../core/proof';
 import { fetchRate, requireFresh, type RateQuote } from '../core/providers/rates';
 import { publishToDisplay, openCustomerDisplay } from './CustomerDisplay';
-import { describeSweep, sweep } from '../core/reconcile';
 import { closeTab, park, repeatable, tabLabel, tabSubtotalMinor, toTabLine, type ParkedTab, type RepeatSale } from '../core/tabs';
 import FreshnessRing from './FreshnessRing';
 import Explain from './Explain';
@@ -139,33 +138,18 @@ export default function Till() {
   }, [reload]);
 
   /**
-   * Offline reconciliation. A till that sold through a dropped connection has invoices nobody
-   * re-asked about; this sweeps them when the app loads and every time the network returns, and
-   * says what changed. It is a courtesy, not a transaction: a failure changes nothing.
+   * Offline reconciliation lives in the app shell now (src/ui/Watcher.tsx): it sweeps on load, on
+   * reconnect, on tab focus and on a timer, so a sale is spotted from any panel. The till only
+   * shows what the watcher found — one poller, not two racing the same invoices.
    */
-  const reconcile = useCallback(async () => {
-    const accounts = createRepository(appStore()).load().accounts;
-    const l = ledger.load();
-    if (l.invoices.length === 0) return;
-    const runner = async (target: typeof l.invoices[number]) => {
-      const account = accounts.find((a) => a.id === target.walletId);
-      if (!account) throw new Error('that wallet is no longer on this device');
-      const t = targetFor(account.networkId, settings.explorerUrl);
-      if (!t) throw new Error('no explorer for that network');
-      return fetchAddressActivity(t, target.address);
-    };
-    const result = await sweep(l.invoices, runner);
-    if (result.updated.length > 0) ledger.putInvoices([...result.updated]);
-    setSweepNote(describeSweep(result));
-    if (result.changes.length > 0) window.dispatchEvent(new Event('slip:data-changed'));
-  }, [ledger, settings.explorerUrl]);
-
   useEffect(() => {
-    void reconcile();
-    const onOnline = () => void reconcile();
-    window.addEventListener('online', onOnline);
-    return () => window.removeEventListener('online', onOnline);
-  }, [reconcile]);
+    const onSwept = (e: Event) => {
+      const detail = (e as CustomEvent<string>).detail;
+      if (typeof detail === 'string') setSweepNote(detail);
+    };
+    window.addEventListener('slip:swept', onSwept);
+    return () => window.removeEventListener('slip:swept', onSwept);
+  }, []);
 
   /**
    * The rate, when the merchant asked slip to fetch one. The quote is stored with its age and
