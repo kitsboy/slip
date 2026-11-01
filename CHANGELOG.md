@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.20.0** — 2026-11-01T00:49:40Z — `6e13956a8ef7` — design pass: quiet-brass tokens (theme-split brass, semantic word-first status badges, one focus rule, radius/shadow system, solid sentence-case primaries, ink-economical print) + contrast audit + ops reconcile flake fix
+
 - **v0.19.0** — 2026-11-01T00:18:15Z — `55e5804943d1` — council shell: six-section tab navigation (Sell/Money in/Books/Setup/More + Learn), hash router with deep-link coverage, e2e suites retooled for the tabbed model
 
 - **v0.18.1** — 2026-10-31T21:06:47Z — `562aaaa` (tree `20ce9718307a` at deploy) — polish: no horizontal overflow, working anchor navigation, hidden skip link, grouped nav
