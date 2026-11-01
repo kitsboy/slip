@@ -243,5 +243,16 @@ button {
   left: 0;
 }
 
+/* Deep links to a specific panel land below the sticky header (and, on tablet/desktop, the
+   slim top rail), not under it. */
+[data-panel] {
+  scroll-margin-top: 4rem;
+}
+@media (min-width: 640px) {
+  [data-panel] {
+    scroll-margin-top: 6rem;
+  }
+}
+
 /* Do NOT hide overflow on html or body: it turns the body into its own scroll container, which
    breaks anchor jumps and window.scrollY. The nav is constrained at the source instead. */

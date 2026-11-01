@@ -36,7 +36,6 @@ await page.waitForTimeout(900);
 const body = () => page.locator('body').innerText();
 
 check('the demo announces itself', /DEMO — a pretend shop/i.test(await body()));
-check('the demo shop has its own name', /Demo Café/i.test(await body()));
 
 // A sale, from the demo's own menu, with no rate typed.
 await page.locator('button:has-text("Espresso")').first().click();
@@ -54,6 +53,7 @@ await page.waitForSelector('button:has-text("new sale")', { timeout: 25_000 });
 const receipt = await body();
 check('the simulated payment completes on its own', /Paid — seen on chain/.test(receipt), receipt.slice(0, 200));
 check('the receipt is a real receipt, in the demo drawer', /Invoice inv_/.test(receipt));
+check('the demo shop has its own name', /Demo Café/.test(receipt), receipt.slice(0, 200));
 
 // Storage isolation: the demo writes only to its own prefix.
 const keys = await page.evaluate(() => Object.keys(window.localStorage));

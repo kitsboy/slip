@@ -11,6 +11,7 @@
 
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
+import { showPanel } from './_nav.mjs';
 
 const BASE = process.argv[2] ?? 'http://127.0.0.1:4181/';
 const ZPUB =
@@ -51,13 +52,15 @@ await page.route('https://mempool.space/**', async (route) => {
 await page.goto(BASE, { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('h1');
 
-// A checked wallet is a precondition for charging.
+// A checked wallet is a precondition for charging — the counter lives in Setup.
+await showPanel(page, 'wallets');
 await page.locator('#ct-label').fill('Front counter');
 await page.locator('#ct-xpub').fill(ZPUB);
 await page.waitForSelector('ol li code');
 await page.getByLabel(/I opened my wallet/).check();
 await page.getByRole('button', { name: 'Save counter' }).click();
 await page.waitForTimeout(400);
+await showPanel(page, 'till');
 
 // --- catalog from a template -------------------------------------------------
 await page.getByRole('button', { name: 'Café', exact: true }).click();

@@ -8,6 +8,7 @@
 
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
+import { showPanel } from './_nav.mjs';
 
 const BASE = process.argv[2] ?? 'http://127.0.0.1:4181/';
 const ZPUB =
@@ -105,6 +106,7 @@ check('the fetched rate carries a freshness ring', (await fresh.count()) >= 1);
 check('a rate read seconds ago is fresh', (await fresh.getAttribute('data-freshness')) === 'fresh');
 
 // --- the manual ---------------------------------------------------------------------
+await showPanel(page, 'manual');
 const manual = page.locator('[data-panel="manual"]');
 await manual.scrollIntoViewIfNeeded();
 const entries = await manual.locator('[data-manual-entry]').count();
@@ -120,6 +122,7 @@ check('an empty search says so in plain words', /Nothing matches/.test(await man
 await page.locator('#mn-search').fill('');
 
 // --- parked tabs --------------------------------------------------------------------
+await showPanel(page, 'till');
 const till = page.locator('[data-panel="till"]');
 await till.scrollIntoViewIfNeeded();
 await page.locator('button:has-text("Espresso")').first().click();

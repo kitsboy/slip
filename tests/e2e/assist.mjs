@@ -8,6 +8,7 @@
 
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
+import { showPanel } from './_nav.mjs';
 
 const BASE = process.argv[2] ?? 'http://127.0.0.1:4181/';
 const ZPUB =
@@ -77,6 +78,7 @@ await page.waitForSelector('h1');
 await page.waitForTimeout(800);
 
 // --- the switches -------------------------------------------------------------------
+await showPanel(page, 'assist');
 const assistPanel = page.locator('[data-panel="assist"]');
 await assistPanel.scrollIntoViewIfNeeded();
 check('assistance switches exist in Settings', (await assistPanel.count()) === 1);
@@ -86,6 +88,7 @@ check('rehearsal starts OFF', !(await page.locator('#as-rehearsal').isChecked())
 check('explanations start ON', await page.locator('#as-explainNumbers').isChecked());
 
 // --- explain a number ---------------------------------------------------------------
+await showPanel(page, 'till');
 const till = page.locator('[data-panel="till"]');
 await till.scrollIntoViewIfNeeded();
 await page.locator('button:has-text("Espresso")').first().click();
@@ -101,6 +104,7 @@ const popText = (await popover.innerText()).toLowerCase();
 check('the explanation carries its caveat', /rounding|never short/.test(popText), popText.slice(0, 200));
 
 // --- turning explanations off removes the noise --------------------------------------
+await showPanel(page, 'assist');
 await assistPanel.scrollIntoViewIfNeeded();
 await page.locator('#as-explainNumbers').uncheck();
 await page.locator('[data-panel="settings"]').getByRole('button', { name: 'Save settings' }).click();
@@ -111,6 +115,7 @@ check('switching explanations off removes the tap targets', (await page.locator(
 await page.locator('#as-rehearsal').check();
 await page.locator('[data-panel="settings"]').getByRole('button', { name: 'Save settings' }).click();
 await page.waitForTimeout(600);
+await showPanel(page, 'till');
 await till.scrollIntoViewIfNeeded();
 const chargeLabel = await page.getByRole('button', { name: /^(charge|rehearse)/i }).innerText();
 check('the charge button becomes a rehearsal', /rehearse/i.test(chargeLabel), chargeLabel);
@@ -126,6 +131,7 @@ await page.getByRole('button', { name: 'new sale' }).click();
 await page.waitForTimeout(300);
 
 // --- self test ----------------------------------------------------------------------
+await showPanel(page, 'selftest');
 const selfTest = page.locator('[data-panel="selftest"]');
 await selfTest.scrollIntoViewIfNeeded();
 await selfTest.getByRole('button', { name: 'run the check' }).click();
@@ -134,6 +140,7 @@ check('the self test passes on this build', (await selfTest.locator('[data-selft
 check('it names five checks', (await selfTest.locator('li').count()) >= 5);
 
 // --- handover note ------------------------------------------------------------------
+await showPanel(page, 'wallets');
 const counters = page.locator('[data-panel="wallets"]');
 await counters.scrollIntoViewIfNeeded();
 await page.locator('#ho-staff').fill('Ana');

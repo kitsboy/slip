@@ -13,6 +13,7 @@
 
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
+import { showPanel } from './_nav.mjs';
 
 const BASE = process.argv[2] ?? 'http://127.0.0.1:4181/';
 const ZPUB =
@@ -214,6 +215,7 @@ check('the fetched rate fills the rate field', (await page.locator('#tl-rate').i
 check('the rate service was contacted once', rateHits === 1, String(rateHits));
 
 // --- pairing ------------------------------------------------------------------------
+await showPanel(page, 'pair');
 await page.locator('#pr-in').fill('SLIP-WALLET-1|Trap|btc|btc-mainnet|xpub|p2wpkh|abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about');
 await page.getByRole('button', { name: 'read code' }).click();
 text = await bodyText();
@@ -230,6 +232,7 @@ check('an imported wallet arrives UNCHECKED', /UNCHECKED/.test(text) && /compare
 check('the imported wallet exists on the device', (await page.evaluate(() => window.slip.wallets().length)) === 2);
 
 // --- watchlist ----------------------------------------------------------------------
+await showPanel(page, 'watchlist');
 await page.locator('#wl-label').fill('Landlord');
 await page.locator('#wl-addr').fill('bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu');
 await page.getByRole('button', { name: 'add to watchlist' }).click();
@@ -244,16 +247,22 @@ check(
 );
 
 // --- lightning ----------------------------------------------------------------------
+await showPanel(page, 'lightning');
 await page.locator('#ln-addr').fill('shop@shop.example');
 await page.locator('#ln-amt').fill('4.50');
 await page.locator('#ln-rate').fill('60000.00');
 await page.getByRole('button', { name: 'request invoice' }).click();
 await page.waitForTimeout(900);
-text = await bodyText();
-check('a lightning invoice is drawn', invoiceRequests === 1 && /LNURL-verify|verify URL/.test(text), `requests ${invoiceRequests}`);
+text = await page.locator('[data-panel="lightning"]').innerText();
+check(
+  'a lightning invoice is drawn',
+  invoiceRequests === 1 && /invoice ready/.test(text) && /only its answer counts/.test(text),
+  `requests ${invoiceRequests}`,
+);
 check('the lightning QR is present', (await page.locator('svg').count()) > 0);
 
 // --- anchoring ----------------------------------------------------------------------
+await showPanel(page, 'anchor');
 const stampButton = page.getByRole('button', { name: /stamp with a calendar/ });
 await stampButton.scrollIntoViewIfNeeded();
 await stampButton.click();
@@ -265,6 +274,7 @@ check('the anchor claims only what happened', /submitted to a public calendar/.t
 check('the anchor never claims a Bitcoin confirmation', !/confirmed on bitcoin|bitcoin confirmation received/i.test(text));
 
 // --- receipt proofs -----------------------------------------------------------------
+await showPanel(page, 'verify');
 await page.locator('#vf-pick').selectOption('inv_seed01');
 await page.waitForTimeout(400);
 const proofText = (await page.locator('[data-proof]').first().innerText()).trim();

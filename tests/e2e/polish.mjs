@@ -74,11 +74,13 @@ await page.waitForTimeout(700);
 const body = () => page.locator('body').innerText();
 
 // --- navigation ---------------------------------------------------------------------
-const nav = page.locator('nav[aria-label="Sections"]');
-check('the page has a section nav', (await nav.count()) === 1);
+// At 430px the phone bottom bar is the visible nav (the slim top rail is sm-and-up).
+const nav = page.locator('nav[aria-label="Primary sections (phone)"]');
+check('the page has a phone tab bar', (await nav.count()) === 1);
 const chips = await nav.locator('a').allInnerTexts();
-check('the nav names the journey', ['Sell', 'Money in', 'Books', 'Proof', 'Setup', 'More', 'Learn'].every((c) => chips.includes(c)), chips.join(','));
-check('the demo is reachable from the nav', chips.includes('Demo'));
+check('the tab bar names the journey', ['Sell', 'Money in', 'Books', 'Setup', 'More'].every((c) => chips.includes(c)), chips.join(','));
+check('Learn is behind the help chip, not a tab', !chips.includes('Learn'), chips.join(','));
+check('the demo is reachable from the manual', (await page.locator('[data-panel="demo-link"]').count()) === 1);
 
 await nav.getByRole('link', { name: 'Books' }).click();
 await page.waitForTimeout(400);
@@ -95,6 +97,9 @@ check('the manual is reachable last, not buried mid-page', order.indexOf('manual
 check('the wallets panel sits in setup, not ahead of selling', order.indexOf('wallets') > order.indexOf('till'), order.join(','));
 
 // --- wording ------------------------------------------------------------------------
+// The Books click hid the Sell section; return to it so the till panel is visible again.
+await nav.getByRole('link', { name: 'Sell' }).click();
+await page.waitForTimeout(400);
 const till = page.locator('[data-panel="till"]');
 await till.scrollIntoViewIfNeeded();
 const tillText = await till.innerText();

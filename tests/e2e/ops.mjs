@@ -12,6 +12,7 @@
 
 import { chromium } from 'playwright';
 import { execSync } from 'node:child_process';
+import { showPanel } from './_nav.mjs';
 
 const BASE = process.argv[2] ?? 'http://127.0.0.1:4181/';
 const ZPUB =
@@ -163,6 +164,7 @@ check('a paid open sale becomes confirmed without a human', (await page.evaluate
 })) === 'complete' || text.includes('now paid'));
 
 // --- day close ----------------------------------------------------------------------
+await showPanel(page, 'history');
 const panel = page.locator('[data-panel="history"]');
 await panel.scrollIntoViewIfNeeded();
 await page.waitForTimeout(300);
@@ -208,6 +210,7 @@ check('the refund says slip moved nothing', /did not move any money/.test(text))
 check('the refund reaches storage', (await page.evaluate(() => JSON.parse(window.localStorage.getItem('slip.ledger.v1')).refunds.length)) === 1);
 
 // --- split payment ------------------------------------------------------------------
+await showPanel(page, 'till');
 await page.locator('#tl-split').check();
 await page.locator('#tl-split-wallet').selectOption('w2');
 await page.locator('#tl-split-pct').fill('40');
@@ -222,6 +225,7 @@ check('a split sale says the receipt waits for both', /receipt appears when both
 
 // --- silent payments ----------------------------------------------------------------
 await page.getByRole('button', { name: 'cancel sale' }).click();
+await showPanel(page, 'silentpay');
 await page.locator('#sp-addr').fill('bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu');
 await page.locator('#sp-addr').press('Enter');
 await page.waitForTimeout(200);
