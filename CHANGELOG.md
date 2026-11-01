@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.24.1** — 2026-11-01T16:55:58Z — `de035b58e714` — one label role, 11px floor, honest hit areas
+
 - **v0.24.0** — 2026-11-01T05:34:23Z — `f8e11eb7e1b6` — Litecoin testnet fixed for real (testnet4 rltc addresses) with a verified default explorer, and the repository is now open source
 
 - **v0.23.0** — 2026-11-01T02:07:10Z — `214cc28d8697` — watch and confirm: slip now watches for money from every panel (not just the till), two-tap guard on remove and restore, stale-note fix
