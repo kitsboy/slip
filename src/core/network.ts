@@ -96,7 +96,10 @@ export const NETWORKS: Readonly<Record<NetworkId, NetworkParams>> = {
     isTest: true,
     p2pkhVersion: 0x6f,
     p2shVersion: 0x3a,
-    bech32Hrp: 'tltc',
+    // Litecoin Core chainparams.cpp: testnet4 (the only live LTC testnet, testnet3 was deprecated
+    // in 0.14.2) uses bech32_hrp "rltc"; "tltc" belonged to the retired testnet3. Deriving tltc1
+    // here produced addresses no testnet4 wallet would ever show as its own.
+    bech32Hrp: 'rltc',
     wifVersion: 0xef,
   },
 };

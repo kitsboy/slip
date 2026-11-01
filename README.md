@@ -8,7 +8,7 @@ wallet**. There is no slip company, server, account, API key or payment processo
 slip cannot hold, move, recover or reverse your money, because it never has the
 ability to sign anything.
 
-## Status: v0.22.0 — it takes payments and closes the day.
+## Status: shipping — it takes payments and closes the day.
 
 On-chain (BTC/LTC, mainnet and testnets), Lightning via LNURL-pay + LNURL-verify, receipts with
 customer-kept proofs, rent requests, a day book you can stamp, wallet pairing by QR, a watchlist and
@@ -157,3 +157,7 @@ release against the published `SHA256SUMS` before you trust it with your till.
 ## Licence
 
 MIT. See `LICENSE`.
+
+slip is open source so a merchant can read exactly what it does with their keys — the answer is
+"nothing". Contributions are welcome: open an issue before anything larger than a fix. Please
+report anything security-shaped privately rather than in a public issue (see `docs/SECURITY.md`).

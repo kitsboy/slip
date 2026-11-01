@@ -209,11 +209,11 @@ describe('Litecoin parameters', () => {
     expect(Buffer.from(ltcDecoded.hash!).equals(Buffer.from(btcDecoded.hash!))).toBe(true);
   });
 
-  it('uses tltc1 on Litecoin testnet and tb1 on Bitcoin testnets', () => {
+  it('uses rltc1 on Litecoin testnet and tb1 on Bitcoin testnets', () => {
     const key = bip84();
     expect(
       deriveAddress(key, { networkId: 'ltc-testnet', scriptType: 'p2wpkh', index: 0 }).address,
-    ).toMatch(/^tltc1q/);
+    ).toMatch(/^rltc1q/);
     expect(
       deriveAddress(key, { networkId: 'btc-signet', scriptType: 'p2wpkh', index: 0 }).address,
     ).toMatch(/^tb1q/);

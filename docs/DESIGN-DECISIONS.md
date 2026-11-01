@@ -156,3 +156,30 @@ flips to paid with the till never visible.
 **Honest limit, still true:** there is no server, so "background" means "while the app is open
 somewhere". A closed tab cannot watch; the next launch reconciles. This is stated in the UI copy
 rather than implied away.
+
+---
+
+# Design decisions — open source and Litecoin testnet (v0.24.0)
+
+## D-68 — The Litecoin testnet was quietly wrong, not merely unconfigured
+`ltc-testnet` carried `bech32Hrp: 'tltc'`, which belongs to **testnet3** — deprecated by Litecoin
+Core in 0.14.2. The only live Litecoin testnet is **testnet4**, and `chainparams.cpp` gives it
+`bech32_hrp = "rltc"`. slip was therefore deriving `tltc1…` invoices for a chain where no wallet
+would ever show that address as its own: a sale that looks fine and can never be swept. Corrected to
+`rltc`, and `tests/derive.test.ts` now pins `^rltc1q` instead of the false claim it used to hold.
+
+The default explorer is set too — `https://litecoinspace.org/testnet/api` — and the choice is
+*verified, not guessed*: its genesis block hash is `4966625a4b2851d9fdee139e56211a0d88575f59ed816ff5e6a63deb4e3e29a0`,
+which is Litecoin testnet4's genesis. (The explorer accepted both HRPs, so address acceptance alone
+proved nothing; the genesis hash is what settled it.)
+
+`scripts/check-explorers.mjs` (`npm run explorers`) asks every public default for its tip height. It
+reads the mapping out of the TypeScript source so it cannot drift, and it stays **out of CI** — a
+third party being down is not a broken build.
+
+## D-69 — The repository is public, on purpose
+`kitsboy/slip` was flipped to public with the MIT licence already in place. Before the flip: no
+tracked secret-shaped files and no `api_key|secret|password|token` assignments with literal values
+(`git ls-files` + `git grep`). The README now says what the licence means in practice — read it and
+check that slip does nothing with your keys, report security privately, open an issue before
+anything larger than a fix — and the repo carries a description and topics so it is findable.

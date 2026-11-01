@@ -22,9 +22,10 @@ describe('target selection', () => {
     expect(defaultTarget('btc-signet')?.kind).toBe('public');
   });
 
-  it('admits that Litecoin testnet has no dependable public provider', () => {
-    expect(PUBLIC_ESPLORA['ltc-testnet']).toBeNull();
-    expect(defaultTarget('ltc-testnet')).toBeNull();
+  it('has a public provider for Litecoin testnet (verified testnet4)', () => {
+    // The endpoint's genesis hash is Litecoin testnet4's, and testnet4 is the only live LTC testnet.
+    expect(PUBLIC_ESPLORA['ltc-testnet']).toBe('https://litecoinspace.org/testnet/api');
+    expect(defaultTarget('ltc-testnet')?.kind).toBe('public');
   });
 
   it('prefers an explicit endpoint and strips trailing slashes', () => {

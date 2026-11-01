@@ -28,8 +28,9 @@ export const PUBLIC_ESPLORA: Readonly<Record<NetworkId, string | null>> = {
   'btc-testnet4': 'https://mempool.space/testnet4/api',
   'btc-testnet3': 'https://mempool.space/testnet/api',
   'ltc-mainnet': 'https://litecoinspace.org/api',
-  // Litecoin testnet has no dependable public Esplora; say so rather than pretend.
-  'ltc-testnet': null,
+  // Verified: this endpoint's genesis hash is 4966625a…e3e29a0 — Litecoin testnet4, the only live
+  // Litecoin testnet. (Its /testnet4 alias answers too; /testnet is the documented path.)
+  'ltc-testnet': 'https://litecoinspace.org/testnet/api',
 };
 
 export function defaultTarget(networkId: NetworkId): ExplorerTarget | null {
