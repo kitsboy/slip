@@ -112,7 +112,7 @@ export function ScanField({ label, onScan, placeholder = 'paste a code, or scan 
           <button
             type="button"
             onClick={() => submit(text)}
-            className="shrink-0 rounded-lg border border-line px-3 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
+            className="shrink-0 rounded-lg border border-line px-3 text-xs text-muted hover:text-ink"
           >
             use
           </button>
@@ -120,7 +120,7 @@ export function ScanField({ label, onScan, placeholder = 'paste a code, or scan 
             <button
               type="button"
               onClick={() => setCameraOpen(true)}
-              className="shrink-0 rounded-lg border border-accent px-3 text-[10px] uppercase tracking-wider text-accent"
+              className="shrink-0 rounded-lg border border-accent px-3 text-xs text-accent"
             >
               camera
             </button>
@@ -129,7 +129,7 @@ export function ScanField({ label, onScan, placeholder = 'paste a code, or scan 
             <button
               type="button"
               onClick={() => setCameraOpen(false)}
-              className="shrink-0 rounded-lg border border-line px-3 text-[10px] uppercase tracking-wider text-muted"
+              className="shrink-0 rounded-lg border border-line px-3 text-xs text-muted"
             >
               stop
             </button>
@@ -139,10 +139,10 @@ export function ScanField({ label, onScan, placeholder = 'paste a code, or scan 
       {cameraOpen && (
         <div className="mt-2 overflow-hidden rounded-lg border border-line">
           <video ref={video} muted playsInline className="h-56 w-full bg-black object-cover" />
-          <p className="p-1 text-[10px] text-muted">Point at the QR. Nothing is recorded or uploaded.</p>
+          <p className="p-1 text-[11px] text-muted">Point at the QR. Nothing is recorded or uploaded.</p>
         </div>
       )}
-      {status && <p className="mt-1 text-[10px] text-muted">{status}</p>}
+      {status && <p className="mt-1 text-[11px] text-muted">{status}</p>}
     </div>
   );
 }

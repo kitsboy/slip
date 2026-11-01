@@ -158,7 +158,7 @@ export default function Pair() {
             <button
               type="button"
               onClick={read}
-              className="rounded-lg border border-line px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
+              className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:text-ink"
             >
               read code
             </button>
@@ -166,7 +166,7 @@ export default function Pair() {
               type="button"
               onClick={importWallet}
               disabled={!preview}
-              className="rounded-lg border border-accent px-3 py-1.5 text-[10px] uppercase tracking-wider text-accent disabled:border-line disabled:text-muted"
+              className="rounded-lg border border-accent px-3 py-1.5 text-xs text-accent disabled:border-line disabled:text-muted"
             >
               import (unchecked)
             </button>

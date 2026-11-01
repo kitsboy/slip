@@ -312,7 +312,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
               <ol className="mt-3 space-y-1">
                 {validation.draft.preview.slice(0, 3).map((a) => (
                   <li key={a.address} className="flex gap-2 rounded border border-line px-2 py-1">
-                    <span className="w-10 shrink-0 text-[10px] text-muted">{a.path}</span>
+                    <span className="w-10 shrink-0 text-[11px] text-muted">{a.path}</span>
                     <code className="break-all font-mono text-[11px]">{a.address}</code>
                   </li>
                 ))}

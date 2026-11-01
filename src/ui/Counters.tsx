@@ -310,7 +310,7 @@ export default function Counters() {
               void repo().recordShift('return', activeAccount, staff, 'till returned');
               refresh();
             }}
-            className="ml-3 rounded border border-line px-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+            className="ml-3 rounded border border-line px-2 text-xs text-muted hover:text-ink"
           >
             return till
           </button>
@@ -331,7 +331,7 @@ export default function Counters() {
                   {a.label}
                 </span>
                 <span
-                  className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wider ${
+                  className={`rounded-full border px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] ${
                     statusOf(a) === 'ready' ? 'border-good text-good' : 'border-warn text-warn'
                   }`}
                 >
@@ -339,7 +339,7 @@ export default function Counters() {
                 </span>
               </div>
               <p className="mt-1 break-all font-mono text-[11px] text-muted">{a.firstAddress}</p>
-              <p className="mt-0.5 text-[10px] uppercase tracking-wider text-muted">
+              <p className="mt-0.5 text-[11px] uppercase tracking-[0.08em] text-muted">
                 {WALLET_COLOURS.find((c) => c.id === a.colour)?.label ?? '—'} ·{' '}
                 {purposeLabel(a.purpose)} · {a.networkId} · {a.scriptType} · fp {a.fingerprintHex}
               </p>
@@ -348,7 +348,7 @@ export default function Counters() {
                 <button
                   type="button"
                   onClick={() => void checkBalance(a)}
-                  className="rounded border border-line px-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+                  className="rounded border border-line px-2 text-xs text-muted hover:text-ink"
                 >
                   check balance
                 </button>
@@ -362,7 +362,7 @@ export default function Counters() {
               <button
                 type="button"
                 onClick={() => setQrFor(qrFor === a.id ? null : a.id)}
-                className="mt-2 rounded border border-line px-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+                className="mt-2 rounded border border-line px-2 text-xs text-muted hover:text-ink"
               >
                 {qrFor === a.id ? 'hide QR' : 'address 0/0 QR'}
               </button>
@@ -382,7 +382,7 @@ export default function Counters() {
                       ),
                     }}
                   />
-                  <p className="text-[10px] leading-relaxed text-muted">
+                  <p className="text-[11px] leading-relaxed text-muted">
                     <span className="text-warn">Preview only.</span> These are the first addresses of
                     this counter, not an invoice. A real sale will reserve a fresh index before any
                     QR is shown.
@@ -400,7 +400,7 @@ export default function Counters() {
                     refresh();
                     setMessage({ kind: 'ok', text: `${a.label} marked as checked against your wallet.` });
                   }}
-                  className="mt-2 rounded border border-line px-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+                  className="mt-2 rounded border border-line px-2 text-xs text-muted hover:text-ink"
                 >
                   I compared address 0/0 with my wallet
                 </button>
@@ -414,7 +414,7 @@ export default function Counters() {
         <h3 className="text-sm font-semibold">Add a wallet</h3>
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
           <label className="block" htmlFor="ct-label">
-            <span className="text-[11px] uppercase tracking-widest text-muted">Name</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Name</span>
             <input
               id="ct-label"
               value={label}
@@ -424,7 +424,7 @@ export default function Counters() {
             />
           </label>
           <label className="block" htmlFor="ct-network">
-            <span className="text-[11px] uppercase tracking-widest text-muted">Network</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Network</span>
             <select
               id="ct-network"
               value={networkId}
@@ -439,7 +439,7 @@ export default function Counters() {
             </select>
           </label>
           <label className="block" htmlFor="ct-script">
-            <span className="text-[11px] uppercase tracking-widest text-muted">Script</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Script</span>
             <select
               id="ct-script"
               value={scriptType}
@@ -458,7 +458,7 @@ export default function Counters() {
 
         <div className="mt-2 grid gap-2 sm:grid-cols-2">
           <label className="block" htmlFor="ct-purpose">
-            <span className="text-[11px] uppercase tracking-widest text-muted">What is it for</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">What is it for</span>
             <select
               id="ct-purpose"
               value={purpose}
@@ -473,7 +473,7 @@ export default function Counters() {
             </select>
           </label>
           <label className="block" htmlFor="ct-note">
-            <span className="text-[11px] uppercase tracking-widest text-muted">Note (optional)</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Note (optional)</span>
             <input
               id="ct-note"
               value={note}
@@ -485,7 +485,7 @@ export default function Counters() {
         </div>
 
         <fieldset className="mt-2">
-          <legend className="text-[11px] uppercase tracking-widest text-muted">
+          <legend className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
             Colour — <span className="text-ink">{WALLET_COLOURS.find((c) => c.id === colour)?.label}</span>
           </legend>
           <div className="mt-1 flex flex-wrap gap-2">
@@ -505,7 +505,7 @@ export default function Counters() {
         </fieldset>
 
         <label className="mt-2 block" htmlFor="ct-xpub">
-          <span className="text-[11px] uppercase tracking-widest text-muted">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
             xpub · descriptor · public key · address
           </span>
           <textarea
@@ -559,7 +559,7 @@ export default function Counters() {
             <ol className="mt-2 space-y-1">
               {validation.draft.preview.slice(0, 3).map((a) => (
                 <li key={a.address} className="flex gap-2 rounded border border-line px-2 py-1">
-                  <span className="w-10 shrink-0 text-[10px] text-muted">{a.path}</span>
+                  <span className="w-10 shrink-0 text-[11px] text-muted">{a.path}</span>
                   <code className="break-all font-mono text-[11px]">{a.address}</code>
                 </li>
               ))}
@@ -580,7 +580,7 @@ export default function Counters() {
               type="button"
               onClick={addAccount}
               disabled={!checked}
-              className="mt-2 rounded-lg border border-accent px-3 py-2 text-xs uppercase tracking-wider text-accent disabled:border-line disabled:text-muted"
+              className="mt-2 rounded-lg border border-accent px-3 py-2 text-xs font-semibold text-accent disabled:border-line disabled:text-muted"
             >
               Save counter
             </button>
@@ -592,7 +592,7 @@ export default function Counters() {
         <h3 className="text-sm font-semibold">Hand the till over</h3>
         <div className="mt-2 grid gap-2 sm:grid-cols-3">
           <label className="block" htmlFor="ho-account">
-            <span className="text-[11px] uppercase tracking-widest text-muted">Counter</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Counter</span>
             <select
               id="ho-account"
               value={pendingAccountId}
@@ -612,7 +612,7 @@ export default function Counters() {
             </select>
           </label>
           <label className="block" htmlFor="ho-staff">
-            <span className="text-[11px] uppercase tracking-widest text-muted">Staff name</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Staff name</span>
             <input
               id="ho-staff"
               value={staffInput}
@@ -622,7 +622,7 @@ export default function Counters() {
             />
           </label>
           <label className="block" htmlFor="ho-pin">
-            <span className="text-[11px] uppercase tracking-widest text-muted">Till PIN</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Till PIN</span>
             <input
               id="ho-pin"
               value={pinInput}
@@ -637,7 +637,7 @@ export default function Counters() {
           <button
             type="button"
             onClick={() => void handOver()}
-            className="rounded-lg border border-accent px-3 py-2 text-xs uppercase tracking-wider text-accent"
+            className="rounded-lg border border-accent px-3 py-2 text-xs font-semibold text-accent"
           >
             Hand over
           </button>
@@ -654,7 +654,7 @@ export default function Counters() {
               <button
                 type="button"
                 onClick={() => void savePin()}
-                className="rounded-lg border border-line px-3 py-2 text-xs uppercase tracking-wider text-muted hover:text-ink"
+                className="rounded-lg border border-line px-3 py-2 text-xs font-semibold text-muted hover:text-ink"
               >
                 Set PIN
               </button>

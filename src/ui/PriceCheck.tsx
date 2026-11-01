@@ -61,7 +61,7 @@ export default function PriceCheck() {
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <label className="block" htmlFor="pc-price">
-          <span className="text-[11px] uppercase tracking-widest text-muted">Price</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Price</span>
           <input
             id="pc-price"
             value={price}
@@ -72,7 +72,7 @@ export default function PriceCheck() {
           />
         </label>
         <label className="block" htmlFor="pc-currency">
-          <span className="text-[11px] uppercase tracking-widest text-muted">Currency</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Currency</span>
           <select
             id="pc-currency"
             value={currency}
@@ -87,7 +87,7 @@ export default function PriceCheck() {
           </select>
         </label>
         <label className="block" htmlFor="pc-rate">
-          <span className="text-[11px] uppercase tracking-widest text-muted">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
             Rate (per 1 BTC)
           </span>
           <input
@@ -100,7 +100,7 @@ export default function PriceCheck() {
           />
         </label>
         <label className="block" htmlFor="pc-tax">
-          <span className="text-[11px] uppercase tracking-widest text-muted">Tax (bps)</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Tax (bps)</span>
           <input
             id="pc-tax"
             value={taxBps}
@@ -110,7 +110,7 @@ export default function PriceCheck() {
           />
         </label>
         <label className="block" htmlFor="pc-tip">
-          <span className="text-[11px] uppercase tracking-widest text-muted">Tip (bps)</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Tip (bps)</span>
           <input
             id="pc-tip"
             value={tipBps}
@@ -136,7 +136,7 @@ export default function PriceCheck() {
             ['Minor units', String(result.minorUnits)],
           ].map(([k, v]) => (
             <div key={k} className="rounded-lg border border-line px-3 py-2">
-              <dt className="text-[10px] uppercase tracking-wider text-muted">{k}</dt>
+              <dt className="text-[11px] uppercase tracking-[0.08em] text-muted">{k}</dt>
               <dd className="mt-0.5 font-mono text-sm">{v}</dd>
             </div>
           ))}

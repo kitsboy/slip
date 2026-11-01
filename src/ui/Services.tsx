@@ -124,7 +124,7 @@ export default function Services() {
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <span className="text-sm font-medium">{s.name}</span>
               <span
-                className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wider ${
+                className={`rounded-full border px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] ${
                   s.status === 'shipped' ? 'border-good text-good' : 'border-line text-muted'
                 }`}
               >

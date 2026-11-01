@@ -163,6 +163,38 @@ button {
     white-space: nowrap;
   }
 
+  /* One label role for section headings, whatever utilities they carry:
+     11px / 600 / 0.12em, the same as .eyebrow. Nothing louder above a panel. */
+  h2[class*='uppercase'],
+  h3[class*='uppercase'],
+  h4[class*='uppercase'] {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+  }
+
+  /* Interactive chips are targets, not labels: 40px pointer, 44px thumb.
+     Static chips (the version stamp, figures) stay compact. */
+  button.chip,
+  a.chip {
+    min-height: 40px;
+  }
+
+  /* A till should never need a steady hand. Checkboxes and radios keep their box. */
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+
+  @media (max-width: 639px) {
+    button.chip,
+    a.chip {
+      min-height: 44px;
+    }
+  }
+
   .chip-accent {
     border-color: color-mix(in oklab, var(--slip-accent) 55%, var(--slip-line));
     color: var(--slip-accent);

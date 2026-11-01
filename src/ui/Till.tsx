@@ -636,7 +636,7 @@ export default function Till() {
             <button
               type="button"
               onClick={() => void navigator.clipboard?.writeText(invoice.address)}
-              className="mt-2 rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+              className="mt-2 rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
             >
               copy address
             </button>
@@ -679,7 +679,7 @@ export default function Till() {
           <button
             type="button"
             onClick={abandon}
-            className="rounded-lg border border-line px-3 py-2 text-xs uppercase tracking-wider text-muted hover:text-ink"
+            className="rounded-lg border border-line px-3 py-2 text-xs font-semibold text-muted hover:text-ink"
           >
             cancel sale
           </button>
@@ -711,7 +711,7 @@ export default function Till() {
                       ? 'seen in the mempool — not mined yet'
                       : 'waiting for payment'}
                 </p>
-                <p className="mt-1 break-all font-mono text-[10px]">{leg2.address}</p>
+                <p className="mt-1 break-all font-mono text-[11px]">{leg2.address}</p>
                 <p className="mt-1 text-warn">
                   A split sale is one sale: the receipt appears when both legs are paid.
                 </p>
@@ -763,7 +763,7 @@ export default function Till() {
             <button
               type="button"
               onClick={() => printReceipt(receipt, proof, settings.businessName, settings.receiptFooter)}
-              className="mt-2 rounded-lg border border-line px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
+              className="mt-2 rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:text-ink"
             >
               print receipt
             </button>
@@ -783,7 +783,7 @@ export default function Till() {
                 stamped — the day digest. It is a record, not a signature: slip holds no key that
                 could sign one.
               </p>
-              <p className="mt-1 break-all font-mono text-[10px]">{formatProof(proof)}</p>
+              <p className="mt-1 break-all font-mono text-[11px]">{formatProof(proof)}</p>
             </div>
           </div>
         )}
@@ -791,7 +791,7 @@ export default function Till() {
         <button
           type="button"
           onClick={() => void finish()}
-          className="mt-4 rounded-lg border border-accent px-4 py-2 text-xs uppercase tracking-wider text-accent"
+          className="mt-4 rounded-lg border border-accent px-4 py-2 text-xs font-semibold text-accent"
         >
           new sale
         </button>
@@ -862,7 +862,7 @@ export default function Till() {
                       ledger.replaceItems(templateItems(t.id));
                       reload();
                     }}
-                    className="rounded-lg border border-accent px-3 py-2 text-[11px] uppercase tracking-wider text-accent"
+                    className="rounded-lg border border-accent px-3 py-2 text-xs text-accent"
                   >
                     {t.name}
                   </button>
@@ -889,7 +889,7 @@ export default function Till() {
                     type="button"
                     onClick={() => saveTabs(closeTab(tabs, tab.id))}
                     aria-label={`Close ${tabLabel(tab)}`}
-                    className="text-[10px] text-muted hover:text-bad"
+                    className="text-[11px] text-muted hover:text-bad"
                   >
                     ×
                   </button>
@@ -899,7 +899,7 @@ export default function Till() {
                 <button
                   type="button"
                   onClick={repeatLast}
-                  className="rounded-full border border-accent px-2 py-1 text-[11px] uppercase tracking-wider text-accent"
+                  className="rounded-full border border-accent px-2 py-1 text-xs text-accent"
                 >
                   repeat last
                 </button>
@@ -985,14 +985,14 @@ export default function Till() {
                   <button
                     type="button"
                     onClick={parkCurrent}
-                    className="rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+                    className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
                   >
                     park sale
                   </button>
                   <button
                     type="button"
                     onClick={() => setCart([])}
-                    className="rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted"
+                    className="rounded-lg border border-line px-3 py-2 text-xs text-muted"
                   >
                     clear cart
                   </button>
@@ -1032,7 +1032,7 @@ export default function Till() {
             />
             <span>
               Split this sale across two wallets
-              <span className="mt-0.5 block text-[10px] text-muted">
+              <span className="mt-0.5 block text-[11px] text-muted">
                 Each leg gets its own address and its own QR. The receipt waits for both.
               </span>
             </span>
@@ -1071,13 +1071,13 @@ export default function Till() {
           )}
 
           {rateNote && (
-            <p className="mt-1 flex items-center gap-2 text-[10px] text-muted">
+            <p className="mt-1 flex items-center gap-2 text-[11px] text-muted">
               {quote && settings.assist.freshnessRings && <FreshnessRing fetchedAt={quote.fetchedAt} />}
               <span>{rateNote}</span>
             </p>
           )}
           {sweepNote && sweepNote !== 'nothing was open to check' && (
-            <p className="mt-1 text-[10px] text-muted">Open sales: {sweepNote}</p>
+            <p className="mt-1 text-[11px] text-muted">Open sales: {sweepNote}</p>
           )}
 
           {cart.length > 0 && (
@@ -1089,7 +1089,7 @@ export default function Till() {
                   <button
                     type="button"
                     onClick={() => removeLine(l.item.id)}
-                    className="rounded border border-line px-2 text-[10px] uppercase text-muted"
+                    className="rounded border border-line px-2 text-xs text-muted"
                     aria-label={`Remove one ${l.item.name}`}
                   >
                     −
@@ -1111,7 +1111,7 @@ export default function Till() {
                   : []),
               ].map(([k, v]) => (
                 <div key={k} className="rounded-lg border border-line px-2 py-1">
-                  <dt className="text-[10px] uppercase tracking-wider text-muted">{k}</dt>
+                  <dt className="text-[11px] uppercase tracking-[0.08em] text-muted">{k}</dt>
                   <dd className="figure mt-0.5 text-xs">
                 {k === 'Charge' ? <Explain id="charge">{v}</Explain> : v}
               </dd>

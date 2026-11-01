@@ -41,7 +41,7 @@ export default function Install() {
 
   if (installed) {
     return (
-      <p className="mt-2 text-[10px] text-muted" data-install="installed">
+      <p className="mt-2 text-[11px] text-muted" data-install="installed">
         slip is running as an installed app.
       </p>
     );
@@ -58,14 +58,14 @@ export default function Install() {
           setNote(choice.outcome === 'accepted' ? 'installing…' : 'kept in the browser');
           setPrompt(null);
         }}
-        className="rounded-lg border border-accent px-3 py-1.5 text-[10px] uppercase tracking-wider text-accent"
+        className="rounded-lg border border-accent px-3 py-1.5 text-xs text-accent"
       >
         install slip on this device
       </button>
-      <p className="mt-1 text-[10px] text-muted">
+      <p className="mt-1 text-[11px] text-muted">
         Installs the same single file. It keeps working with the network off.
       </p>
-      {note && <p className="mt-1 text-[10px] text-muted">{note}</p>}
+      {note && <p className="mt-1 text-[11px] text-muted">{note}</p>}
     </div>
   );
 }

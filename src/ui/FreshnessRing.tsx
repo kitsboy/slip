@@ -38,7 +38,7 @@ export default function FreshnessRing({ fetchedAt, now, size = 14, showLabel = t
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </svg>
-      {showLabel && <span className="text-[10px] text-muted">{f.label}</span>}
+      {showLabel && <span className="text-[11px] text-muted">{f.label}</span>}
     </span>
   );
 }

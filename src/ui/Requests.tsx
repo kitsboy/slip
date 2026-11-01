@@ -185,7 +185,7 @@ export default function Requests() {
       <button
         type="button"
         onClick={add}
-        className="mt-2 rounded-lg border border-accent px-3 py-2 text-[11px] uppercase tracking-wider text-accent"
+        className="mt-2 rounded-lg border border-accent px-3 py-2 text-xs text-accent"
       >
         add request
       </button>
@@ -200,12 +200,12 @@ export default function Requests() {
           ['Due now', String(clock.dueNow)],
         ].map(([k, v]) => (
           <div key={k} className="rounded-lg border border-line px-2 py-1">
-            <dt className="text-[10px] uppercase tracking-wider text-muted">{k}</dt>
+            <dt className="text-[11px] uppercase tracking-[0.08em] text-muted">{k}</dt>
             <dd className="figure mt-0.5 text-xs">{v}</dd>
           </div>
         ))}
       </dl>
-      <p className="mt-1 text-[10px] text-muted">
+      <p className="mt-1 text-[11px] text-muted">
         A blunt clock: completed takings over 30 days against requests due in the next 30. It is a
         sanity check, not accounting.
       </p>
@@ -239,14 +239,14 @@ export default function Requests() {
                   <button
                     type="button"
                     onClick={() => showQr(r)}
-                    className="rounded border border-line px-2 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
+                    className="rounded border border-line px-2 text-xs text-muted hover:text-ink"
                   >
                     show request QR
                   </button>
                   <button
                     type="button"
                     onClick={() => markPaid(r)}
-                    className="rounded border border-line px-2 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
+                    className="rounded border border-line px-2 text-xs text-muted hover:text-ink"
                   >
                     mark paid
                   </button>

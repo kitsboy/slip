@@ -129,7 +129,7 @@ export default function SilentPay() {
       <button
         type="button"
         onClick={build}
-        className="mt-2 rounded-lg border border-accent px-3 py-2 text-[11px] uppercase tracking-wider text-accent"
+        className="mt-2 rounded-lg border border-accent px-3 py-2 text-xs text-accent"
       >
         show payment QR
       </button>
@@ -157,7 +157,7 @@ export default function SilentPay() {
             <button
               type="button"
               onClick={recordManual}
-              className="mt-2 rounded-lg border border-line px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
+              className="mt-2 rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:text-ink"
             >
               record as paid (manual)
             </button>

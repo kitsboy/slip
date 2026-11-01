@@ -204,7 +204,7 @@ export default function Settings() {
                 <button
                   type="button"
                   onClick={() => setStaff((cur) => cur.filter((x) => x.walletId !== s.walletId))}
-                  className="rounded border border-line px-2 text-[10px] uppercase text-muted"
+                  className="rounded border border-line px-2 text-xs text-muted"
                 >
                   remove
                 </button>
@@ -247,11 +247,11 @@ export default function Settings() {
               setNewStaff('');
               setNewStaffWallet('');
             }}
-            className="rounded-lg border border-line px-3 py-2 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
+            className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
           >
             add
           </button>
-          <span className="text-[10px] text-muted">remember to press Save settings</span>
+          <span className="text-[11px] text-muted">remember to press Save settings</span>
         </div>
       </div>
 
@@ -264,7 +264,7 @@ export default function Settings() {
           placeholder="giveabit.io"
           className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
         />
-        <span className="mt-1 block text-[10px] text-muted">
+        <span className="mt-1 block text-[11px] text-muted">
           Rides on the BIP-21 label a customer’s wallet already shows — never a logo across the till.
         </span>
       </label>
@@ -278,8 +278,8 @@ export default function Settings() {
         {ASSIST_GROUPS.map((group) => (
           <div key={group.id} className="mt-3" data-assist-group={group.id}>
             <div className="flex flex-wrap items-baseline gap-2">
-              <h4 className="text-[10px] uppercase tracking-[0.18em] text-muted">{group.label}</h4>
-              <span className="text-[10px] text-muted/80">{group.why}</span>
+              <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">{group.label}</h4>
+              <span className="text-[11px] text-muted/80">{group.why}</span>
             </div>
             <ul className="mt-1 space-y-2">
               {group.keys.map((key) => (
@@ -293,7 +293,7 @@ export default function Settings() {
                   />
                   <label htmlFor={`as-${key}`} className="text-xs">
                     {ASSIST_LABELS[key].title}
-                    <span className="mt-0.5 block text-[10px] leading-relaxed text-muted">{ASSIST_LABELS[key].why}</span>
+                    <span className="mt-0.5 block text-[11px] leading-relaxed text-muted">{ASSIST_LABELS[key].why}</span>
                   </label>
                 </li>
               ))}
@@ -307,11 +307,11 @@ export default function Settings() {
               const ok = printCounterCard({ shopName: businessName, version: buildLabel() });
               if (!ok) setNote({ kind: 'warn', text: 'allow pop-ups to print the counter card' });
             }}
-            className="rounded-lg border border-line px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
+            className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:text-ink"
           >
             print the counter card
           </button>
-          <span className="text-[10px] text-muted">
+          <span className="text-[11px] text-muted">
             One A4 sheet of the rules, for the wall behind the till.
           </span>
         </div>
@@ -320,7 +320,7 @@ export default function Settings() {
       <button
         type="button"
         onClick={save}
-        className="mt-3 rounded-lg border border-accent px-3 py-2 text-xs uppercase tracking-wider text-accent"
+        className="mt-3 rounded-lg border border-accent px-3 py-2 text-xs font-semibold text-accent"
       >
         Save settings
       </button>

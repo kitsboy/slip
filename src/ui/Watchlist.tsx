@@ -165,7 +165,7 @@ export default function Watchlist() {
         <button
           type="button"
           onClick={add}
-          className="rounded-lg border border-accent px-3 py-2 text-[11px] uppercase tracking-wider text-accent"
+          className="rounded-lg border border-accent px-3 py-2 text-xs text-accent"
         >
           add to watchlist
         </button>
@@ -174,7 +174,7 @@ export default function Watchlist() {
             type="button"
             onClick={() => void checkAll()}
             disabled={busy}
-            className="rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink disabled:opacity-50"
+            className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink disabled:opacity-50"
           >
             {busy ? 'checking…' : 'check all'}
           </button>
@@ -200,7 +200,7 @@ export default function Watchlist() {
                   <span className="text-sm">{w.label}</span>
                   <span className="chip">{w.networkId}</span>
                 </div>
-                <p className="mt-0.5 break-all font-mono text-[10px] text-muted">{w.address}</p>
+                <p className="mt-0.5 break-all font-mono text-[11px] text-muted">{w.address}</p>
                 {s ? (
                   s.error ? (
                     <p className="mt-1 text-[11px] text-bad">{s.error}</p>
@@ -218,7 +218,7 @@ export default function Watchlist() {
                   <button
                     type="button"
                     onClick={() => void check(w)}
-                    className="rounded border border-line px-2 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
+                    className="rounded border border-line px-2 text-xs text-muted hover:text-ink"
                   >
                     check
                   </button>
@@ -226,7 +226,7 @@ export default function Watchlist() {
                     label="remove"
                     confirmLabel="remove again"
                     onConfirm={() => remove(w.id)}
-                    className="rounded border border-line px-2 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
+                    className="rounded border border-line px-2 text-[11px] uppercase tracking-[0.08em] text-muted hover:text-ink"
                   />
                 </div>
               </li>

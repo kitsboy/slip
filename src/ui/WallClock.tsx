@@ -44,16 +44,16 @@ export default function WallClock() {
 
       <dl className="mt-5 grid grid-cols-2 gap-3">
         <div className="rounded-xl border border-line p-3">
-          <dt className="text-[10px] uppercase tracking-wider text-muted">Today</dt>
+          <dt className="text-[11px] uppercase tracking-[0.08em] text-muted">Today</dt>
           <dd className="figure mt-1 text-lg">{formatSats(takings)}</dd>
         </div>
         <div className="rounded-xl border border-line p-3">
-          <dt className="text-[10px] uppercase tracking-wider text-muted">Last sale</dt>
+          <dt className="text-[11px] uppercase tracking-[0.08em] text-muted">Last sale</dt>
           <dd className="mt-1 text-sm">{last ? last.createdAt.slice(11, 16) : '—'}</dd>
         </div>
       </dl>
 
-      <p className="mt-3 text-[10px] text-muted">
+      <p className="mt-3 text-[11px] text-muted">
         {done.length} sale{done.length === 1 ? '' : 's'} today · the till is quiet
       </p>
     </section>

@@ -28,7 +28,7 @@ export default function AddressCheck() {
       </p>
 
       <label className="mt-4 block" htmlFor="ac-address">
-        <span className="text-[11px] uppercase tracking-widest text-muted">Address</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Address</span>
         <input
           id="ac-address"
           value={address}
@@ -41,7 +41,7 @@ export default function AddressCheck() {
       </label>
 
       <label className="mt-2 block" htmlFor="ac-network">
-        <span className="text-[11px] uppercase tracking-widest text-muted">Ringing into</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Ringing into</span>
         <select
           id="ac-network"
           value={networkId}

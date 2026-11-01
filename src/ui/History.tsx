@@ -200,7 +200,7 @@ export default function History() {
           type="button"
           onClick={downloadCsv}
           disabled={close.count === 0}
-          className="rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink disabled:opacity-50"
+          className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink disabled:opacity-50"
         >
           download CSV
         </button>
@@ -208,7 +208,7 @@ export default function History() {
           type="button"
           onClick={printClose}
           disabled={close.count === 0}
-          className="rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink disabled:opacity-50"
+          className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink disabled:opacity-50"
         >
           print day close
         </button>
@@ -231,7 +231,7 @@ export default function History() {
           placeholder="amount, address ending, time, invoice…"
           className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
         />
-        <span className="mt-1 block text-[10px] text-muted">
+        <span className="mt-1 block text-[11px] text-muted">
           A customer comes back with a receipt and no invoice number: type what they remember.
         </span>
       </label>
@@ -252,7 +252,7 @@ export default function History() {
                 </span>
                 <span className="figure text-xs">{formatSats(row.netAtoms)}</span>
               </div>
-              <p className="mt-0.5 text-[10px] text-muted">
+              <p className="mt-0.5 text-[11px] text-muted">
                 <span className="chip mr-1">{row.rail}</span>
                 {row.manual ? 'manual confirmation · ' : ''}
                 {row.refundedAtoms > 0n ? `refunded ${formatSats(row.refundedAtoms)} · ` : ''}
@@ -262,7 +262,7 @@ export default function History() {
                 <button
                   type="button"
                   onClick={() => startRefund(row)}
-                  className="mt-1 rounded border border-line px-2 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
+                  className="mt-1 rounded border border-line px-2 text-xs text-muted hover:text-ink"
                 >
                   refund
                 </button>
@@ -319,19 +319,19 @@ export default function History() {
                     <button
                       type="button"
                       onClick={saveRefund}
-                      className="rounded-lg border border-accent px-3 py-1.5 text-[10px] uppercase tracking-wider text-accent"
+                      className="rounded-lg border border-accent px-3 py-1.5 text-xs text-accent"
                     >
                       record refund
                     </button>
                     <button
                       type="button"
                       onClick={() => setRefunding(null)}
-                      className="rounded-lg border border-line px-3 py-1.5 text-[10px] uppercase tracking-wider text-muted"
+                      className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted"
                     >
                       cancel
                     </button>
                   </div>
-                  <p className="mt-1 text-[10px] text-warn">
+                  <p className="mt-1 text-[11px] text-warn">
                     slip cannot send money anywhere. This records a refund you made yourself.
                   </p>
                 </div>

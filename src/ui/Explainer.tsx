@@ -45,7 +45,7 @@ export default function Explainer() {
         them to check the address on their screen before you pay again.
       </p>
 
-      <p className="mt-6 flex items-center gap-2 text-[10px] text-muted">
+      <p className="mt-6 flex items-center gap-2 text-[11px] text-muted">
         <span aria-hidden>{BRAND_GLYPH}</span>
         <span>
           Till built by{' '}

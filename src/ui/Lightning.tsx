@@ -196,7 +196,7 @@ export default function Lightning() {
             <p>
               {formatFiat({ minor: live.minor, currency: settings.currency })} · to {live.address}
             </p>
-            <p className="mt-1 break-all font-mono text-[10px]">{live.pr.slice(0, 64)}…</p>
+            <p className="mt-1 break-all font-mono text-[11px]">{live.pr.slice(0, 64)}…</p>
             <p className={`mt-2 ${settled ? 'text-ok' : 'text-warn'}`}>
               {settled
                 ? 'Settled — this payment was confirmed by the wallet itself.'

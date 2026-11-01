@@ -58,11 +58,11 @@ export default function WeeklyLetter() {
       <button
         type="button"
         onClick={print}
-        className="mt-3 rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+        className="mt-3 rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
       >
         print the letter
       </button>
-      {note && <p className="mt-1 text-[10px] text-warn">{note}</p>}
+      {note && <p className="mt-1 text-[11px] text-warn">{note}</p>}
     </section>
   );
 }

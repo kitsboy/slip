@@ -97,7 +97,7 @@ export default function KeyCheck() {
         your wallet&apos;s Receive tab — if they differ, stop and tell me before any sale.
       </p>
 
-      <label className="mt-4 block text-[11px] uppercase tracking-widest text-muted" htmlFor="xpub">
+      <label className="mt-4 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted" htmlFor="xpub">
         Public key (never a seed phrase)
       </label>
       <textarea
@@ -132,7 +132,7 @@ export default function KeyCheck() {
       </div>
 
       <div className="mt-3">
-        <label className="block text-[11px] uppercase tracking-widest text-muted" htmlFor="script">
+        <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted" htmlFor="script">
           Script type (leave on auto to trust the prefix)
         </label>
         <select
@@ -172,7 +172,7 @@ export default function KeyCheck() {
               ['Script', result.scriptType],
             ].map(([k, v]) => (
               <div key={k} className="rounded-lg border border-line px-2 py-1">
-                <dt className="text-[10px] uppercase tracking-wider text-muted">{k}</dt>
+                <dt className="text-[11px] uppercase tracking-[0.08em] text-muted">{k}</dt>
                 <dd className="font-mono text-[11px]">{v}</dd>
               </div>
             ))}
@@ -194,14 +194,14 @@ export default function KeyCheck() {
                 key={a.address}
                 className="flex items-center gap-2 rounded-lg border border-line px-2 py-1"
               >
-                <span className="w-14 shrink-0 text-[10px] uppercase tracking-wider text-muted">
+                <span className="w-14 shrink-0 text-[11px] uppercase tracking-[0.08em] text-muted">
                   {a.path}
                 </span>
                 <code className="flex-1 break-all font-mono text-[11px]">{a.address}</code>
                 <button
                   type="button"
                   onClick={() => void navigator.clipboard?.writeText(a.address)}
-                  className="shrink-0 rounded border border-line px-2 text-[10px] uppercase tracking-wider text-muted hover:text-ink"
+                  className="shrink-0 rounded border border-line px-2 text-xs text-muted hover:text-ink"
                   aria-label={`Copy address ${i}`}
                 >
                   copy

@@ -34,7 +34,7 @@ export default function Manual() {
           href="?demo=1"
           target="_blank"
           rel="noreferrer noopener"
-          className="mt-2 inline-block rounded-lg border border-warn px-3 py-1.5 text-[10px] uppercase tracking-wider text-warn"
+          className="mt-2 inline-block rounded-lg border border-warn px-3 py-1.5 text-[11px] uppercase tracking-[0.08em] text-warn"
         >
           open the demo shop
         </a>
@@ -70,8 +70,8 @@ export default function Manual() {
         if (entries.length === 0) return null;
         return (
           <div key={group.id} className="mt-4">
-            <h3 className="text-xs uppercase tracking-wider text-muted">{group.label}</h3>
-            <p className="text-[10px] text-muted">{group.why}</p>
+            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">{group.label}</h3>
+            <p className="text-[11px] text-muted">{group.why}</p>
             <ul className="mt-2 space-y-2">
               {entries.map((entry) => (
                 <li key={entry.id} className="rounded-xl border border-line p-2" data-manual-entry={entry.id}>
@@ -85,7 +85,7 @@ export default function Manual() {
                       <li key={step}>{step}</li>
                     ))}
                   </ol>
-                  <p className="mt-1 text-[10px] leading-relaxed text-warn">Limit: {entry.limit}</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-warn">Limit: {entry.limit}</p>
                 </li>
               ))}
             </ul>
@@ -99,12 +99,12 @@ export default function Manual() {
         </p>
       )}
 
-      <p className="mt-4 border-t border-line pt-2 text-[10px] leading-relaxed text-muted">
+      <p className="mt-4 border-t border-line pt-2 text-[11px] leading-relaxed text-muted">
         This page is generated from the same declarations the build checks. If a panel disappears
         from the app, its card disappears here — and the build goes red.
       </p>
 
-      <p className="mt-2 flex items-center gap-1 text-[10px] text-muted">
+      <p className="mt-2 flex items-center gap-1 text-[11px] text-muted">
         <span aria-hidden>{BRAND_GLYPH}</span>
         <span>
           Built by{' '}

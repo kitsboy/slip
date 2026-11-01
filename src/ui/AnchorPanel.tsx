@@ -118,7 +118,7 @@ export default function AnchorPanel() {
         </div>
         <div className="rounded-lg border border-line px-2 py-1">
           <span className="eyebrow">Day digest</span>
-          <p className="mt-0.5 break-all font-mono text-[10px]">{book ? book.digestHex.slice(0, 32) + '…' : '—'}</p>
+          <p className="mt-0.5 break-all font-mono text-[11px]">{book ? book.digestHex.slice(0, 32) + '…' : '—'}</p>
         </div>
       </div>
 
@@ -127,7 +127,7 @@ export default function AnchorPanel() {
           type="button"
           onClick={() => void stamp()}
           disabled={busy || !book || book.count === 0 || existing?.status === 'submitted'}
-          className="rounded-lg border border-accent px-3 py-2 text-[11px] uppercase tracking-wider text-accent disabled:border-line disabled:text-muted"
+          className="rounded-lg border border-accent px-3 py-2 text-xs text-accent disabled:border-line disabled:text-muted"
         >
           {busy ? 'submitting…' : existing?.status === 'submitted' ? 'already stamped' : 'stamp with a calendar'}
         </button>
@@ -135,14 +135,14 @@ export default function AnchorPanel() {
           <button
             type="button"
             onClick={() => void recheck()}
-            className="rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+            className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
           >
             re-hash my books
           </button>
         )}
       </div>
 
-      <p className="mt-2 text-[10px] leading-relaxed text-muted">
+      <p className="mt-2 text-[11px] leading-relaxed text-muted">
         Calendars: {CALENDARS.join(' · ')} — third parties we do not control. They learn that a
         digest of this shape exists, and nothing about your customers.
       </p>

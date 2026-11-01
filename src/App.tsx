@@ -49,7 +49,6 @@ export const BUILD_STAGE = 'working till — sell, close the day, prove it';
 
 const TRUST: ReadonlyArray<readonly [string, string]> = [
   ['watch-only', 'no key can be pasted'],
-  ['no backend', 'no server, account or key'],
   ['offline', 'works with the network off'],
   ['0 requests', 'measured, not promised'],
 ];
@@ -206,7 +205,7 @@ export default function App() {
                 href={`#${t}`}
                 data-tab={t}
                 aria-current={activeSection === t ? 'location' : undefined}
-                className={`rounded-full border px-3 py-1 text-[11px] transition-colors ${tabClass(t)}`}
+                className={`inline-flex min-h-10 items-center justify-center rounded-full border px-3 text-xs transition-colors ${tabClass(t)}`}
               >
                 {TAB_LABELS[t]}
               </a>
@@ -363,7 +362,7 @@ export default function App() {
             href={`#${t}`}
             data-tab={t}
             aria-current={activeSection === t ? 'location' : undefined}
-            className={`flex min-h-[44px] flex-col items-center justify-center gap-0.5 text-[10px] font-medium ${
+            className={`flex min-h-[44px] flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${
               activeSection === t ? 'text-accent' : 'text-muted'
             }`}
           >
@@ -377,7 +376,7 @@ export default function App() {
           <span className="chip figure">{buildLabel()}</span>
           <BookSeal />
           {loadSettings(appStore()).settings.signature.trim() && (
-            <span className="inline-flex items-center gap-1 text-[10px] text-muted" data-brand="giveabit">
+            <span className="inline-flex items-center gap-1 text-[11px] text-muted" data-brand="giveabit">
               <span aria-hidden>₿</span>
               <a
                 href="https://giveabit.io"
@@ -424,8 +423,8 @@ function Group({
   return (
     <section id={id} className="mt-10 scroll-mt-16 sm:scroll-mt-24" hidden={!active}>
       <div className="flex flex-wrap items-baseline gap-2 border-b border-line pb-1">
-        <h2 className="text-[11px] uppercase tracking-[0.2em] text-muted">{label}</h2>
-        <span className="text-[10px] text-muted/80">{why}</span>
+        <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">{label}</h2>
+        <span className="text-[11px] text-muted/80">{why}</span>
       </div>
       {children}
     </section>

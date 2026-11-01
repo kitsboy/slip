@@ -48,7 +48,7 @@ export default function BookSeal() {
 
   return (
     <span
-      className="inline-flex items-center gap-1 font-mono text-[10px] text-muted"
+      className="inline-flex items-center gap-1 font-mono text-[11px] text-muted"
       title={`Today's book: ${digest} (${count} completed sale${count === 1 ? '' : 's'})`}
       data-book-seal={digest.slice(0, 8)}
     >

@@ -24,7 +24,7 @@ export default function SelfTest() {
       <button
         type="button"
         onClick={() => setResults(runSelfTest())}
-        className="mt-3 rounded-lg border border-accent px-3 py-2 text-[11px] uppercase tracking-wider text-accent"
+        className="mt-3 rounded-lg border border-accent px-3 py-2 text-xs text-accent"
       >
         run the check
       </button>
@@ -41,11 +41,11 @@ export default function SelfTest() {
                   {r.ok ? '✓' : '✗'}
                 </span>
                 <span className="flex-1">{r.name}</span>
-                <span className="font-mono text-[10px] text-muted">{r.detail}</span>
+                <span className="font-mono text-[11px] text-muted">{r.detail}</span>
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-[10px] leading-relaxed text-muted">
+          <p className="mt-2 text-[11px] leading-relaxed text-muted">
             What this proves: the maths in this file has not been altered or half-downloaded. What it
             does not prove: that the whole app is safe. slip still holds no keys, and you can check
             that yourself — there is nowhere to paste one.

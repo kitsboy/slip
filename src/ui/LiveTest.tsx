@@ -137,14 +137,14 @@ export default function LiveTest() {
         <button
           type="button"
           onClick={() => setRail('lightning')}
-          className={`rounded-lg border px-3 py-1.5 text-[11px] uppercase tracking-wider ${rail === 'lightning' ? 'border-accent text-accent' : 'border-line text-muted'}`}
+          className={`rounded-lg border px-3 py-1.5 text-xs ${rail === 'lightning' ? 'border-accent text-accent' : 'border-line text-muted'}`}
         >
           lightning
         </button>
         <button
           type="button"
           onClick={() => setRail('signet')}
-          className={`rounded-lg border px-3 py-1.5 text-[11px] uppercase tracking-wider ${rail === 'signet' ? 'border-accent text-accent' : 'border-line text-muted'}`}
+          className={`rounded-lg border px-3 py-1.5 text-xs ${rail === 'signet' ? 'border-accent text-accent' : 'border-line text-muted'}`}
         >
           signet
         </button>
@@ -177,7 +177,7 @@ export default function LiveTest() {
       <button
         type="button"
         onClick={() => (rail === 'lightning' ? void startLightning() : startSignet())}
-        className="mt-2 rounded-lg border border-accent px-3 py-2 text-[11px] uppercase tracking-wider text-accent"
+        className="mt-2 rounded-lg border border-accent px-3 py-2 text-xs text-accent"
       >
         request a real {TEST_SATS.toString()} sat invoice
       </button>
@@ -218,7 +218,7 @@ export default function LiveTest() {
         </div>
       )}
 
-      <p className="mt-2 text-[10px] leading-relaxed text-muted">
+      <p className="mt-2 text-[11px] leading-relaxed text-muted">
         This panel spends real (or test) money from your wallet, never slip’s — slip has none. Nothing
         is stored about the test except the invoice it watched.
       </p>

@@ -47,7 +47,7 @@ export default function About() {
           ['Built', BUILT_AT.replace('T', ' ').replace(/\..*$/, ' UTC')],
         ].map(([k, v]) => (
           <div key={k} className="rounded-lg border border-line px-3 py-2">
-            <dt className="text-[10px] uppercase tracking-wider text-muted">{k}</dt>
+            <dt className="text-[11px] uppercase tracking-[0.08em] text-muted">{k}</dt>
             <dd className="figure mt-0.5 text-[11px]">{v}</dd>
           </div>
         ))}
@@ -67,7 +67,7 @@ export default function About() {
         <button
           type="button"
           onClick={() => void copy()}
-          className="rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+          className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
         >
           {copied ? 'copied' : 'copy diagnostics'}
         </button>

@@ -184,7 +184,7 @@ export default function Backup() {
       </p>
 
       <label className="mt-4 block" htmlFor="bk-pass">
-        <span className="text-[11px] uppercase tracking-widest text-muted">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
           Backup passphrase
         </span>
         <input
@@ -206,14 +206,14 @@ export default function Backup() {
           type="button"
           onClick={() => void exportFile()}
           disabled={busy}
-          className="rounded-lg border border-accent px-3 py-2 text-xs uppercase tracking-wider text-accent disabled:border-line disabled:text-muted"
+          className="rounded-lg border border-accent px-3 py-2 text-xs font-semibold text-accent disabled:border-line disabled:text-muted"
         >
           Export encrypted backup
         </button>
         <button
           type="button"
           onClick={() => window.print()}
-          className="rounded-lg border border-line px-3 py-2 text-xs uppercase tracking-wider text-muted hover:text-ink"
+          className="rounded-lg border border-line px-3 py-2 text-xs font-semibold text-muted hover:text-ink"
         >
           Print / save as PDF
         </button>
@@ -221,7 +221,7 @@ export default function Backup() {
           type="button"
           onClick={() => fileInput.current?.click()}
           disabled={busy}
-          className="rounded-lg border border-line px-3 py-2 text-xs uppercase tracking-wider text-muted hover:text-ink disabled:opacity-50"
+          className="rounded-lg border border-line px-3 py-2 text-xs font-semibold text-muted hover:text-ink disabled:opacity-50"
         >
           Restore from a .slip file
         </button>
@@ -254,7 +254,7 @@ export default function Backup() {
               confirmLabel="Restore again — this replaces this device"
               onConfirm={() => void importFile(pending.file)}
               disabled={busy || !passphrase}
-              className="rounded-lg border border-warn px-3 py-2 text-[11px] uppercase tracking-wider text-warn disabled:border-line disabled:text-muted"
+              className="rounded-lg border border-warn px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-warn disabled:border-line disabled:text-muted"
             />
             <button
               type="button"
@@ -263,7 +263,7 @@ export default function Backup() {
                 setNote(null);
                 if (fileInput.current) fileInput.current.value = '';
               }}
-              className="rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+              className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
             >
               Cancel
             </button>
@@ -316,10 +316,10 @@ export default function Backup() {
 
       {lines.length > 0 && (
         <details className="mt-3">
-          <summary className="cursor-pointer text-[11px] uppercase tracking-wider text-muted">
+          <summary className="cursor-pointer text-[11px] uppercase tracking-[0.08em] text-muted">
             printable day sheet ({lines.length} lines)
           </summary>
-          <pre className="mt-2 overflow-x-auto rounded-lg border border-line bg-bg p-3 font-mono text-[10px] leading-relaxed text-muted">
+          <pre className="mt-2 overflow-x-auto rounded-lg border border-line bg-bg p-3 font-mono text-[11px] leading-relaxed text-muted">
             {lines.join('\n')}
           </pre>
         </details>
