@@ -10,7 +10,7 @@
  */
 
 import { chromium } from 'playwright';
-import { execSync } from 'node:child_process';
+import { chromePath } from '../tests/e2e/_chrome.mjs';
 import { createServer } from 'node:http';
 import { readFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, dirname, extname } from 'node:path';
@@ -45,7 +45,7 @@ const server = createServer((req, res) => {
 });
 await new Promise((r) => server.listen(PORT, '127.0.0.1', r));
 
-const chrome = execSync('find /root/.cache/ms-playwright -name chrome -type f | head -1', { encoding: 'utf8' }).trim();
+const chrome = chromePath();
 const browser = await chromium.launch({ executablePath: chrome, args: ['--no-sandbox'] });
 const context = await browser.newContext({ viewport: { width: 430, height: 1400 }, deviceScaleFactor: 2 });
 

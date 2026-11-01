@@ -8,7 +8,7 @@
  */
 
 import { chromium } from 'playwright';
-import { execSync } from 'node:child_process';
+import { chromePath } from './_chrome.mjs';
 
 const BASE = process.argv[2] ?? 'http://127.0.0.1:4180/';
 const ZPUB =
@@ -16,9 +16,7 @@ const ZPUB =
 const PUBKEY = '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798';
 const GEN_ADDR = 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4';
 
-const CHROME = execSync('find /root/.cache/ms-playwright -name chrome -type f | head -1', {
-  encoding: 'utf8',
-}).trim();
+const CHROME = chromePath();
 const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
 const page = await browser.newPage({ viewport: { width: 430, height: 1400 } });
 

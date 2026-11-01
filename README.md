@@ -8,7 +8,7 @@ wallet**. There is no slip company, server, account, API key or payment processo
 slip cannot hold, move, recover or reverse your money, because it never has the
 ability to sign anything.
 
-## Status: P11 — it takes payments and closes the day.
+## Status: v0.22.0 — it takes payments and closes the day.
 
 On-chain (BTC/LTC, mainnet and testnets), Lightning via LNURL-pay + LNURL-verify, receipts with
 customer-kept proofs, rent requests, a day book you can stamp, wallet pairing by QR, a watchlist and

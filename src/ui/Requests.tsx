@@ -10,6 +10,7 @@ import { useMemo, useState } from 'react';
 import { createRepository, deriveForAccount, statusOf, type CounterAccount } from '../core/accounts';
 import { createLedger } from '../core/ledger';
 import { burnInvoiceIndex, createInvoice } from '../core/orders';
+import EmptyState from './EmptyState';
 import {
   budgetClock,
   daysFromDue,
@@ -208,6 +209,13 @@ export default function Requests() {
         A blunt clock: completed takings over 30 days against requests due in the next 30. It is a
         sanity check, not accounting.
       </p>
+
+      {data.requests.length === 0 && (
+        <EmptyState>
+          No standing money yet. Add rent, a subscription or a wage above — each one gets a due date
+          and a counter to pay into, and is only marked covered when a sale for it completes.
+        </EmptyState>
+      )}
 
       {data.requests.length > 0 && (
         <ul className="mt-3 space-y-1">

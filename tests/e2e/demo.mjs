@@ -7,10 +7,10 @@
  */
 
 import { chromium } from 'playwright';
-import { execSync } from 'node:child_process';
+import { chromePath } from './_chrome.mjs';
 
 const BASE = process.argv[2] ?? 'http://127.0.0.1:4181/';
-const CHROME = execSync('find /root/.cache/ms-playwright -name chrome -type f | head -1', { encoding: 'utf8' }).trim();
+const CHROME = chromePath();
 const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
 const context = await browser.newContext({ viewport: { width: 430, height: 1400 } });
 const page = await context.newPage();

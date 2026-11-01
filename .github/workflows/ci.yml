@@ -4,7 +4,7 @@ name: ci
 # could actually be published — not merely that the source compiles.
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
   workflow_dispatch:
 
@@ -32,6 +32,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Docs gate (every panel documented, every path real)
+        run: node scripts/docs-audit.mjs --strict
+
       - name: Scan the shipped artifact
         run: bash scripts/scan-bundle.sh dist/index.html
 
@@ -44,3 +47,32 @@ jobs:
             dist/SHA256SUMS
             dist/_headers
           retention-days: 14
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Build
+        run: npm run build
+
+      - name: Serve the built app and run the browser suites
+        run: |
+          set -euo pipefail
+          npx vite preview --port 4181 --strictPort --host 127.0.0.1 &
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4181/ >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:4181/ >/dev/null
+          node tests/e2e/run-all.mjs http://127.0.0.1:4181/

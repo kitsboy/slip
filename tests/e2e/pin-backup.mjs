@@ -10,14 +10,12 @@
  */
 
 import { chromium } from 'playwright';
-import { execSync } from 'node:child_process';
+import { chromePath } from './_chrome.mjs';
 
 const BASE = process.argv[2] ?? 'http://127.0.0.1:4178/';
 const ZPUB =
   'zpub6rFR7y4Q2AijBEqTUquhVz398htDFrtymD9xYYfG1m4wAcvPhXNfE3EfH1r1ADqtfSdVCToUG868RvUUkgDKf31mGDtKsAYz2oz2AGutZYs';
-const CHROME = execSync('find /root/.cache/ms-playwright -name chrome -type f | head -1', {
-  encoding: 'utf8',
-}).trim();
+const CHROME = chromePath();
 
 const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
 const ctx = await browser.newContext({ viewport: { width: 430, height: 1200 }, acceptDownloads: true });

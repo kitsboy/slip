@@ -1,6 +1,6 @@
 import { chromium } from 'playwright';
-import { execSync } from 'node:child_process';
-const CHROME = execSync('find /root/.cache/ms-playwright -name chrome -type f | head -1',{encoding:'utf8'}).trim();
+import { chromePath } from './_chrome.mjs';
+const CHROME = chromePath();
 const b = await chromium.launch({executablePath:CHROME,args:['--no-sandbox']});
 let fail = 0;
 const check = (n,ok,d='') => { console.log(`${ok?'PASS':'FAIL'}  ${n}${!ok&&d?' — '+d:''}`); if(!ok) fail++; };

@@ -1,6 +1,6 @@
 import { chromium } from 'playwright';
-import { execSync } from 'node:child_process';
-const CHROME = execSync('find /root/.cache/ms-playwright -name chrome -type f | head -1',{encoding:'utf8'}).trim();
+import { chromePath } from './_chrome.mjs';
+const CHROME = chromePath();
 const b = await chromium.launch({executablePath:CHROME,args:['--no-sandbox']});
 const p = await b.newPage();
 const errs=[]; p.on('pageerror',e=>errs.push('pageerror: '+e)); p.on('console',m=>{if(m.type()==='error')errs.push('console: '+m.text())});

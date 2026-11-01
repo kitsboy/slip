@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // Focused probe: is the settings section genuinely visible, or hidden by its parent?
 import { chromium } from 'playwright';
-import { execSync } from 'node:child_process';
+import { chromePath } from '../tests/e2e/_chrome.mjs';
 
 /* global document, getComputedStyle */
 const BASE = process.argv[2] ?? 'http://[::1]:4181/';
-const CHROME = execSync('find /root/.cache/ms-playwright -name chrome -type f | head -1', { encoding: 'utf8' }).trim();
+const CHROME = chromePath();
 
 const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
 const page = await browser.newPage({ viewport: { width: 430, height: 900 } });

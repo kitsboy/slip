@@ -10,6 +10,7 @@
 import { useMemo, useState } from 'react';
 import { checkAddress } from '../core/addresses';
 import { createLedger, type Watch } from '../core/ledger';
+import EmptyState from './EmptyState';
 import { loadSettings } from '../core/settings';
 import { fetchAddressActivity, formatAtoms, targetFor } from '../core/providers/esplora';
 import { formatSats } from '../core/money';
@@ -178,6 +179,13 @@ export default function Watchlist() {
       </div>
 
       {note && <p className="mt-2 text-[11px] text-muted">{note}</p>}
+
+      {watches.length === 0 && (
+        <EmptyState>
+          Nothing is being watched yet. A supplier, a landlord or a cold wallet added above shows its
+          balance here — without slip ever being able to move it.
+        </EmptyState>
+      )}
 
       {watches.length > 0 && (
         <ul className="mt-3 space-y-1">

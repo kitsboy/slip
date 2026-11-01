@@ -1,6 +1,6 @@
 import { chromium } from 'playwright';
-import { execSync } from 'node:child_process';
-const CHROME = execSync('find /root/.cache/ms-playwright -name chrome -type f | head -1',{encoding:'utf8'}).trim();
+import { chromePath } from './_chrome.mjs';
+const CHROME = chromePath();
 const b = await chromium.launch({executablePath:CHROME,args:['--no-sandbox','--host-resolver-rules=MAP slip.giveabit.io 188.114.96.3']});
 const p = await b.newPage({viewport:{width:430,height:1500}, deviceScaleFactor:2});
 await p.goto('https://slip.giveabit.io/',{waitUntil:'load'});

@@ -94,3 +94,27 @@ attempt" budget from the spec.
 - All suites green: till, features, ops, guide, assist, demo, polish, onboarding; shell 10/10;
   manual 21/21; docs-audit pass; vitest 511/511; tsc 0; eslint 0; build 0.
 - Step 1 and step 5 photographed and reviewed: address reads as the hero, verify under it.
+
+---
+
+# Design decisions — the hygiene pass (v0.22.0)
+
+## D-64 — CI must actually run, and run the things that prove behavior
+The workflow watched `branches: [main]` while the repo branch is `master`, so it never fired — a
+green badge would have been a lie. Branch corrected to `master`, a `verify` job covers
+typecheck/lint/unit/build/docs-gate/bundle-scan, and an `e2e` job installs Chromium, builds, serves
+on `127.0.0.1:4181` and runs **all nine** browser suites. The suites no longer hardcode
+`/root/.cache`: `tests/e2e/_chrome.mjs` resolves `CHROME_PATH` → `$HOME/.cache` → Playwright's own
+path, so the same suites run on a laptop and a runner. `npm run test:e2e` and CI share one list
+(`tests/e2e/run-all.mjs`).
+
+## D-65 — An empty panel must teach
+`src/ui/EmptyState.tsx` is the shared blank-slate: one concrete line about what would fill the list,
+in `surface-2` with a dashed border so it reads as place-holder, not content. Applied to **Watchlist**
+("Nothing is being watched yet…") and **Requests** ("No standing money yet…"), and the books empty
+copy now explains what lands there. The till already coached correctly ("Add a wallet above first —
+a till needs somewhere to be paid") and the catalog already offers templates, so those were left as
+they were rather than reworded for the sake of churn.
+
+`tests/e2e/states.mjs` runs on a genuinely fresh install and asserts each empty state — the pass is
+proven on a blank shop, not on seeded demo data (which never shows an empty list).

@@ -238,7 +238,8 @@ export default function History() {
 
       {close.count === 0 ? (
         <p className="mt-3 rounded-lg border border-line p-2 text-[11px] text-muted">
-          No completed sales on {date}.
+          Nothing sold on {date}. Every sale that completes lands here, and the day closes with a
+          digest you can stamp.
         </p>
       ) : (
         <ul className="mt-3 space-y-1">
