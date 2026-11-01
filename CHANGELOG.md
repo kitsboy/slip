@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.23.0** — 2026-11-01T02:07:10Z — `214cc28d8697` — watch and confirm: slip now watches for money from every panel (not just the till), two-tap guard on remove and restore, stale-note fix
+
 - **v0.22.0** — 2026-11-01T01:37:59Z — `fca20668f7f4` — hygiene: empty-state coaching on watchlist/requests/books, hotfix for a CI that never fired, all nine browser suites in CI
 
 - **v0.21.0** — 2026-11-01T01:11:37Z — `cb5eb1ff0ca1` — onboarding pass: live seed/xprv refusal that empties the field and never echoes, 'try it' trust tile, compare-address finish gating the counter, honesty fix removing stale 'no till yet' claims, <60s metric
