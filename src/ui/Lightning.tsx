@@ -178,9 +178,9 @@ export default function Lightning() {
       <button
         type="button"
         onClick={() => void generate()}
-        className="mt-2 rounded-lg border border-accent px-3 py-2 text-[11px] uppercase tracking-wider text-accent"
+        className="btn btn-primary mt-2"
       >
-        request invoice
+        Request invoice
       </button>
 
       {status && <p className="mt-2 text-[11px] text-muted">{status}</p>}

@@ -356,7 +356,7 @@ export default function Settings() {
           type="button"
           onClick={() => void wipe()}
           disabled={confirmWipe.trim().toUpperCase() !== 'WIPE'}
-          className="rounded-lg border border-bad px-3 py-2 text-xs uppercase tracking-wider text-bad disabled:border-line disabled:text-muted"
+          className="btn btn-danger"
         >
           Wipe this device
         </button>

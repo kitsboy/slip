@@ -104,11 +104,17 @@ for (const id of ids) {
     console.log(`shot ${id}`);
     continue;
   }
+  // A fresh load at /#id resolves the section on mount (App initialises activeSection from the
+  // hash), so the panel is visible before we scroll. The old scroll-only path waited forever on
+  // a panel inside a display:none section once the six-tab shell landed.
+  await page.goto(`http://127.0.0.1:${PORT}/#${id}`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('h1').catch(() => {});
   const panel = page.locator(`[data-panel="${id}"]`).first();
   if ((await panel.count()) === 0) {
     missing.push(id);
     continue;
   }
+  await panel.waitFor({ state: 'visible', timeout: 8000 });
   await panel.scrollIntoViewIfNeeded();
   await page.waitForTimeout(120);
   await panel.screenshot({ path: join(ROOT, `screenshots/manual/${id}.png`) });

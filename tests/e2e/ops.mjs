@@ -28,6 +28,14 @@ const check = (n, ok, d = '') => {
 };
 
 const today = new Date().toISOString().slice(0, 10);
+
+// Never seed a fixed wall-clock. An invoice "created" at 09:00 UTC is in the FUTURE when this
+// suite runs before 09:00 UTC, and reconciliation deliberately skips future-dated invoices — so
+// the sweep found nothing and inv_open stayed 'awaiting'. Anchor the fixture relative to now:
+// created 30 min ago (always swept), expiring 15 min ahead (never already-expired).
+const NOW_MS = Date.now();
+const agoMin = (m) => new Date(NOW_MS - m * 60_000).toISOString();
+const inMin = (m) => new Date(NOW_MS + m * 60_000).toISOString();
 const wallet = (id, label, colour) => ({
   id,
   label,
@@ -58,13 +66,13 @@ const invoice = (id, over) => ({
   amountMinor: '600',
   currency: 'USD',
   rateMinorPerCoin: '6000000',
-  rateAt: today + 'T09:00:00.000Z',
+  rateAt: agoMin(30),
   lines: [],
-  createdAt: today + 'T09:00:00.000Z',
-  expiresAt: today + 'T09:15:00.000Z',
+  createdAt: agoMin(30),
+  expiresAt: inMin(15),
   status: 'complete',
-  seenAt: today + 'T09:01:00.000Z',
-  confirmedAt: today + 'T09:01:00.000Z',
+  seenAt: agoMin(29),
+  confirmedAt: agoMin(29),
   manual: false,
   note: '',
   ...over,

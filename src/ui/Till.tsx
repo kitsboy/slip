@@ -681,14 +681,14 @@ export default function Till() {
           <button
             type="button"
             onClick={() => void check(invoice)}
-            className="rounded-lg border border-accent px-3 py-2 text-xs uppercase tracking-wider text-accent"
+            className="btn btn-secondary"
           >
-            check now
+            Check now
           </button>
           <button
             type="button"
             onClick={() => void markPaid()}
-            className="rounded-lg border border-line px-3 py-2 text-xs uppercase tracking-wider text-muted hover:text-ink"
+            className="btn btn-ghost"
           >
             I have the money (manual)
           </button>
@@ -826,8 +826,8 @@ export default function Till() {
           <p className="eyebrow">Till</p>
           <h2 className="panel-title mt-1">Take a payment</h2>
         </div>
-        <span className="chip">
-          {online ? 'watching for payment' : 'offline — not watching'}
+        <span className={`badge ${online ? 'badge-pending' : 'badge-bad'}`}>
+          {online ? 'Awaiting payment' : 'Offline — not watching'}
         </span>
       </div>
 
@@ -992,9 +992,9 @@ export default function Till() {
                   setCategory('All');
                 }}
                 aria-pressed={tipJar}
-                className={`rounded-lg border px-3 py-2 text-[11px] uppercase tracking-wider ${tipJar ? 'border-accent bg-accent/10 text-accent' : 'border-line text-muted'}`}
+                className={`btn ${tipJar ? 'btn-primary' : 'btn-secondary'}`}
               >
-                tip jar mode
+                Tip jar
               </button>
               {(cart.length > 0 || custom.trim() !== '') && (
                 <>
@@ -1141,9 +1141,9 @@ export default function Till() {
               type="button"
               onClick={charge}
               disabled={!wallet || !totals || chargeSats === null}
-              className="rounded-lg border border-accent bg-accent/10 px-4 py-2 text-xs uppercase tracking-wider text-accent disabled:border-line disabled:text-muted"
+              className="btn btn-primary"
             >
-              {settings.assist.rehearsal ? 'rehearse' : 'charge'} {chargeSats !== null ? formatSats(chargeSats) : ''}
+              {settings.assist.rehearsal ? 'Rehearse' : 'Charge'} {chargeSats !== null ? formatSats(chargeSats) : ''}
             </button>
             <button
               type="button"
@@ -1151,9 +1151,9 @@ export default function Till() {
                 const opened = openCustomerDisplay();
                 setStatus(opened ? 'customer screen opened' : 'your browser blocked the second window — allow pop-ups for slip');
               }}
-              className="rounded-lg border border-line px-3 py-2 text-[11px] uppercase tracking-wider text-muted hover:text-ink"
+              className="btn btn-secondary"
             >
-              customer screen
+              Customer screen
             </button>
             <span className="text-[11px] text-muted">
               today on this wallet: <span className="figure">{formatSats(walletTakings)}</span>

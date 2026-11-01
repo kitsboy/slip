@@ -237,9 +237,9 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setWizardOpen(true)}
-                  className="rounded-lg border border-accent bg-accent/10 px-4 py-2 text-xs uppercase tracking-wider text-accent"
+                  className="btn btn-primary"
                 >
-                  {onboarded ? 'run setup again' : 'set up your shop'}
+                  {onboarded ? 'Run setup again' : 'Set up your shop'}
                 </button>
                 <span className="text-[11px] text-muted">five screens · about a minute</span>
               </div>

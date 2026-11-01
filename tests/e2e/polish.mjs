@@ -103,7 +103,7 @@ await page.waitForTimeout(400);
 const till = page.locator('[data-panel="till"]');
 await till.scrollIntoViewIfNeeded();
 const tillText = await till.innerText();
-check('the status chip says what it is doing, not "detection live"', /watching for payment|not watching/.test(tillText), tillText.slice(0, 120));
+check('the status chip says what it is doing, not "detection live"', /Awaiting payment|not watching/i.test(tillText), tillText.slice(0, 120));
 check('no debug-sounding reconciliation line', !/Reconciliation:/.test(tillText));
 check('custom amount explains that it adds to the items', /added to the items/i.test(tillText));
 check('the stale "Not a till yet" banner is gone', !/Not a till yet/.test(await body()));
@@ -112,7 +112,7 @@ check('the stale "Not a till yet" banner is gone', !/Not a till yet/.test(await 
 await page.locator('button:has-text("Espresso")').first().click();
 await page.waitForTimeout(250);
 check('an item in the cart shows its quantity on the card', /×1/.test(await till.innerText()));
-const pressed = await page.getByRole('button', { name: 'tip jar mode' }).getAttribute('aria-pressed');
+const pressed = await page.getByRole('button', { name: /tip jar/i }).getAttribute('aria-pressed');
 check('the tip jar announces its state', pressed === 'false' || pressed === 'true', String(pressed));
 
 const skip = await page.locator('a.skip-link').count();
