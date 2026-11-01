@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.24.0** — 2026-11-01T05:34:23Z — `f8e11eb7e1b6` — Litecoin testnet fixed for real (testnet4 rltc addresses) with a verified default explorer, and the repository is now open source
+
 - **v0.23.0** — 2026-11-01T02:07:10Z — `214cc28d8697` — watch and confirm: slip now watches for money from every panel (not just the till), two-tap guard on remove and restore, stale-note fix
 
 - **v0.22.0** — 2026-11-01T01:37:59Z — `fca20668f7f4` — hygiene: empty-state coaching on watchlist/requests/books, hotfix for a CI that never fired, all nine browser suites in CI
