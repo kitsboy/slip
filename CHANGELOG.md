@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.28.0** — 2026-11-02T22:28:31Z — `67fef83ca1ba` — The counter pass: one hero figure per screen, a pinned charge bar that says what is missing, a keypad, bigger tiles, undo, live counts, and films you can see.
+
 - **v0.27.3** — 2026-11-02T20:37:01Z — `f55fd2ace287` — The demo stops telling comfortable lies: no invented balances, honest stamps, labelled pretend invoices.
 
 - **v0.27.2** — 2026-11-02T20:22:33Z — `e880057df316` — The demo now answers its own internet: Lightning, prices and day stamps all work with pretend money.
