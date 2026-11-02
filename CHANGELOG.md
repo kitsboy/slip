@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.27.3** — 2026-11-02T20:37:01Z — `f55fd2ace287` — The demo stops telling comfortable lies: no invented balances, honest stamps, labelled pretend invoices.
+
 - **v0.27.2** — 2026-11-02T20:22:33Z — `e880057df316` — The demo now answers its own internet: Lightning, prices and day stamps all work with pretend money.
 
 - **v0.27.1** — 2026-11-02T17:07:28Z — `be006ef31780` — The words in English, a glossary in Learn, and a shop you can try before you believe it.
