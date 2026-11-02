@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.27.2** — 2026-11-02T20:22:33Z — `e880057df316` — The demo now answers its own internet: Lightning, prices and day stamps all work with pretend money.
+
 - **v0.27.1** — 2026-11-02T17:07:28Z — `be006ef31780` — The words in English, a glossary in Learn, and a shop you can try before you believe it.
 
 - **v0.27.0** — 2026-11-02T16:54:38Z — `e04abff31cf8` — Plain language first: the jargon moves to the background, and the first screen is three steps and one button.
