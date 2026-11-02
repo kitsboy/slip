@@ -71,7 +71,8 @@ await page.locator('button:has-text("Espresso")').first().click();
 await page.locator('button:has-text("Croissant")').first().click();
 await page.waitForTimeout(200);
 const cart = await page.locator('li:has-text("Espresso")').first().innerText();
-check('cart counts two espressos', /× 2/.test(cart), cart);
+// The line now reads − 2 + rather than '× 2': a bigger target, the same count.
+check('cart counts two espressos', /(^|\s)2(\s|$)/.test(cart), cart);
 
 await page.locator('#tl-rate').fill('60000.00');
 await page.waitForTimeout(400);

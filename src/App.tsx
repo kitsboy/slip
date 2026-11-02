@@ -29,12 +29,17 @@ import SelfTest from './ui/SelfTest';
 import WallClock from './ui/WallClock';
 import WeeklyLetter from './ui/WeeklyLetter';
 import LiveTest from './ui/LiveTest';
+import { createRepository } from './core/accounts';
+import { createLedger } from './core/ledger';
+import TabIcon from './ui/TabIcon';
 import { loadSettings } from './core/settings';
 import Status from './ui/Status';
-import { applyTheme, loadTheme, nextTheme, saveTheme, systemTheme, themeLabel, type Theme } from './core/theme';
+import { applyTheme, loadTheme, saveTheme, systemTheme, type Theme } from './core/theme';
+import Readiness from './ui/Readiness';
 import Wizard from './ui/Wizard';
 import Watcher from './ui/Watcher';
 import { buildLabel } from './core/buildinfo';
+import { formatSats } from './core/money';
 import { isOnboarded } from './core/settings';
 import { store as appStore } from './core/storage';
 import { TABS, resolveHash, type Section, type Tab } from './core/tabs.router';
@@ -66,6 +71,42 @@ const TAB_LABELS: Readonly<Record<Tab, string>> = {
   more: 'More',
 };
 
+function TabBadge({
+  tab,
+  counts,
+  floating,
+}: {
+  readonly tab: string;
+  readonly counts: { waiting: number; wallets: number };
+  readonly floating?: boolean;
+}) {
+  const label =
+    tab === 'sell' && counts.waiting > 0
+      ? String(counts.waiting)
+      : tab === 'setup' && counts.wallets === 0
+        ? '!'
+        : null;
+  if (!label) return null;
+  const name = tab === 'sell' ? `${counts.waiting} waiting` : 'No wallet yet';
+  if (floating) {
+    // In a 52px tab the count would crowd the word, so the phone gets a dot on the corner.
+    return (
+      <span
+        className="absolute right-[22%] top-1 h-2 w-2 rounded-full bg-accent ring-2 ring-bg"
+        aria-label={name}
+      />
+    );
+  }
+  return (
+    <span
+      className="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-bg"
+      aria-label={name}
+    >
+      {label}
+    </span>
+  );
+}
+
 export default function App() {
   // Shop settings are held in state and reloaded on `slip:settings-changed` (dispatched by
   // Settings when a toggle flips) so assistance panels — wall clock, live test, weekly
@@ -81,6 +122,13 @@ export default function App() {
   // visitor evaluating slip still sees what it is. Never force a stranger through five
   // screens before they can read the page.
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  // Live, device-read counts for the tab bar. Not decoration: each one is something to do.
+  const [shellCounts, setShellCounts] = useState<{ waiting: number; wallets: number; openAtoms: bigint | null }>({
+    waiting: 0,
+    wallets: 0,
+    openAtoms: null,
+  });
   const [theme, setTheme] = useState<Theme>(() => {
     try {
       const store = appStore();
@@ -97,6 +145,30 @@ export default function App() {
     () => resolveHash(window.location.hash).section,
   );
   const [navTick, setNavTick] = useState(0);
+
+  useEffect(() => {
+    const read = () => {
+      try {
+        const store = appStore();
+        const { invoices } = createLedger(store).load();
+        const { accounts } = createRepository(store).load();
+        const open = invoices
+          .filter((invoice) => invoice.status === 'awaiting' || invoice.status === 'seen')
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+        setShellCounts({
+          waiting: invoices.filter((invoice) => invoice.status !== 'complete' && invoice.status !== 'expired').length,
+          wallets: accounts.length,
+          // A sale that is still waiting is a customer standing there. It stays reachable.
+          openAtoms: open ? open.amountAtoms : null,
+        });
+      } catch {
+        setShellCounts({ waiting: 0, wallets: 0, openAtoms: null });
+      }
+    };
+    read();
+    window.addEventListener('slip:data-changed', read);
+    return () => window.removeEventListener('slip:data-changed', read);
+  }, []);
 
   useEffect(() => {
     applyTheme(theme, document.documentElement);
@@ -168,27 +240,6 @@ export default function App() {
             </span>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <span className="chip figure hidden sm:inline-flex">{buildLabel()}</span>
-            {!onboarded && (
-              <a
-                href="?demo=1"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="chip hidden border-warn text-warn sm:inline-flex"
-              >
-                Demo
-              </a>
-            )}
-            <button
-              type="button"
-              onClick={() => setTheme(nextTheme(theme))}
-              className="chip hover:text-ink"
-              aria-label={`Theme: ${themeLabel(theme)}. Switch theme.`}
-              title={`Theme: ${themeLabel(theme)}`}
-            >
-              <span aria-hidden>{theme === 'dark' ? '◐' : theme === 'light' ? '☀' : '◑'}</span>
-              {themeLabel(theme)}
-            </button>
             <a href="#learn" className="chip hover:text-ink" aria-label="Help and the manual">
               <span aria-hidden>?</span>
             </a>
@@ -199,8 +250,66 @@ export default function App() {
             >
               {onboarded ? 'run setup again' : 'start setup'}
             </button>
+            {/* One menu instead of five chips: a header is a place to start, not a control panel. */}
+            <button
+              type="button"
+              onClick={() => setMenuOpen((open) => !open)}
+              className="chip hover:text-ink"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              aria-label="More: appearance, demo, version"
+            >
+              <span aria-hidden>⋯</span>
+            </button>
           </div>
         </div>
+        {menuOpen && (
+          <div className="mx-auto w-full max-w-3xl px-5 pb-3" role="menu" aria-label="Appearance and about">
+            <div className="panel p-3">
+              <p className="eyebrow">Appearance</p>
+              <div className="mt-2 grid gap-1">
+                {(
+                  [
+                    ['dark', 'Dark', '◐'],
+                    ['light', 'Light', '☀'],
+                    ['contrast', 'High contrast', '◑'],
+                  ] as const
+                ).map(([value, label, glyph]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={theme === value}
+                    onClick={() => {
+                      setTheme(value);
+                      setMenuOpen(false);
+                    }}
+                    className={`flex items-center gap-2 rounded-lg px-2 py-2 text-left text-sm ${
+                      theme === value ? 'bg-accent/10 text-ink' : 'text-secondary hover:text-ink'
+                    }`}
+                  >
+                    <span aria-hidden className="w-4">{glyph}</span>
+                    <span className="flex-1">{label}</span>
+                    {theme === value && <span className="text-xs text-accent">in use</span>}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-2 flex flex-wrap items-center gap-3 border-t border-line pt-2 text-xs text-muted">
+                {!onboarded && (
+                  <a href="?demo=1" target="_blank" rel="noreferrer noopener" className="underline decoration-dotted hover:text-ink">
+                    Open the pretend shop
+                  </a>
+                )}
+                <a href="#learn" className="underline decoration-dotted hover:text-ink" onClick={() => setMenuOpen(false)}>
+                  Help and the manual
+                </a>
+                <span className="figure ml-auto">{buildLabel()}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Slim top rail on tablet/desktop; phones get a bottom bar instead. */}
         <nav aria-label="Primary sections" className="hidden border-t border-line sm:block">
           <div className="mx-auto flex max-w-3xl gap-1 px-5 py-2">
@@ -210,9 +319,11 @@ export default function App() {
                 href={`#${t}`}
                 data-tab={t}
                 aria-current={activeSection === t ? 'location' : undefined}
-                className={`inline-flex min-h-10 items-center justify-center rounded-full border px-3 text-xs transition-colors ${tabClass(t)}`}
+                className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border px-3 text-xs transition-colors ${tabClass(t)}`}
               >
+                <TabIcon tab={t} />
                 {TAB_LABELS[t]}
+                <TabBadge tab={t} counts={shellCounts} />
               </a>
             ))}
           </div>
@@ -226,7 +337,7 @@ export default function App() {
           <a href="#sell" className="skip-link">
             Skip to the till
           </a>
-          <main className="mx-auto w-full max-w-3xl px-5 pb-28 pt-6 sm:pb-16">
+          <main className="mx-auto w-full max-w-3xl px-5 pb-28 pt-6 sm:pb-16 lg:max-w-6xl">
             <section>
               <p className="eyebrow">a free till for Bitcoin</p>
               <h1 className="mt-2 text-3xl font-semibold leading-[1.1] tracking-tight sm:text-4xl">
@@ -240,11 +351,12 @@ export default function App() {
 
               <div className="mt-4">
                 <InfoVideo
+                  card
                   src="videos/01-intro.mp4"
                   poster="videos/01-intro.jpg"
                   title="What slip is"
                   seconds={12}
-                  label="Watch: what is slip?"
+                  label="What is slip? — 12 seconds"
                 />
               </div>
 
@@ -320,6 +432,7 @@ export default function App() {
               why="Wallets, settings, backups, calculators"
               active={activeSection === 'setup'}
             >
+              <Readiness />
               <Counters />
               <Settings />
               <Backup />
@@ -371,6 +484,16 @@ export default function App() {
       )}
 
       {/* Bottom tab bar on phones — five equal targets inside thumb reach. */}
+      {shellCounts.openAtoms !== null && activeSection !== 'sell' && (
+        <a
+          href="#till"
+          data-open-sale
+          className="fixed bottom-[86px] left-1/2 z-30 -translate-x-1/2 rounded-full bg-accent px-4 py-2 text-xs font-semibold text-bg shadow-lg"
+        >
+          A sale is still waiting · {formatSats(shellCounts.openAtoms)} · back to it
+        </a>
+      )}
+
       <nav
         aria-label="Primary sections (phone)"
         className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line bg-bg/95 backdrop-blur sm:hidden"
@@ -382,11 +505,13 @@ export default function App() {
             href={`#${t}`}
             data-tab={t}
             aria-current={activeSection === t ? 'location' : undefined}
-            className={`flex min-h-[44px] flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${
+            className={`relative flex min-h-[52px] flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${
               activeSection === t ? 'text-accent' : 'text-muted'
             }`}
           >
+            <TabIcon tab={t} />
             {TAB_LABELS[t]}
+            <TabBadge tab={t} counts={shellCounts} floating />
           </a>
         ))}
       </nav>

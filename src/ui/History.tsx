@@ -29,7 +29,8 @@ export default function History() {
   const ledger = useMemo(() => createLedger(appStore()), []);
   const settings = useMemo(() => loadSettings(appStore()).settings, []);
   const [version, setVersion] = useState(0);
-  const [date, setDate] = useState(today());
+  const todayIso = today();
+  const [date, setDate] = useState(todayIso);
   const [find, setFind] = useState('');
 
   // The reconciliation sweep can complete a sale while this panel is open; without this the
@@ -155,6 +156,30 @@ export default function History() {
         confirmed rather than slip observed.
       </p>
 
+      {/* The day's line before its detail: the number a shopkeeper came for, and what it is made of. */}
+      <div className="mt-3 rounded-xl border border-line bg-surface p-3" data-today-line>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <p className="eyebrow">{date === todayIso ? 'Today' : 'That day'}</p>
+          <p className="text-[11px] text-muted">
+            {close.count} {close.count === 1 ? 'sale' : 'sales'}
+            {close.manualAtoms > 0n ? ` · ${formatSats(close.manualAtoms)} confirmed by you` : ' · all seen by slip'}
+          </p>
+        </div>
+        <p className="figure mt-1 text-[2rem] font-bold leading-none tabular-nums">
+          {formatSats(close.netAtoms)}
+        </p>
+        <p className="mt-1 text-xs text-muted">
+          {formatSats(close.byRail.onchain)} on-chain · {formatSats(close.byRail.lightning)} Lightning ·{' '}
+          {formatSats(close.byRail.manual)} marked by hand
+          {close.refundedAtoms > 0n ? ` · ${formatSats(close.refundedAtoms)} refunded` : ''}
+        </p>
+        {date !== todayIso && (
+          <button type="button" className="btn btn-secondary mt-2 px-2 py-1 text-xs" onClick={() => setDate(todayIso)}>
+            Show today
+          </button>
+        )}
+      </div>
+
       <div className="mt-3 grid gap-2 sm:grid-cols-4">
         <label className="block" htmlFor="hs-date">
           <span className="eyebrow">Day</span>
@@ -217,9 +242,9 @@ export default function History() {
           type="button"
           onClick={printClose}
           disabled={close.count === 0}
-          className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink disabled:opacity-50"
+          className="btn btn-primary px-3 py-2 text-xs"
         >
-          print day close
+          Close the day
         </button>
       </div>
 

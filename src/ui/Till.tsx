@@ -46,6 +46,7 @@ import AwaitingStrip from './AwaitingStrip';
 import OpenTill, { type OpenShift } from './OpenTill';
 import ScanToCart from './ScanToCart';
 import InfoVideo from './InfoVideo';
+import AmountPad from './AmountPad';
 import { announceOnce, cueForTransition, primeAudio } from '../core/sound';
 
 interface CartLine {
@@ -82,14 +83,34 @@ export default function Till() {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [custom, setCustom] = useState('');
   const [tipJar, setTipJar] = useState(false);
-  const [rate, setRate] = useState('');
+  // The rate you last charged at. Offered back with its age on the face of it, never dressed up
+  // as a live quote — a shop should not re-type a number it already decided, nor trust a stale one.
+  const [rate, setRate] = useState(() => {
+    try {
+      const saved = appStore().getItem('rate:last');
+      return saved ? (JSON.parse(saved) as { value: string }).value : '';
+    } catch {
+      return '';
+    }
+  });
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [receipt, setReceipt] = useState<Invoice | null>(null);
   const [status, setStatus] = useState<string>('');
   const [online, setOnline] = useState(navigator.onLine);
   const [staffId, setStaffId] = useState<string>('');
   const [quote, setQuote] = useState<RateQuote | null>(null);
-  const [rateNote, setRateNote] = useState<string>('');
+  const [rateNote, setRateNote] = useState<string>(() => {
+    try {
+      const saved = appStore().getItem('rate:last');
+      if (!saved) return '';
+      const { at } = JSON.parse(saved) as { at?: string };
+      if (!at) return 'you set this last time';
+      const hours = Math.max(0, Math.round((Date.now() - new Date(at).getTime()) / 3_600_000));
+      return hours < 1 ? 'you set this less than an hour ago' : `you set this ${hours}h ago`;
+    } catch {
+      return '';
+    }
+  });
   const [proof, setProof] = useState<ReceiptProof | null>(null);
   /** A split sale's second leg: its own address, its own QR, its own status. */
   const [leg2, setLeg2] = useState<Invoice | null>(null);
@@ -97,6 +118,10 @@ export default function Till() {
   const [splitWalletId, setSplitWalletId] = useState('');
   const [splitPercent, setSplitPercent] = useState('50');
   const [sweepNote, setSweepNote] = useState<string>('');
+  // When the till last looked. Shown on the payment screen: visible watching is the difference
+  // between trust and "is it working?" — and it is a timestamp of a real request, not decoration.
+  const [checkedAt, setCheckedAt] = useState<number | null>(null);
+  const [, setTick] = useState(0);
   /** Open sales, for the strip above the counter. Refreshed with the rest of the ledger. */
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   /** The shift, derived from the hashed log — never from a second store of its own. */
@@ -291,6 +316,10 @@ export default function Till() {
     }
   }, [totals, rate, settings.currency]);
 
+  // Removing a line completely is destructive, so it leaves a way back for a moment.
+  const [undone, setUndone] = useState<{ item: CatalogItem; quantity: number } | null>(null);
+  const [padOpen, setPadOpen] = useState(false);
+
   function addLine(item: CatalogItem) {
     setCart((lines) => {
       const existing = lines.find((l) => l.item.id === item.id);
@@ -371,6 +400,14 @@ export default function Till() {
   }, [rate]);
 
   function charge() {
+    // Before the sale exists, remember the rate it was priced at — with the moment, so next time
+    // the screen can say how old it is instead of implying it is fresh.
+    try {
+      const trimmed = rate.trim();
+      if (trimmed) appStore().setItem('rate:last', JSON.stringify({ value: trimmed, at: new Date().toISOString() }));
+    } catch {
+      /* private mode: the rate simply is not remembered */
+    }
     // Browsers only allow audio after a gesture. Prime it on the press that starts the sale, so the
     // cue that matters later is not the one the browser refuses.
     primeAudio();
@@ -523,6 +560,7 @@ export default function Till() {
       }
       try {
         const activity = await fetchAddressActivity(t, target.address);
+        setCheckedAt(Date.now());
         const next = statusFromObservation(target, { activity });
         const updated = completeIfConfirmed(applyStatus(target, next));
         // A cue is a courtesy, never evidence: nothing about the invoice changes here.
@@ -667,6 +705,12 @@ export default function Till() {
     };
   }, [invoice, check]);
 
+  useEffect(() => {
+    if (!invoice || invoice.status === 'complete') return;
+    const t = window.setInterval(() => setTick((n) => n + 1), 1_000);
+    return () => window.clearInterval(t);
+  }, [invoice]);
+
   async function callAgent(event: string, detail: unknown) {
     window.dispatchEvent(new CustomEvent(event, { detail }));
   }
@@ -748,16 +792,28 @@ export default function Till() {
             {invoice.status === 'awaiting' ? 'waiting for payment' : invoice.status === 'seen' ? 'seen on its way — not confirmed yet' : invoice.status}
           </span>
         </div>
-        <h2 className="panel-title mt-1">
-          Pay exactly <span className="figure">{formatSats(invoice.amountAtoms)}</span>
-        </h2>
+        <h2 className="panel-title mt-1">Pay exactly</h2>
+        <p className="figure mt-1 text-[2.5rem] font-bold leading-none tabular-nums">
+          {formatSats(invoice.amountAtoms)}
+        </p>
+        <p className="mt-1 text-sm text-secondary">
+          {checkedAt === null
+            ? 'watching — the first check is on its way'
+            : `checked ${Math.max(0, Math.round((Date.now() - checkedAt) / 1000))}s ago · it keeps looking`}
+        </p>
 
         <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:items-start">
-          <div
-            className="h-56 w-56 shrink-0 rounded-xl bg-white p-2"
-            // Our own SVG built from a matrix — no merchant text is injected here.
-            dangerouslySetInnerHTML={{ __html: qrSvg(uri, 6) }}
-          />
+          <div className="relative shrink-0 rounded-2xl border-2 border-accent/40 bg-white p-3">
+            <div
+              className="h-64 w-64"
+              // Our own SVG built from a matrix — no merchant text is injected here.
+              dangerouslySetInnerHTML={{ __html: qrSvg(uri, 7) }}
+            />
+            <span aria-hidden className="pointer-events-none absolute -left-1 -top-1 h-4 w-4 border-l-2 border-t-2 border-accent" />
+            <span aria-hidden className="pointer-events-none absolute -right-1 -top-1 h-4 w-4 border-r-2 border-t-2 border-accent" />
+            <span aria-hidden className="pointer-events-none absolute -bottom-1 -left-1 h-4 w-4 border-b-2 border-l-2 border-accent" />
+            <span aria-hidden className="pointer-events-none absolute -bottom-1 -right-1 h-4 w-4 border-b-2 border-r-2 border-accent" />
+          </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs leading-relaxed text-muted">
               Scan with any Bitcoin wallet, or copy the address. slip is watching this address on{' '}
@@ -774,17 +830,22 @@ export default function Till() {
               copy address
             </button>
 
-            <ul className="mt-3 space-y-1 text-[11px] leading-relaxed text-warn">
-              <li>· Pay the exact amount — a different amount cannot be matched to this sale.</li>
-              <li>· Send on the <span className="text-ink">{wallet?.networkId}</span> network only.</li>
-              <li>
-                · {invoice.index === null
-                  ? 'This wallet has ONE fixed address; it is reused for every sale.'
-                  : `Address #${invoice.index} for this sale. Do not pay it twice.`}
-              </li>
-              <li>· An invoice is good for 15 minutes; a late payment is judged, not assumed.</li>
-              {!online && <li className="text-bad">· Offline: detection paused, money is not lost.</li>}
-            </ul>
+            <p className="mt-3 text-xs leading-relaxed text-warn">
+              · Pay the exact amount, on the <span className="text-ink">{wallet?.networkId}</span> network.
+              {!online && <span className="text-bad"> · Offline: detection paused, money is not lost.</span>}
+            </p>
+            <p className="mt-1 text-[11px] text-muted">
+              {invoice.index === null
+                ? 'This wallet has ONE fixed address; it is reused for every sale.'
+                : `Address #${invoice.index} for this sale. Do not pay it twice.`}
+            </p>
+            <details className="mt-2 text-[11px] leading-relaxed text-muted">
+              <summary className="cursor-pointer">The rest of the small print</summary>
+              <ul className="mt-1 space-y-1">
+                <li>· A different amount cannot be matched to this sale.</li>
+                <li>· An invoice is good for 15 minutes; a late payment is judged, not assumed.</li>
+              </ul>
+            </details>
 
             <p className="mt-2 text-[11px] text-muted">
               {formatFiat({ minor: invoice.amountMinor, currency: invoice.currency })} at the rate you
@@ -863,19 +924,37 @@ export default function Till() {
     const proofUri = paymentUri('bitcoin', { address: receipt.address, amountSats: receipt.amountAtoms });
     return (
       <section className="mt-6 panel">
-        <p className="eyebrow">Receipt</p>
-        <h2 className="panel-title mt-1">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="eyebrow">Receipt</p>
+            <p className="figure mt-1 text-[2rem] font-bold leading-none tabular-nums">
+              {formatSats(receipt.amountAtoms)}
+            </p>
+            <p className="mt-1 text-xs text-muted">
+              {settings.businessName || 'Your shop'} ·{' '}
+              {formatFiat({ minor: receipt.amountMinor, currency: receipt.currency })} ·{' '}
+              {receipt.confirmedAt?.slice(0, 16).replace('T', ' ')}
+            </p>
+          </div>
+          <span
+            className={`badge shrink-0 ${
+              receipt.note === 'rehearsal' || receipt.manual ? 'border-warn text-warn' : 'chip-good'
+            }`}
+          >
+            {receipt.note === 'rehearsal'
+              ? 'rehearsal'
+              : receipt.manual
+                ? 'marked paid by you'
+                : 'seen on chain'}
+          </span>
+        </div>
+        <h2 className="mt-2 text-sm font-semibold">
           {receipt.note === 'rehearsal'
             ? 'REHEARSAL — nothing was charged'
             : receipt.manual
               ? 'Marked paid by you'
               : 'Paid — seen on chain'}
         </h2>
-        <p className="mt-1 text-xs text-muted">
-          {settings.businessName || 'Your shop'} ·{' '}
-          {formatFiat({ minor: receipt.amountMinor, currency: receipt.currency })} ={' '}
-          {formatSats(receipt.amountAtoms)} · {receipt.confirmedAt?.slice(0, 16).replace('T', ' ')}
-        </p>
 
         <div className="mt-3 flex flex-wrap items-start gap-3">
           <div
@@ -1101,30 +1180,36 @@ export default function Till() {
                   }}
                 />
               </div>
-              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {visible.map((i) => (
-                  <button
-                    key={i.id}
-                    type="button"
-                    onClick={() => addLine(i)}
-                    className="rounded-xl border border-line bg-surface-2 p-3 text-left hover:border-accent"
-                  >
-                    <span className="block text-lg" aria-hidden>
-                      {i.emoji ?? '•'}
-                    </span>
-                    {cart.find((l) => l.item.id === i.id) && (
-                      <span className="chip ml-1 align-middle" aria-label={`${cart.find((l) => l.item.id === i.id)!.quantity} in the cart`}>
-                        ×{cart.find((l) => l.item.id === i.id)!.quantity}
+              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                {visible.map((i) => {
+                  const inCart = cart.find((l) => l.item.id === i.id);
+                  return (
+                    <button
+                      key={i.id}
+                      type="button"
+                      onClick={() => addLine(i)}
+                      className="relative flex min-h-24 flex-col justify-between rounded-xl border border-line bg-surface-2 p-3 text-left transition hover:border-accent active:scale-[0.98]"
+                    >
+                      {inCart && (
+                        <span
+                          className="absolute right-2 top-2 rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-bg"
+                          aria-label={`${inCart.quantity} in the cart`}
+                        >
+                          ×{inCart.quantity}
+                        </span>
+                      )}
+                      <span className="block text-2xl" aria-hidden>
+                        {i.emoji ?? '•'}
                       </span>
-                    )}
-                    <span className="mt-1 block text-xs">{i.name}</span>
-                    <span className="figure mt-0.5 block text-[11px] text-muted">
-                      {i.priceCurrency === 'SATS'
-                        ? formatSats(i.priceMinor)
-                        : formatFiat({ minor: i.priceMinor, currency: settings.currency })}
-                    </span>
-                  </button>
-                ))}
+                      <span className="mt-2 block text-sm font-semibold leading-tight">{i.name}</span>
+                      <span className="figure mt-1 block text-sm tabular-nums text-secondary">
+                        {i.priceCurrency === 'SATS'
+                          ? formatSats(i.priceMinor)
+                          : formatFiat({ minor: i.priceMinor, currency: settings.currency })}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </>
           )}
@@ -1140,6 +1225,13 @@ export default function Till() {
                 placeholder="12.50"
                 className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
               />
+              <button
+                type="button"
+                onClick={() => setPadOpen(true)}
+                className="btn btn-secondary mt-1 w-full sm:hidden"
+              >
+                Use the keypad
+              </button>
             </label>
             <div className="flex items-end gap-2">
               <button
@@ -1258,49 +1350,96 @@ export default function Till() {
           {cart.length > 0 && (
             <ul className="mt-3 space-y-1">
               {cart.map((l) => (
-                <li key={l.item.id} className="flex items-center gap-2 rounded-lg border border-line px-2 py-1 text-xs">
+                <li key={l.item.id} className="flex items-center gap-2 rounded-lg border border-line px-2 py-1.5 text-sm">
                   <span className="flex-1">{l.item.name}</span>
-                  <span className="figure text-muted">× {l.quantity}</span>
                   <button
                     type="button"
                     onClick={() => removeLine(l.item.id)}
-                    className="rounded border border-line px-2 text-xs text-muted"
-                    aria-label={`Remove one ${l.item.name}`}
+                    className="grid h-9 w-9 place-items-center rounded-lg border border-line text-base text-secondary"
+                    aria-label={`One fewer ${l.item.name}`}
                   >
                     −
+                  </button>
+                  <span className="figure w-6 text-center tabular-nums">{l.quantity}</span>
+                  <button
+                    type="button"
+                    onClick={() => addLine(l.item)}
+                    className="grid h-9 w-9 place-items-center rounded-lg border border-line text-base text-secondary"
+                    aria-label={`One more ${l.item.name}`}
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUndone({ item: l.item, quantity: l.quantity });
+                      setCart((lines) => lines.filter((x) => x.item.id !== l.item.id));
+                    }}
+                    className="ml-1 text-xs text-muted underline underline-offset-2"
+                    aria-label={`Remove ${l.item.name} entirely`}
+                  >
+                    remove
                   </button>
                 </li>
               ))}
             </ul>
           )}
 
-          {totals && (
-            <dl className="mt-3 grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-              {[
-                ['Subtotal', formatFiat({ minor: totals.subtotalMinor, currency: settings.currency })],
-                ['Tax', formatFiat({ minor: totals.taxMinor, currency: settings.currency })],
-                ['Total', formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })],
-                ['Charge', chargeSats === null ? 'set a rate' : formatSats(chargeSats)],
-                ...(split
-                  ? [['Split', `${splitPercent}% to ${wallets.find((w) => w.id === splitWalletId)?.label ?? '—'}`] as [string, string]]
-                  : []),
-              ].map(([k, v]) => (
-                <div key={k} className="rounded-lg border border-line px-2 py-1">
-                  <dt className="text-[11px] uppercase tracking-[0.08em] text-muted">{k}</dt>
-                  <dd className="figure mt-0.5 text-xs">
-                {k === 'Charge' ? <Explain id="charge">{v}</Explain> : v}
-              </dd>
-                </div>
-              ))}
-            </dl>
+          {undone && (
+            <p className="mt-2 flex items-center gap-3 rounded-lg border border-line bg-surface px-3 py-2 text-xs" role="status">
+              <span className="flex-1">
+                {undone.item.name} removed — {undone.quantity} × {formatFiat({ minor: undone.item.priceMinor, currency: settings.currency })}
+              </span>
+              <button
+                type="button"
+                className="btn btn-secondary px-2 py-1 text-xs"
+                onClick={() => {
+                  setCart((lines) => {
+                    const existing = lines.find((l) => l.item.id === undone.item.id);
+                    return existing
+                      ? lines.map((l) => (l.item.id === undone.item.id ? { ...l, quantity: l.quantity + undone.quantity } : l))
+                      : [...lines, { item: undone.item, quantity: undone.quantity }];
+                  });
+                  setUndone(null);
+                }}
+              >
+                Undo
+              </button>
+              <button type="button" className="text-muted" onClick={() => setUndone(null)} aria-label="Dismiss">
+                ×
+              </button>
+            </p>
           )}
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          {totals && (
+            <div className="mt-3 rounded-xl border border-line bg-surface p-3" data-totals>
+              <p className="eyebrow">The customer pays</p>
+              <p className="figure mt-1 text-[2.25rem] font-bold leading-none tabular-nums">
+                {formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })}
+              </p>
+              <p className="mt-1 text-sm text-secondary">
+                <Explain id="charge">
+                  {chargeSats === null ? 'set a price first' : formatSats(chargeSats)}
+                </Explain>
+              </p>
+              <p className="mt-2 text-xs text-muted">
+                {formatFiat({ minor: totals.subtotalMinor, currency: settings.currency })} +{' '}
+                {formatFiat({ minor: totals.taxMinor, currency: settings.currency })} tax
+                {split
+                  ? ` · ${splitPercent}% to ${wallets.find((w) => w.id === splitWalletId)?.label ?? '—'}`
+                  : ''}
+              </p>
+            </div>
+          )}
+
+          {/* The bar stays at thumb height on a phone: the shopkeeper never scrolls to find the
+              button that takes the money. */}
+          <div className="charge-bar mt-3 flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={charge}
               disabled={!wallet || !totals || chargeSats === null}
-              className="btn btn-primary"
+              className="btn btn-primary flex-1 sm:flex-none"
             >
               {settings.assist.rehearsal ? 'Rehearse' : 'Charge'} {chargeSats !== null ? formatSats(chargeSats) : ''}
             </button>
@@ -1317,8 +1456,28 @@ export default function Till() {
             <span className="text-[11px] text-muted">
               today on this wallet: <span className="figure">{formatSats(walletTakings)}</span>
             </span>
+            {/* A greyed button with no reason is a dead end. Say what is missing, and where. */}
+            {(!wallet || !totals || chargeSats === null) && (
+              <p className="w-full text-xs text-warn" data-charge-blocker>
+                {!wallet
+                  ? 'Add a wallet first — Setup, then Wallets.'
+                  : !totals
+                    ? 'Add an item or type an amount first.'
+                    : 'Set what one Bitcoin is worth first.'}
+              </p>
+            )}
           </div>
           {status && <p className="mt-2 text-[11px] text-bad">{status}</p>}
+
+          <AmountPad
+            currency={settings.currency}
+            open={padOpen}
+            onClose={() => setPadOpen(false)}
+            onAmount={(raw) => {
+              setCustom(raw);
+              setStatus('amount added — check it, then charge');
+            }}
+          />
         </>
       )}
     </section>

@@ -381,3 +381,36 @@ real.
 
 `tests/demo-network.test.ts` pins the first, second and fourth; `scripts/demo-check.mjs` still walks
 eight pipes against the live domain.
+
+### D-83 — The counter pass: rank every screen, and never make a shopkeeper hunt
+
+Fifteen upgrades chosen from a twenty-item list. The rules they follow:
+
+1. **One hero per screen.** The total is a 36px tabular figure on its own card, not four equal cells;
+   the amount on the payment screen is 40px; the receipt leads with the sats. A screen has one thing
+   it is for, and it is the biggest thing on it.
+2. **The money button stays at thumb height.** `.charge-bar` pins above the tab bar on a phone and
+   becomes an ordinary row on a laptop. A disabled press always says what is missing and where
+   (`data-charge-blocker`), because a grey button with no reason is a dead end.
+3. **Big keys, big tiles.** Items are ≥96px with a quantity badge; the amount pad is 56px keys with
+   four quick amounts. Typing a price on a phone keyboard while a customer waits is the slowest
+   moment in the sale, so it is no longer the only way.
+4. **Nothing is silently destroyed.** Cart lines have −/+ and `remove` leaves an Undo; the last rate
+   is remembered and shown with its age, never dressed up as a live quote.
+5. **The receipt is paper, not a log.** Amount first, honest status badge (`seen on chain` /
+   `marked paid by you` / `rehearsal`), the invoice and index visible, the rest below.
+6. **A sale in progress survives a look elsewhere.** The shell reads the ledger and floats a pill
+   back to the waiting invoice; the tab bar carries live counts from the device.
+7. **Header is a place to start.** Five chips became help + setup + `⋯`; theme is a named three-way
+   choice inside the menu. Bars in the tab bar are icons with counts, because a shape is read
+   faster than an 11px word.
+8. **Setup answers a question, not a settings list.** "Is the shop ready?" ticks only what slip can
+   verify (a wallet exists, a rate was used, items exist) and labels the backup row "your job —
+   slip cannot see it" rather than faking a tick.
+9. **Films are visible.** The hero's clip is a poster card, not a bare (i): the still is the only
+   thing downloaded before a tap, and the clip still mounts only when opened (D-78).
+
+Two items from the twenty were **not** built and are recorded as such: the two-pane desktop counter
+(it needs the till's single return restructured, and a half-done grid is worse than one honest
+column) and the text-size/density setting (tokens exist in CSS, no control yet). The wide `lg`
+container and the four-up item grid shipped, so a laptop no longer looks like a stretched phone.

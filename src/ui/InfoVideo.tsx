@@ -28,12 +28,17 @@ interface Props {
   readonly seconds?: number;
   /** Show the title beside the icon instead of the icon alone (used on the hero). */
   readonly label?: string;
+  /**
+   * A poster tile instead of an (i). The still is the only thing downloaded before a tap — the clip
+   * itself still has `preload="none"` and mounts only when opened. Used where the film is the point.
+   */
+  readonly card?: boolean;
 }
 
 /** The music bed that runs under all six clips. Required by its licence. */
 const CREDIT = 'Music: Electro Cabello — Kevin MacLeod (incompetech.com), CC BY 4.0';
 
-export default function InfoVideo({ src, poster, title, seconds, label }: Props) {
+export default function InfoVideo({ src, poster, title, seconds, label, card }: Props) {
   const [open, setOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
@@ -82,12 +87,27 @@ export default function InfoVideo({ src, poster, title, seconds, label }: Props)
         aria-label={`Watch a short explanation: ${name}`}
         title={`Watch: ${name}`}
         data-info-video={src}
-        className={label ? 'info-btn info-btn-labelled' : 'info-btn'}
+        className={card ? 'video-card' : label ? 'info-btn info-btn-labelled' : 'info-btn'}
       >
-        <span aria-hidden className="info-btn-mark">
-          i
-        </span>
-        {label && <span>{label}</span>}
+        {card ? (
+          <>
+            <span className="video-card-still" style={{ backgroundImage: `url(${poster})` }} aria-hidden />
+            <span aria-hidden className="video-card-play">
+              ▶
+            </span>
+            <span className="video-card-text">
+              <span className="video-card-title">{label ?? title}</span>
+              {seconds ? <span className="video-card-meta">{seconds}s · no sound until you press play</span> : null}
+            </span>
+          </>
+        ) : (
+          <>
+            <span aria-hidden className="info-btn-mark">
+              i
+            </span>
+            {label && <span>{label}</span>}
+          </>
+        )}
       </button>
 
       {open && (
