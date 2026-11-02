@@ -58,7 +58,7 @@ for (const clip of [
 
 // --- the hero clip ----------------------------------------------------------
 const hero = page.locator('[data-info-video="videos/01-intro.mp4"]');
-check('the hero icon says what it is', /What is slip\?/.test(await hero.innerText()));
+check('the hero icon says what it is', /what is slip/i.test(await hero.innerText()));
 
 await hero.click();
 const dialog = page.locator('[role="dialog"][aria-modal="true"]');

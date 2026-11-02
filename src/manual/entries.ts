@@ -30,7 +30,7 @@ export const MANUAL: readonly ManualEntry[] = [
     title: 'Your wallets',
     why: 'slip never holds money, so a wallet here is only a public address slip watches for you.',
     steps: [
-      'Paste an xpub, a descriptor, a single public key or one address.',
+      'Paste the public code your wallet app gives you — one code, not a seed phrase.',
       'Compare address 0/0 with the same address in your own wallet.',
       'Tick the box only when they match, then save.',
     ],
@@ -48,7 +48,7 @@ export const MANUAL: readonly ManualEntry[] = [
       'Pick the wallet taking this sale and enter the rate you were quoted.',
       'Tap items, or type a custom amount, or use tip jar mode.',
       'Charge. The QR names the exact amount and the reserved address.',
-      'Watch the status: seen in the mempool is not paid. Paid means mined.',
+      'Watch the status: seen means it is on its way. Paid means it landed.',
     ],
     limit: 'slip can only check a payment while the payment screen is open, or at the next launch.',
     code: ['src/core/orders.ts', 'src/ui/Till.tsx'],

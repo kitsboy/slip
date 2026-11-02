@@ -283,7 +283,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
             </select>
           </label>
           <label className="mt-3 block" htmlFor="wz-xpub">
-            <span className="eyebrow">Account xpub or descriptor</span>
+            <span className="eyebrow">Your wallet&apos;s public code</span>
             <textarea
               id="wz-xpub"
               value={xpub}

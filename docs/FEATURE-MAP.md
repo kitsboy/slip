@@ -80,3 +80,7 @@ is covered by tests. Nothing on this page is aspirational.
    screen, and each one is a tested state rather than a label someone typed.
 3. **No silent network.** Every request is to an endpoint the merchant chose or the public default
    named in Settings — and the footer counts requests from the app itself.
+| Plain-language layer | every panel | a plain sentence on screen, the exact term behind a switch (`<Tech>`), developer panels grouped under `<Advanced>` | D-79 |
+| Three-step first screen | hero, Sell | "Add your wallet · Ring up the sale · They pay you", one orange action | D-79 |
+| Next-step strip | Sell | reads the device (no wallet / ready / trading) and names the one useful action | D-79 |
+| "Show technical names" | Settings → Plain language | brings back xpub, LNURL, mempool, descriptor, BIP-85; nothing is ever deleted | D-79 |

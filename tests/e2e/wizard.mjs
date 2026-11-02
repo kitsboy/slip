@@ -33,7 +33,7 @@ await page.goto(BASE, { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('h1');
 
 // The wizard is a guided path, not a gate — a visitor still sees the page first.
-await page.getByRole('button', { name: /set up your shop/i }).click();
+await page.getByRole('button', { name: /set up my shop/i }).click();
 await page.waitForSelector('text=step 1 of 5');
 check('wizard opens from the hero', true);
 

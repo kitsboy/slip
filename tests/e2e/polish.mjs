@@ -120,7 +120,8 @@ check('there is a skip link for keyboard users', skip === 1);
 
 // --- assistance grouping -------------------------------------------------------------
 const groups = await page.locator('[data-assist-group]').evaluateAll((els) => els.map((e) => e.getAttribute('data-assist-group')));
-check('assistance is grouped by intent', groups.join(',') === 'teaching,quiet,records', groups.join(','));
+// 'explain' leads now: how much technical detail to show is the first choice a shopkeeper meets.
+check('assistance is grouped by intent', groups.join(',') === 'explain,teaching,quiet,records', groups.join(','));
 
 check('no runtime errors from slip', errs.length === 0, errs.join(' | '));
 

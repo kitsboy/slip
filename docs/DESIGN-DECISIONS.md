@@ -298,3 +298,34 @@ on a phone cannot show more, and 6 MB of unused resolution is a tax on the merch
 
 The count matters too: there are six icons and six clips, not one video buried in a menu. A person
 reading "rails live" wants the answer *there*, and going to look for it is how a help centre fails.
+
+# Design decisions — the plain-language pass (v0.27.0)
+
+### D-79 — The plain sentence first, and the exact term one switch away
+
+Every screen is now written for a shopkeeper who has never used Bitcoin, and the technical
+vocabulary has been *moved*, not deleted. Five rules, and the fifth is what keeps the other four
+from becoming a lie.
+
+1. **The plain sentence is unconditional.** It is not a summary of a technical paragraph, and it is
+   not hidden behind a preference. If a screen cannot say what it does in one plain sentence, the
+   screen is not finished.
+2. **The exact term is available, never required.** `<Tech>` renders the precise wording — xpub,
+   descriptor, LNURL, mempool, BIP-85 — and renders nothing at all until "Show technical names" is
+   on in Settings. Default off is the product decision, not a default: a shop that wants to take a
+   payment should never have to read them.
+3. **Whole developer tools are grouped, not scattered.** `<Advanced>` wraps the panels only a
+   developer uses (pairing, watchlist, silent payments, self-test, the key calculator) behind one
+   card that says what is behind it and one button that reveals it. Nothing is removed, every panel
+   id stays routable, and a test renders both modes to prove it.
+4. **The first screen answers three questions and asks for one thing.** What do I put in, what do I
+   do at the counter, where does the money go — three numbered steps, then exactly one filled
+   button. The header keeps its setup link as a neutral chip so the hero owns the only orange
+   action.
+5. **Honesty strings survive translation.** "Seen on its way — not confirmed yet" and "Paid means it
+   landed" replace the mempool sentences without softening either claim. Simplifying copy is
+   allowed; weakening a status word is not. A cue is still a courtesy, never evidence.
+
+The measured result: the words a stranger meets on the first screen are now "wallet", "sale" and
+"pay". `xpub`, `mempool`, `BIP-85`, `LNURL` and `descriptor` no longer appear in the rendered text of
+the default page — and `xpub` returns the moment the switch is turned on.

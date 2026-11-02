@@ -19,6 +19,9 @@ import History from './ui/History';
 import SilentPay from './ui/SilentPay';
 import Install from './ui/Install';
 import InfoVideo from './ui/InfoVideo';
+import HowItWorks from './ui/HowItWorks';
+import NextStep from './ui/NextStep';
+import Tech, { Advanced } from './ui/Tech';
 import Manual from './ui/Manual';
 import BookSeal from './ui/BookSeal';
 import SelfTest from './ui/SelfTest';
@@ -191,7 +194,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setWizardOpen(true)}
-              className="chip chip-accent hover:bg-accent/10"
+              className="chip hover:text-ink"
             >
               {onboarded ? 'run setup again' : 'start setup'}
             </button>
@@ -224,59 +227,60 @@ export default function App() {
           </a>
           <main className="mx-auto w-full max-w-3xl px-5 pb-28 pt-6 sm:pb-16">
             <section>
-              <p className="eyebrow">non-custodial · serverless · no KYC</p>
+              <p className="eyebrow">a free till for Bitcoin</p>
               <h1 className="mt-2 text-3xl font-semibold leading-[1.1] tracking-tight sm:text-4xl">
-                Sales pay straight into your own wallet.
+                A till that pays you, not a bank.
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
-                slip never holds money, never asks for a seed phrase, and has no server, account or
-                API key behind it. You paste public wallet material once — an xpub, a descriptor, a
-                Silent Payments address or a Lightning address — and every sale is paid directly to
-                you.
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-secondary">
+                Your customer pays with Bitcoin. Every sale lands in your own wallet the moment it
+                happens — no card machine, no account with us, and nobody taking a cut. slip cannot
+                hold or move a penny: it shows the code, then tells you what it saw.
               </p>
 
-              <div className="mt-5 flex flex-wrap items-center gap-2">
+              <div className="mt-4">
                 <InfoVideo
                   src="videos/01-intro.mp4"
                   poster="videos/01-intro.jpg"
                   title="What slip is"
                   seconds={12}
-                  label="What is slip?"
+                  label="Watch: what is slip?"
                 />
-
-                <button
-                  type="button"
-                  onClick={() => setWizardOpen(true)}
-                  className="btn btn-primary"
-                >
-                  {onboarded ? 'Run setup again' : 'Set up your shop'}
-                </button>
-                <span className="text-[11px] text-muted">five screens · about a minute</span>
               </div>
 
-              <ul className="mt-4 flex flex-wrap gap-2">
-                {TRUST.map(([label, detail]) => (
-                  <li key={label} className="chip" title={detail}>
-                    <span className="text-ink">{label}</span>
-                    <span className="opacity-70">· {detail}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
+              <HowItWorks onboarded={onboarded} onStart={() => setWizardOpen(true)} />
 
-            <dl className="mt-8 grid gap-3 sm:grid-cols-2">
-              {[
-                ['Status', BUILD_STAGE],
-                ['Rails live', 'BTC · LTC · Lightning · Silent Payments (display)'],
-                ['Networks', 'mainnet · signet · testnet4 · LTC testnet'],
-                ['Backend', 'none — by construction'],
-              ].map(([k, v]) => (
-                <div key={k} className="panel">
-                  <dt className="eyebrow">{k}</dt>
-                  <dd className="mt-1 text-sm">{v}</dd>
-                </div>
-              ))}
-            </dl>
+              <Tech>
+                <p className="mt-6 max-w-2xl text-xs leading-relaxed text-muted">
+                  slip never holds money, never asks for a seed phrase, and has no server, account or
+                  API key behind it. You paste public wallet material once — an xpub, a descriptor, a
+                  Silent Payments address or a Lightning address — and every sale is paid directly to
+                  you.
+                </p>
+
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {TRUST.map(([label, detail]) => (
+                    <li key={label} className="chip" title={detail}>
+                      <span className="text-ink">{label}</span>
+                      <span className="opacity-70">· {detail}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {[
+                    ['Status', BUILD_STAGE],
+                    ['Rails live', 'BTC · LTC · Lightning · Silent Payments (display)'],
+                    ['Networks', 'mainnet · signet · testnet4 · LTC testnet'],
+                    ['Backend', 'none — by construction'],
+                  ].map(([k, v]) => (
+                    <div key={k} className="panel">
+                      <dt className="eyebrow">{k}</dt>
+                      <dd className="mt-1 text-sm">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </Tech>
+            </section>
 
             <Group
               id="sell"
@@ -284,6 +288,7 @@ export default function App() {
               why="Ring up a customer"
               active={activeSection === 'sell'}
             >
+              <NextStep />
               <Till />
               <Lightning />
             </Group>
@@ -317,7 +322,9 @@ export default function App() {
               <Counters />
               <Settings />
               <Backup />
-              <KeyCheck />
+              <Advanced>
+                <KeyCheck />
+              </Advanced>
               <div className="grid gap-3 lg:grid-cols-2 lg:items-start">
                 <PriceCheck />
                 <AddressCheck />
@@ -331,12 +338,14 @@ export default function App() {
               active={activeSection === 'more'}
             >
               <Verify />
-              <SelfTest />
-              <SilentPay />
-              <Pair />
-              <Watchlist />
-              {assist.liveTest && <LiveTest />}
-              {assist.wallClock && <WallClock />}
+              <Advanced>
+                <SelfTest />
+                <SilentPay />
+                <Pair />
+                <Watchlist />
+                {assist.liveTest && <LiveTest />}
+                {assist.wallClock && <WallClock />}
+              </Advanced>
             </Group>
 
             <Group

@@ -93,7 +93,10 @@ mode = 'mempool';
 await page.getByRole('button', { name: 'check now' }).click();
 await page.waitForTimeout(700);
 const seen = await page.locator('body').innerText();
-check('mempool receipt reads "seen in mempool"', /seen in mempool/.test(seen), seen.slice(0, 240));
+// The plain-language pass renamed this: a shopkeeper should not need the word "mempool" to know a
+// payment is on its way but not yet confirmed.
+check('an unconfirmed payment reads as seen, not paid', /seen on its way/i.test(seen), seen.slice(0, 240));
+check('an unconfirmed payment never says paid', !/^paid/i.test(seen.trim()) && !/paid — seen/i.test(seen), seen.slice(0, 120));
 check('mempool receipt is NOT called paid', !/Paid — seen on chain/.test(seen));
 
 // --- mined receipt completes and issues a receipt ---------------------------

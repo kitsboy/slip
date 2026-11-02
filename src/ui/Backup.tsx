@@ -14,6 +14,7 @@ import ConfirmButton from './ConfirmButton';
 import { exportLogLines, staffSummary, verifyLog, type ShiftLog } from '../core/shifts';
 import { LEDGER_KEY } from '../core/ledger';
 import { store as appStore } from '../core/storage';
+import Tech from './Tech';
 
 interface BackupState {
   accounts: CounterAccount[];
@@ -177,11 +178,17 @@ export default function Backup() {
     <section className="mt-6 panel" data-panel="backup">
       <p className="eyebrow">Backups &amp; staff record</p>
       <h2 className="panel-title mt-1">Your records, on your device, recoverable</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
-        The file holds your counters, settings and the staff log — and no keys, because none
-        exist here. It is still encrypted, because xpubs reveal every past and future address of
-        a wallet.
+      <p className="mt-1 text-sm leading-relaxed text-secondary">
+        Your wallets, settings and staff log, in one file you can keep. No keys — there are none to
+        keep. Still locked with a passphrase, because a list of your shop&apos;s addresses is nobody
+        else&apos;s business.
       </p>
+      <Tech>
+        <p className="mt-2 text-xs leading-relaxed text-muted">
+          The file holds no spending keys, because none exist here. It is encrypted anyway: an xpub
+          reveals every past and future address of a wallet.
+        </p>
+      </Tech>
 
       <label className="mt-4 block" htmlFor="bk-pass">
         <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">

@@ -741,7 +741,7 @@ export default function Till() {
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="eyebrow">Payment</p>
           <span className={`chip ${pending ? 'border-warn text-warn' : 'chip-good'}`}>
-            {invoice.status === 'awaiting' ? 'waiting for payment' : invoice.status === 'seen' ? 'seen in mempool — not mined yet' : invoice.status}
+            {invoice.status === 'awaiting' ? 'waiting for payment' : invoice.status === 'seen' ? 'seen on its way — not confirmed yet' : invoice.status}
           </span>
         </div>
         <h2 className="panel-title mt-1">
@@ -837,7 +837,7 @@ export default function Till() {
                   {leg2.status === 'complete'
                     ? 'this leg is paid'
                     : leg2.status === 'seen'
-                      ? 'seen in the mempool — not mined yet'
+                      ? 'seen on its way — not confirmed yet'
                       : 'waiting for payment'}
                 </p>
                 <p className="mt-1 break-all font-mono text-[11px]">{leg2.address}</p>
@@ -974,13 +974,13 @@ export default function Till() {
 
       {wallets.length === 0 ? (
         <p className="mt-3 rounded-lg border border-warn p-3 text-xs text-warn">
-          Add a wallet above first — a till needs somewhere to be paid.
+          Tell slip where to send the money first — under <span className="font-semibold">Setup → Wallets</span>.
         </p>
       ) : (
         <>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <label className="block" htmlFor="tl-wallet">
-              <span className="eyebrow">Wallet taking this sale</span>
+              <span className="eyebrow">Which wallet gets the money</span>
               <select
                 id="tl-wallet"
                 value={walletId}
@@ -989,13 +989,15 @@ export default function Till() {
               >
                 {wallets.map((w) => (
                   <option key={w.id} value={w.id} disabled={statusOf(w) !== 'ready'}>
-                    {w.label} · {w.networkId} {statusOf(w) !== 'ready' ? '(unchecked)' : ''}
+                    {w.label}
+                    {w.networkId === 'btc-mainnet' ? '' : ` · ${w.networkId}`}
+                    {statusOf(w) !== 'ready' ? ' (not checked yet)' : ''}
                   </option>
                 ))}
               </select>
             </label>
             <label className="block" htmlFor="tl-rate">
-              <span className="eyebrow">Rate per 1 {wallet?.coin === 'ltc' ? 'LTC' : 'BTC'} ({settings.currency})</span>
+              <span className="eyebrow">What one {wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth ({settings.currency})</span>
               <input
                 id="tl-rate"
                 value={rate}

@@ -28,9 +28,9 @@ const SERVICES: Service[] = [
     name: 'Payment engine — BTC, LTC, Lightning',
     status: 'shipped',
     detail:
-      'A fresh receive address per sale from your own xpub, or an exact-amount Lightning invoice from your own Lightning address, checked by LNURL-verify.',
+      'A fresh address for every sale, taken from your own wallet, or an exact-amount Lightning invoice from your own Lightning address — slip checks the invoice, never your balance.',
     guard:
-      '“Paid” appears only when the payment is mined and within tolerance. A mempool payment is shown as seen, never as paid.',
+      '“Paid” appears only when the payment is confirmed on the network and the amount is right. A payment still on its way is shown as seen — never as paid.',
   },
   {
     name: 'Receipts with customer-kept proofs',

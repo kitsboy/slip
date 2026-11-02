@@ -36,6 +36,7 @@ import { fetchAddressActivity, formatAtoms, targetFor } from '../core/providers/
 import type { AccountPurpose, WalletColour } from '../core/accounts';
 import { store as appStore } from '../core/storage';
 import InfoVideo from './InfoVideo';
+import Tech from './Tech';
 
 const NETWORKS: Array<{ id: NetworkId; coin: Coin; label: string }> = [
   { id: 'btc-mainnet', coin: 'btc', label: 'Bitcoin' },
@@ -299,14 +300,24 @@ export default function Counters() {
           seconds={10}
         />
       </div>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
-        One entry per wallet you need to watch — your own, your employer's, your parents' — each
-        with its own colour and label so you can tell them apart at a glance. A wallet is any of:
-        an <span className="text-ink">xpub</span>, a <span className="text-ink">BIP-380
-        descriptor</span> (multisig included), a single public key, or a plain address. For a{' '}
-        <span className="text-ink">BIP-85</span> child account you import the child xpub your own
-        signer produced — slip never derives BIP-85 itself, because that needs your master key.
+      <p className="mt-1 text-sm leading-relaxed text-secondary">
+        Tell slip where your money should land. Your wallet app can give you a public code for
+        that — copy it here and slip will watch it. It can see money arrive; it can never move it.
       </p>
+      <p className="mt-2 text-xs leading-relaxed text-muted">
+        One entry per wallet you need to watch — your own, your employer&apos;s, your parents&apos; —
+        each with its own colour and label so you can tell them apart at a glance.
+      </p>
+
+      <Tech>
+        <p className="mt-2 text-xs leading-relaxed text-muted">
+          The code is any of: an <span className="text-ink">xpub</span>, a{' '}
+          <span className="text-ink">BIP-380 descriptor</span> (multisig included), a single public
+          key, or a plain address. For a <span className="text-ink">BIP-85</span> child account you
+          import the child xpub your own signer produced — slip never derives BIP-85 itself, because
+          that needs your master key.
+        </p>
+      </Tech>
 
       {staff && (
         <p className="mt-3 rounded-lg border border-accent p-3 text-sm">
@@ -515,7 +526,7 @@ export default function Counters() {
 
         <label className="mt-2 block" htmlFor="ct-xpub">
           <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
-            xpub · descriptor · public key · address
+            Your wallet&apos;s public code
           </span>
           <textarea
             id="ct-xpub"

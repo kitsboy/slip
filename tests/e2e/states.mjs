@@ -44,7 +44,7 @@ await showPanel(page, 'history');
 check('books coach when empty', /Nothing sold on/i.test(await panelText('history')));
 
 await showPanel(page, 'till');
-check('a till with no wallet says exactly what it needs', /Add a wallet above first/i.test(await panelText('till')));
+check('a till with no wallet says exactly what it needs', /Tell slip where to send the money first/i.test(await panelText('till')));
 
 check('no runtime errors', errs.length === 0, errs.slice(0, 2).join(' | '));
 await browser.close();

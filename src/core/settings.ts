@@ -71,6 +71,14 @@ export interface AssistOptions {
   readonly soundOnPayment: boolean;
   /** The real-money 100 sat test. Off by default: it spends money, however little. */
   readonly liveTest: boolean;
+  /**
+   * Show the technical names — xpub, LNURL, mempool, descriptor, BIP-85.
+   *
+   * Off by default, and that is a product decision, not a preference: a shopkeeper who wanted to
+   * take a payment should never have to read the word "xpub" to do it. The exact terms stay one
+   * toggle away for the person who wants them, and nothing is removed from the app.
+   */
+  readonly showTechnical: boolean;
 }
 
 export const DEFAULT_ASSIST: AssistOptions = {
@@ -85,6 +93,7 @@ export const DEFAULT_ASSIST: AssistOptions = {
   weeklyLetter: false,
   soundOnPayment: true,
   liveTest: false,
+  showTechnical: false,
 };
 
 export const ASSIST_LABELS: Readonly<Record<keyof AssistOptions, { title: string; why: string }>> = {
@@ -98,6 +107,10 @@ export const ASSIST_LABELS: Readonly<Record<keyof AssistOptions, { title: string
   wallClock: { title: 'Quiet clock mode', why: 'A big clock with today\u2019s takings, for the gaps between customers.' },
   weeklyLetter: { title: 'Weekly letter', why: 'A week of takings written as sentences you can print and keep.' },
   soundOnPayment: { title: 'Chime when money lands', why: 'A short tone when a sale settles, and a duller one when money is seen but not yet mined. It never changes an invoice. Mute it in a quiet shop.' },
+  showTechnical: {
+    title: 'Show technical names',
+    why: 'The exact technical wording, for the person who wants it. Off by default, because a shop that just wants to take a payment should never have to read it.',
+  },
   liveTest: { title: 'Live 100 sat test', why: 'A real invoice for one hundred sats, on Lightning or signet, to prove a rail works before you trust it.' },
 };
 
@@ -107,6 +120,12 @@ export const ASSIST_GROUPS: ReadonlyArray<{
   why: string;
   keys: readonly (keyof AssistOptions)[];
 }> = [
+  {
+    id: 'explain',
+    label: 'Plain language',
+    why: 'How much of the technical side you want to see.',
+    keys: ['showTechnical'],
+  },
   {
     id: 'teaching',
     label: 'Teaching',

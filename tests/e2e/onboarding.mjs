@@ -43,7 +43,7 @@ await page.goto(BASE, { waitUntil: 'domcontentloaded' });
 await page.waitForSelector('h1', { timeout: 15000 });
 
 // Open the wizard from the hero.
-await page.getByRole('button', { name: /set up your shop/i }).click();
+await page.getByRole('button', { name: /set up my shop/i }).click();
 await page.waitForSelector('#wz-try', { timeout: 8000 });
 
 // --- Step 1: the wall is demonstrated, not just described -------------------
