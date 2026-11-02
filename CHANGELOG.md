@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.27.1** — 2026-11-02T17:07:28Z — `be006ef31780` — The words in English, a glossary in Learn, and a shop you can try before you believe it.
+
 - **v0.27.0** — 2026-11-02T16:54:38Z — `e04abff31cf8` — Plain language first: the jargon moves to the background, and the first screen is three steps and one button.
 
 - **v0.26.0** — 2026-11-02T16:10:23Z — `a187dde30305` — Six short explainers, each behind an (i) on the card it explains: what slip is, taking a payment, the status strip, the books, the receipt a customer keeps, and watch-only counters. Nothing downloads until you tap, the music is credited where it plays, and closing stops it
