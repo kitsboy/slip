@@ -99,6 +99,8 @@ export function demoScenario(now = new Date()): {
     settings: {
       businessName: 'Demo Café',
       currency: 'USD',
+      // The demo exists to show what is here, so the technical panels are already on view.
+      // (A real shop starts with them hidden — D-79.)
       taxBps: 0,
       taxInclusive: false,
       tipPresetsBps: [0, 1000, 1500, 2000],
@@ -115,6 +117,7 @@ export function demoScenario(now = new Date()): {
         bookSeal: true,
         handoverNote: true,
         counterCard: true,
+        showTechnical: true,
       },
       language: 'en',
       onboardedAt: stamp,

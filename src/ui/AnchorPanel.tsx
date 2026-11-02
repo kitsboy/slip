@@ -11,6 +11,7 @@
  * they are timestamped when they are only queued has been lied to by the UI.
  */
 
+import { isDemo } from '../core/storage';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createLedger } from '../core/ledger';
 import { CALENDARS, dayDigest, describeAnchor, submitAnchor, verifyLocally, type Anchor, type DayBook } from '../core/anchor';
@@ -152,7 +153,9 @@ export default function AnchorPanel() {
           <p className="text-ink">{describeAnchor(existing)}</p>
           <p className="mt-1 text-muted">
             {existing.status === 'submitted'
-              ? `submitted ${existing.submittedAt?.slice(0, 16).replace('T', ' ')} UTC to ${existing.calendar} · proof kept (${existing.proofBase64?.length ?? 0} bytes)`
+              ? isDemo
+                ? `simulated stamp ${existing.submittedAt?.slice(0, 16).replace('T', ' ')} UTC — the demo answers its own calendar and sent nothing`
+                : `submitted ${existing.submittedAt?.slice(0, 16).replace('T', ' ')} UTC to ${existing.calendar} · proof kept (${existing.proofBase64?.length ?? 0} bytes)`
               : existing.status === 'failed'
                 ? `nothing was sent successfully (${existing.error ?? 'unknown error'})`
                 : 'hashed here only — never submitted'}

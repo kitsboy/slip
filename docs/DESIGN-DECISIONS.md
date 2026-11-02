@@ -358,3 +358,26 @@ rather than a lie they cannot.
 Proven, not asserted: `node scripts/demo-check.mjs` walks eight pipes — the shop opens, an on-chain
 sale reaches paid, the Lightning address is pre-filled, an invoice is issued, it settles, the price
 lookup answers, the calendar answers, and **nothing left the device**.
+
+### D-82 — A pretend shop may be pretend, but it may not be dishonest
+
+An audit of the demo found four places where it said something untrue. None were crashes; all were
+lies a customer could have believed.
+
+1. **No invented money.** Any address the shop had never asked about came back funded with 100,000
+   sats after four seconds, so checking a stranger in the watchlist showed money that never arrived.
+   An address nobody asked to be paid at is simply unpaid — the simulator now returns zero.
+2. **A split's second leg is registered too.** Only the first leg knew its amount, so the second
+   either recorded a made-up figure or waited for ever. Both legs are now registered at charge time.
+3. **The stamp says it is simulated.** The panel used to claim a submission to a named public
+   calendar while the demo answered locally; it now says plainly that nothing was sent.
+4. **The pretend invoice says so.** The Lightning QR carries a note that no real wallet can pay it
+   and the demo settles it for you — otherwise a phone scanning it looks like a broken product.
+
+Two smaller corrections ride along: the demo's rate now matches the simulated quote (94,000, not a
+60,000 the screen would never charge), and the customer display keeps `?demo=1`, so a window opened
+from the pretend shop stays in the pretend drawer instead of showing pretend money as if it were
+real.
+
+`tests/demo-network.test.ts` pins the first, second and fourth; `scripts/demo-check.mjs` still walks
+eight pipes against the live domain.

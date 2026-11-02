@@ -106,7 +106,10 @@ function explorer(url: string): Response {
   let sale = sales.get(address);
   if (!sale) {
     const asked = pending.get(address);
-    sale = { firstAsked: now, atoms: asked?.atoms ?? 100_000n };
+    // An address the shop never asked to be paid at has not been paid. The old default invented
+    // 100,000 sats for every stranger typed into the watchlist — a lie the demo told in its sleep.
+    if (!asked) return json(stats(0n));
+    sale = { firstAsked: now, atoms: asked.atoms };
     sales.set(address, sale);
   }
 

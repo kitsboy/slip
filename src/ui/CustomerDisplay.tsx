@@ -24,7 +24,10 @@ const CHANNEL = 'slip-display';
 
 export function openCustomerDisplay(): boolean {
   const url = new URL(window.location.href);
-  url.search = '?display=1';
+  // Keep ?demo=1: a display opened from the pretend shop is still the pretend shop, and must not
+  // reach into the real drawer. `search` takes no leading '?', which used to produce '??display=1'.
+  const demo = new URLSearchParams(window.location.search).get('demo');
+  url.search = demo === '1' ? 'display=1&demo=1' : 'display=1';
   const win = window.open(url.toString(), 'slip-customer-display', 'width=520,height=780');
   return Boolean(win);
 }

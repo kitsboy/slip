@@ -41,7 +41,8 @@ check('the demo announces itself', /DEMO — a pretend shop/i.test(await body())
 await page.locator('button:has-text("Espresso")').first().click();
 await page.waitForTimeout(200);
 const rate = await page.locator('#tl-rate').inputValue();
-check('the demo fills a rate so nobody has to type one', rate.startsWith('60000'), rate);
+// The prefill now matches the simulated quote (94,000), so the figure shown is the figure charged.
+check('the demo fills a rate so nobody has to type one', rate.startsWith('94000'), rate);
 
 await page.getByRole('button', { name: /^charge/i }).click();
 await page.waitForSelector('text=Pay exactly');

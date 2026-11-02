@@ -207,6 +207,12 @@ export default function Lightning() {
               {formatFiat({ minor: live.minor, currency: settings.currency })} · to {live.address}
             </p>
             <p className="mt-1 break-all font-mono text-[11px]">{live.pr.slice(0, 64)}…</p>
+            {isDemo && (
+              <p className="mt-1 text-[11px] text-warn">
+                Pretend invoice — no real wallet can pay this. The demo settles it for you in a few
+                seconds so the whole flow can be seen.
+              </p>
+            )}
             <p className={`mt-2 ${settled ? 'text-ok' : 'text-warn'}`}>
               {settled
                 ? 'Settled — this payment was confirmed by the wallet itself.'

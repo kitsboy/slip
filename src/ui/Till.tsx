@@ -366,7 +366,8 @@ export default function Till() {
   // A demo shop has no rate to type and nobody to ask: prefill a plausible one so the walkthrough
   // reaches a QR in two taps. It is still an ordinary, visible, editable field.
   useEffect(() => {
-    if (isDemo && rate.trim() === '') setRate('60000.00');
+    // Matches the simulated quote, so the figure on screen is the figure that would be charged.
+    if (isDemo && rate.trim() === '') setRate('94000.00');
   }, [rate]);
 
   function charge() {
@@ -483,6 +484,9 @@ export default function Till() {
         });
         ledger.setBook(leg2Wallet.id, burnInvoiceIndex(second.invoice, second.book));
         ledger.putInvoice(second.invoice);
+        // Both legs are real addresses to the payer, so both must be registered: an unregistered
+        // leg used to fall back to a made-up 100,000 sats, or hang for ever on 'waiting'.
+        if (isDemo) registerDemoSale(second.invoice.address, second.invoice.amountAtoms);
         setLeg2(second.invoice);
       } else {
         setLeg2(null);
