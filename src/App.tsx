@@ -18,6 +18,7 @@ import Watchlist from './ui/Watchlist';
 import History from './ui/History';
 import SilentPay from './ui/SilentPay';
 import Install from './ui/Install';
+import InfoVideo from './ui/InfoVideo';
 import Manual from './ui/Manual';
 import BookSeal from './ui/BookSeal';
 import SelfTest from './ui/SelfTest';
@@ -235,6 +236,14 @@ export default function App() {
               </p>
 
               <div className="mt-5 flex flex-wrap items-center gap-2">
+                <InfoVideo
+                  src="videos/01-intro.mp4"
+                  poster="videos/01-intro.jpg"
+                  title="What slip is"
+                  seconds={12}
+                  label="What is slip?"
+                />
+
                 <button
                   type="button"
                   onClick={() => setWizardOpen(true)}
@@ -389,6 +398,12 @@ export default function App() {
             </span>
           )}
           <Status />
+          <InfoVideo
+            src="videos/03-status-strip.mp4"
+            poster="videos/03-status-strip.jpg"
+            title="Status, rails, networks, backend"
+            seconds={17}
+          />
           <Install />
           <RequestCounter />
           <span className="text-[11px] text-muted">

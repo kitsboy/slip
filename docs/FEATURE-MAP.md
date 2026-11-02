@@ -62,6 +62,7 @@ is covered by tests. Nothing on this page is aspirational.
 | Waiting strip | Open sales above the counter, oldest first, with age; tap to pick one back up | live | `core/awaiting.ts`, `ui/AwaitingStrip.tsx` |
 | Scan into the cart | Wedge scanner, camera QR or a typed code resolved against the catalog — exact match only | live | `ui/ScanToCart.tsx` |
 | Counter shortcuts | `/` search, `c` charge, `n` next sale, `p` print — never while a field has focus | live | `ui/Till.tsx` |
+| Explainer clips | Six short videos behind an (i) on the hero and on five cards; nothing downloads until tapped, credited where they play | live | `ui/InfoVideo.tsx`, `public/videos/` |
 | Tamper-evident footer | Today's completed-sales digest in the footer, changing as sales land | live | `ui/BookSeal.tsx` |
 | Parked tabs | Up to five half-built sales parked and resumed; no address is reserved until charged | live | `core/tabs.ts` |
 | Repeat last sale | One tap to reload the previous order | live | `core/tabs.ts` |

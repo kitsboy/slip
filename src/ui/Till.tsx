@@ -45,6 +45,7 @@ import { store as appStore } from '../core/storage';
 import AwaitingStrip from './AwaitingStrip';
 import OpenTill, { type OpenShift } from './OpenTill';
 import ScanToCart from './ScanToCart';
+import InfoVideo from './InfoVideo';
 import { announceOnce, cueForTransition, primeAudio } from '../core/sound';
 
 interface CartLine {
@@ -934,14 +935,20 @@ export default function Till() {
 
   return (
     <section className="mt-6 panel" data-panel="till">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <div>
-          <p className="eyebrow">Till</p>
-          <h2 className="panel-title mt-1">Take a payment</h2>
-        </div>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <p className="eyebrow">Till</p>
         <span className={`badge ${online ? 'badge-pending' : 'badge-bad'}`}>
           {online ? 'Watching for payments' : 'Offline — not watching'}
         </span>
+      </div>
+      <div className="mt-1 flex items-center gap-2">
+        <h2 className="panel-title">Take a payment</h2>
+        <InfoVideo
+          src="videos/02-take-a-payment.mp4"
+          poster="videos/02-take-a-payment.jpg"
+          title="Taking a payment"
+          seconds={11}
+        />
       </div>
 
       <AwaitingStrip

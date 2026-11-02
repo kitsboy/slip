@@ -18,6 +18,7 @@ import { loadSettings } from '../core/settings';
 import { formatSats } from '../core/money';
 import { ScanField } from './Scan';
 import { escapeHtml, openPrintable } from './print';
+import InfoVideo from './InfoVideo';
 import { store as appStore } from '../core/storage';
 
 function today(): string {
@@ -140,7 +141,15 @@ export default function History() {
       data-rail-manual={close.byRail.manual.toString()}
     >
       <p className="eyebrow">History &amp; day close</p>
-      <h2 className="panel-title mt-1">What you rang up</h2>
+      <div className="flex items-center gap-2">
+        <h2 className="panel-title mt-1">What you rang up</h2>
+        <InfoVideo
+          src="videos/04-books.mp4"
+          poster="videos/04-books.jpg"
+          title="The books and the day close"
+          seconds={13}
+        />
+      </div>
       <p className="mt-1 text-xs leading-relaxed text-muted">
         Completed sales only. Refunds are subtracted, and the sheet always states how much a human
         confirmed rather than slip observed.

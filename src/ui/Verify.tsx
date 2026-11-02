@@ -16,6 +16,7 @@ import { formatProof, parseProof, proofMatchesInvoice, type ReceiptProof } from 
 import { renderQrSvg } from '../core/qr';
 import { formatSats } from '../core/money';
 import { ScanField } from './Scan';
+import InfoVideo from './InfoVideo';
 import { store as appStore } from '../core/storage';
 
 export default function Verify() {
@@ -65,7 +66,15 @@ export default function Verify() {
   return (
     <section className="mt-6 panel" data-panel="verify">
       <p className="eyebrow">Receipts</p>
-      <h2 className="panel-title mt-1">Check a receipt</h2>
+      <div className="flex items-center gap-2">
+        <h2 className="panel-title mt-1">Check a receipt</h2>
+        <InfoVideo
+          src="videos/05-customer-proof.mp4"
+          poster="videos/05-customer-proof.jpg"
+          title="The proof the customer keeps"
+          seconds={12}
+        />
+      </div>
       <p className="mt-1 text-xs leading-relaxed text-muted">
         Paste the text under a receipt&apos;s QR (or scan it and paste what your phone shows). slip
         compares it against the books on this device. Nothing is sent anywhere.

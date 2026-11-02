@@ -9,6 +9,7 @@ export default {
         surface: 'var(--slip-surface)',
         ink: 'var(--slip-ink)',
         muted: 'var(--slip-muted)',
+        secondary: 'var(--slip-secondary)',
         line: 'var(--slip-line)',
         accent: 'var(--slip-accent)',
         good: 'var(--slip-good)',

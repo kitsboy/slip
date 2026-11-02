@@ -59,6 +59,8 @@ function cspPlugin() {
         `script-src 'self' ${hashes.join(' ')}`.trim(),
         "style-src 'self' 'unsafe-inline'",
         "img-src 'self' data: blob:",
+        // The six explainer clips are same-origin files, never a CDN or an embed.
+        "media-src 'self'",
         "font-src 'self' data:",
         // A merchant's own explorer / rate endpoints cannot be enumerated in a static
         // policy; the provider layer enforces the chosen allow-list (DECISIONS D-07).

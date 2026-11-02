@@ -180,6 +180,79 @@ button {
     min-height: 40px;
   }
 
+  /* The (i) that opens a short clip. 40px because a thumb, not a mouse, finds it. */
+  .info-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 40px;
+    min-width: 40px;
+    padding: 0 0.5rem;
+    border: 1px solid var(--slip-line-strong);
+    border-radius: 999px;
+    background: var(--slip-surface);
+    color: var(--slip-secondary);
+    font-size: 11px;
+  }
+  .info-btn:hover,
+  .info-btn:focus-visible {
+    border-color: var(--slip-accent);
+    color: var(--slip-ink);
+  }
+  .info-btn-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 11px;
+    font-style: italic;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .info-btn-labelled {
+    padding: 0 0.9rem;
+    font-size: 13px;
+  }
+
+  .info-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgb(0 0 0 / 0.72);
+  }
+  .info-card {
+    width: 100%;
+    max-width: 28rem;
+    padding: 0.85rem;
+    border: 1px solid var(--slip-line-strong);
+    border-radius: 0.9rem;
+    background: var(--slip-surface);
+    box-shadow: 0 18px 50px rgb(0 0 0 / 0.35);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .info-card {
+      animation: info-in 140ms ease-out;
+    }
+  }
+  @keyframes info-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
   /* A till should never need a steady hand. Checkboxes and radios keep their box. */
   input:not([type='checkbox']):not([type='radio']):not([type='range']),
   select,

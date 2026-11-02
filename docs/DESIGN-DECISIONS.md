@@ -271,3 +271,30 @@ The general rule this earns: **anything a device caches must be named for the th
 the cache becomes a lie that outlives every fix. And any claim the app makes about itself — version
 included — must be checkable from outside the app, which is why the version lives in a meta tag a
 remote checker can read without running JavaScript.
+
+## D-78 — Explain it on the card, not in a help centre
+Six short clips answer the six questions a merchant asks *while looking at a card*: what is this
+strip, why does the books page talk about a hash, what is the QR the customer keeps. So the (i) lives
+on the card, beside its title, and the answer opens over it.
+
+Four rules, each with a reason:
+
+- **Nothing downloads until the icon is tapped.** The `<video>` element mounts only when the popover
+  opens, with `preload="none"`. A shop on mobile data must not pay for six clips it never watched;
+  `tests/e2e/info.mjs` asserts that no `/videos/*.mp4` request happens on load.
+- **Played when asked, never on arrival.** Opening the popover plays the clip — that tap is the user
+  gesture browsers require, and the human asked for it. Nothing plays on load, so a till never makes
+  noise at a customer standing in front of it.
+- **Closing stops it.** Pause and rewind on close; Escape and the Close button both work, and the
+  opener gets focus back. A voice that keeps talking behind a closed dialog is a bug that sounds like
+  a ghost.
+- **The music is credited where it plays.** The bed is CC BY 4.0; the credit line sits under every
+  clip, and `docs/CREDITS.md` records it too. Attribution in a repository nobody opens is not
+  attribution.
+
+The clips are served from this app's own origin (`public/videos/`), never a CDN or an embed, and the
+CSP gained `media-src 'self'` for exactly that reason. They are the 480p delivery copies — a popover
+on a phone cannot show more, and 6 MB of unused resolution is a tax on the merchant's data.
+
+The count matters too: there are six icons and six clips, not one video buried in a menu. A person
+reading "rails live" wants the answer *there*, and going to look for it is how a help centre fails.

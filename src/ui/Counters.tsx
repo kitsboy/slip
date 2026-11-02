@@ -35,6 +35,7 @@ import { loadSettings } from '../core/settings';
 import { fetchAddressActivity, formatAtoms, targetFor } from '../core/providers/esplora';
 import type { AccountPurpose, WalletColour } from '../core/accounts';
 import { store as appStore } from '../core/storage';
+import InfoVideo from './InfoVideo';
 
 const NETWORKS: Array<{ id: NetworkId; coin: Coin; label: string }> = [
   { id: 'btc-mainnet', coin: 'btc', label: 'Bitcoin' },
@@ -289,7 +290,15 @@ export default function Counters() {
 
   return (
     <section className="mt-6 panel" data-panel="wallets">
-      <h2 className="panel-title">Wallets &amp; staff hand-off</h2>
+      <div className="flex items-center gap-2">
+        <h2 className="panel-title">Wallets &amp; staff hand-off</h2>
+        <InfoVideo
+          src="videos/06-your-counters.mp4"
+          poster="videos/06-your-counters.jpg"
+          title="Your counters"
+          seconds={10}
+        />
+      </div>
       <p className="mt-1 text-xs leading-relaxed text-muted">
         One entry per wallet you need to watch — your own, your employer's, your parents' — each
         with its own colour and label so you can tell them apart at a glance. A wallet is any of:
