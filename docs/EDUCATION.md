@@ -6,7 +6,7 @@ _Generated from `src/manual/entries.ts` and `src/core/explain.ts`. Regenerate wi
 
 | # | Lesson | Minutes | Cards used |
 |---|---|---|---|
-| 1 | What slip is (and is not) | 3 | wallets, demo-link, explainer |
+| 1 | What slip is (and is not) | 3 | wallets, demo-link, explainer, glossary |
 | 2 | Take a sale, honestly | 4 | till, lightning, livetest |
 | 3 | Close the day and keep proof | 4 | history, anchor, verify, letter |
 | 4 | Hand it over and keep it safe | 3 | pair, backup, assist, selftest |
@@ -22,6 +22,7 @@ _Generated from `src/manual/entries.ts` and `src/core/explain.ts`. Regenerate wi
 - `wallets` — Your wallets: slip never holds money, so a wallet here is only a public address slip watches for you.
 - `demo-link` — The demo shop: A pretend café so a stranger can take a sale before owning a wallet.
 - `explainer` — The customer page: One plain page for a customer who has never used bitcoin.
+- `glossary` — The words, in English: Every term on the till has a plain meaning, and the exact name for whoever wants it.
 
 **Check before moving on:**
 - [ ] They can say where the money lands.
@@ -79,11 +80,21 @@ _Generated from `src/manual/entries.ts` and `src/core/explain.ts`. Regenerate wi
 
 ## Every card, in its own words
 
+### The words, in English  `glossary`
+
+Every term on the till has a plain meaning, and the exact name for whoever wants it.
+
+1. Open Learn and read the term that stopped you.
+1. Plain meaning first; the exact name and definition sit underneath it.
+1. Nothing here is required reading — it is a reference, not a step.
+
+**Limit:** A glossary can explain a word; it cannot make slip hold money. The no-custody limits are unchanged.
+
 ### Your wallets  `wallets`
 
 slip never holds money, so a wallet here is only a public address slip watches for you.
 
-1. Paste an xpub, a descriptor, a single public key or one address.
+1. Paste the public code your wallet app gives you — one code, not a seed phrase.
 1. Compare address 0/0 with the same address in your own wallet.
 1. Tick the box only when they match, then save.
 
@@ -96,7 +107,7 @@ Ring up a sale in four taps and show a QR that pays your wallet directly.
 1. Pick the wallet taking this sale and enter the rate you were quoted.
 1. Tap items, or type a custom amount, or use tip jar mode.
 1. Charge. The QR names the exact amount and the reserved address.
-1. Watch the status: seen in the mempool is not paid. Paid means mined.
+1. Watch the status: seen means it is on its way. Paid means it landed.
 
 **Limit:** slip can only check a payment while the payment screen is open, or at the next launch.
 

@@ -54,6 +54,9 @@ export default function HowItWorks({ onStart, onboarded }: Props) {
           <button type="button" className="btn btn-primary" onClick={onStart}>
             {onboarded ? 'Go to the till' : 'Set up my shop'}
           </button>
+          <a className="btn btn-secondary" href="?demo=1" target="_blank" rel="noreferrer noopener">
+            See it with pretend sales
+          </a>
           <span className="text-xs text-secondary">
             {onboarded ? 'you are ready — go and sell something' : 'three short screens · about a minute'}
           </span>

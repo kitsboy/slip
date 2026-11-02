@@ -57,7 +57,7 @@ const LESSONS = [
     n: 1,
     title: 'What slip is (and is not)',
     minutes: 3,
-    cards: ['wallets', 'demo-link', 'explainer'],
+    cards: ['wallets', 'demo-link', 'explainer', 'glossary'],
     say: [
       'slip is a till with no company behind it: no account, no server, no way to spend your money.',
       'A wallet here is only a public address slip watches. The money goes to your wallet, not to slip.',

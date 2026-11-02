@@ -22,6 +22,7 @@ import InfoVideo from './ui/InfoVideo';
 import HowItWorks from './ui/HowItWorks';
 import NextStep from './ui/NextStep';
 import Tech, { Advanced } from './ui/Tech';
+import Glossary from './ui/Glossary';
 import Manual from './ui/Manual';
 import BookSeal from './ui/BookSeal';
 import SelfTest from './ui/SelfTest';
@@ -354,6 +355,7 @@ export default function App() {
               why="The manual, what slip will offer, and why it is built this way"
               active={activeSection === 'learn'}
             >
+              <Glossary />
               <Manual />
               <Services />
               <About />

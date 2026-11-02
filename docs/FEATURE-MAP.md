@@ -83,4 +83,5 @@ is covered by tests. Nothing on this page is aspirational.
 | Plain-language layer | every panel | a plain sentence on screen, the exact term behind a switch (`<Tech>`), developer panels grouped under `<Advanced>` | D-79 |
 | Three-step first screen | hero, Sell | "Add your wallet · Ring up the sale · They pay you", one orange action | D-79 |
 | Next-step strip | Sell | reads the device (no wallet / ready / trading) and names the one useful action | D-79 |
-| "Show technical names" | Settings → Plain language | brings back xpub, LNURL, mempool, descriptor, BIP-85; nothing is ever deleted | D-79 |
+| "Show technical names" | Settings → Plain language | brings back xpub, LNURL, mempool, descriptor, BIP-85; nothing is ever deleted | D-79 || Glossary in plain words | Learn | ten everyday terms, each meaning one sentence; exact names behind the technical switch | D-80 |
+| Try before you paste | hero | "See it with pretend sales" opens the demo in a new tab | D-80 |

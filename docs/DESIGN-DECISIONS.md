@@ -313,7 +313,8 @@ from becoming a lie.
 2. **The exact term is available, never required.** `<Tech>` renders the precise wording — xpub,
    descriptor, LNURL, mempool, BIP-85 — and renders nothing at all until "Show technical names" is
    on in Settings. Default off is the product decision, not a default: a shop that wants to take a
-   payment should never have to read them.
+   payment should never have to read them. Learn carries a **glossary in plain words** (D-80) so a
+   person who stops on a word has somewhere to go that is not a developer document.
 3. **Whole developer tools are grouped, not scattered.** `<Advanced>` wraps the panels only a
    developer uses (pairing, watchlist, silent payments, self-test, the key calculator) behind one
    card that says what is behind it and one button that reveals it. Nothing is removed, every panel
@@ -329,3 +330,14 @@ from becoming a lie.
 The measured result: the words a stranger meets on the first screen are now "wallet", "sale" and
 "pay". `xpub`, `mempool`, `BIP-85`, `LNURL` and `descriptor` no longer appear in the rendered text of
 the default page — and `xpub` returns the moment the switch is turned on.
+
+### D-80 — A glossary in plain words, and a way to try it before believing it
+
+Learn now opens with *Every term, in English*: ten entries, each a plain meaning in one sentence,
+with the exact name and definition behind the same switch as every other technical line. The
+headings are the plain words — "wallet code", "wallet rules", "instant payment address" — because a
+glossary that leads with the jargon has not helped anyone.
+
+The hero also gained its second, outline action: **See it with pretend sales**, which opens the demo
+in a new tab. A stranger can watch the whole thing work before pasting anything of their own, and
+nothing about the demo can touch a real wallet.

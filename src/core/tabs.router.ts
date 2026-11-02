@@ -51,6 +51,7 @@ export const PANEL_IDS: readonly string[] = [
   'manual',
   'demo-link',
   'explainer',
+  'glossary',
 ];
 
 /**
@@ -61,6 +62,8 @@ export const PANEL_IDS: readonly string[] = [
 export const LEGACY_ALIASES: Readonly<Record<string, Section>> = {
   // folded group
   proof: 'more',
+  // Learn
+  glossary: 'learn',
   // Sell
   till: 'sell',
   lightning: 'sell',

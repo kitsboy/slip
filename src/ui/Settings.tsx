@@ -142,7 +142,7 @@ export default function Settings() {
       </div>
 
       <label className="mt-3 block" htmlFor="st-explorer">
-        <span className="eyebrow">Chain-data endpoint (leave empty for the public explorer)</span>
+        <span className="eyebrow">Who checks the network for us (leave empty for the free public one)</span>
         <input
           id="st-explorer"
           value={explorerUrl}

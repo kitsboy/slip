@@ -25,7 +25,7 @@ const SERVICES: Service[] = [
     guard: 'Works offline. Nothing on this screen touches the network.',
   },
   {
-    name: 'Payment engine — BTC, LTC, Lightning',
+    name: 'Taking payments — Bitcoin, Litecoin, instant',
     status: 'shipped',
     detail:
       'A fresh address for every sale, taken from your own wallet, or an exact-amount Lightning invoice from your own Lightning address — slip checks the invoice, never your balance.',
@@ -64,7 +64,7 @@ const SERVICES: Service[] = [
     name: 'Silent Payments (BIP-352)',
     status: 'shipped',
     detail:
-      'An sp1 or tsp1 address is validated, shown as a BIP-21 QR, and the sale is recorded as a manual confirmation.',
+      'A private payment address is checked, shown as an ordinary payment code, and the sale is marked as confirmed by you — not by slip.',
     guard:
       'slip cannot watch an sp1 address: detection needs your wallet’s scan key, which slip will never hold.',
   },
@@ -72,8 +72,8 @@ const SERVICES: Service[] = [
     name: 'Day anchoring (OpenTimestamps)',
     status: 'shipped',
     detail:
-      'Each day’s completed sales are hashed on this device; stamping submits that digest to a public calendar and keeps the proof.',
-    guard: 'Stamped is not confirmed: the Bitcoin attestation arrives in the calendar’s own time.',
+      'Each day’s takings become a fingerprint on this device. Stamping sends that fingerprint to a public timestamp service and keeps the receipt.',
+    guard: 'Stamped is not yet confirmed — the final proof arrives later, on that service’s own schedule.',
   },
   {
     name: 'Pairing, watchlist, customer screen',

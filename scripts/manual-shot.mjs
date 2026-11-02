@@ -109,7 +109,20 @@ for (const id of ids) {
   // a panel inside a display:none section once the six-tab shell landed.
   await page.goto(`http://127.0.0.1:${PORT}/#${id}`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('h1').catch(() => {});
-  const panel = page.locator(`[data-panel="${id}"]`).first();
+
+  // The developer panels sit behind the technical switch (D-79). The manual documents them, so the
+  // shooter presses that switch the way a person would, then photographs what appears.
+  let panel = page.locator(`[data-panel="${id}"]`).first();
+  if ((await panel.count()) === 0) {
+    const reveal = page.getByRole('button', { name: /show the technical tools/i });
+    if ((await reveal.count()) > 0) {
+      await reveal.first().click();
+      await page.waitForTimeout(200);
+      await page.goto(`http://127.0.0.1:${PORT}/#${id}`, { waitUntil: 'domcontentloaded' });
+      await page.waitForSelector('h1').catch(() => {});
+      panel = page.locator(`[data-panel="${id}"]`).first();
+    }
+  }
   if ((await panel.count()) === 0) {
     missing.push(id);
     continue;

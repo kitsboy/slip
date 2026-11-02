@@ -26,6 +26,21 @@ export interface ManualEntry {
 
 export const MANUAL: readonly ManualEntry[] = [
   {
+    id: 'glossary',
+    title: 'The words, in English',
+    why: 'Every term on the till has a plain meaning, and the exact name for whoever wants it.',
+    steps: [
+      'Open Learn and read the term that stopped you.',
+      'Plain meaning first; the exact name and definition sit underneath it.',
+      'Nothing here is required reading — it is a reference, not a step.',
+    ],
+    limit: 'A glossary can explain a word; it cannot make slip hold money. The no-custody limits are unchanged.',
+    code: ['src/ui/Glossary.tsx'],
+    tests: ['tests/app.test.tsx'],
+    group: 'start',
+    status: 'live',
+  },
+  {
     id: 'wallets',
     title: 'Your wallets',
     why: 'slip never holds money, so a wallet here is only a public address slip watches for you.',

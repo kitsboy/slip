@@ -279,7 +279,7 @@ export default function History() {
               {refunding?.id === row.id && (
                 <div className="mt-2 rounded-lg border border-warn/40 p-2">
                   <label className="block" htmlFor="rf-atoms">
-                    <span className="eyebrow">Sats to refund</span>
+                    <span className="eyebrow">Amount to refund</span>
                     <input
                       id="rf-atoms"
                       value={atoms}
