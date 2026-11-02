@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.25.1** — 2026-11-02T03:27:26Z — `0d0cf76f978c` — The build you were reading can no longer go stale: the offline shell is named for each release and asks the network first, so a device that installed slip early finally moves forward — and slip now says so when a newer version is live
+
 - **v0.25.0** — 2026-11-01T20:15:06Z — `3479dfe7c1e8` — A till that can be heard: chimes when money lands, a waiting strip for open sales, one tap to open and close the day, scanning straight into the cart, and a clear Next sale
 
 - **v0.24.1** — 2026-11-01T16:55:58Z — `de035b58e714` — one label role, 11px floor, honest hit areas
