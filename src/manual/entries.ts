@@ -170,6 +170,7 @@ export const MANUAL: readonly ManualEntry[] = [
     steps: [
       'Open the Manual and press “open the demo shop”.',
       'Take a sale: it becomes paid on its own after a few seconds, because the explorer is simulated.',
+      'Try the Lightning card too: the address is pre-filled and settles in about four seconds.',
       'Press exit demo when you are done. Your real books are untouched — the demo has its own drawer.',
     ],
     limit: 'Demo money is pretend and the explorer is simulated. Nothing leaves the device.',

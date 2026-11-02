@@ -14,7 +14,13 @@ import { fetchPayParams, lightningUri, parseLightningAddress, requestInvoice, ve
 import { loadSettings } from '../core/settings';
 import { fiatToAtoms, formatFiat, formatSats, parseFiat, parseRate } from '../core/money';
 import { renderQrSvg } from '../core/qr';
-import { store as appStore } from '../core/storage';
+import { isDemo, store as appStore } from '../core/storage';
+
+const DEMO_RATE: Readonly<Record<string, string>> = {
+  USD: '94000',
+  EUR: '86500',
+  GBP: '74200',
+};
 
 interface Live {
   readonly address: string;
@@ -28,9 +34,13 @@ interface Live {
 export default function Lightning() {
   const settings = loadSettings(appStore()).settings;
   const ledger = createLedger(appStore());
-  const [address, setAddress] = useState('');
+  // A demo shop has a pretend Lightning address already filled in: one less thing to invent before
+  // a visitor can see the whole flow work. It resolves against the simulator, never the internet.
+  const [address, setAddress] = useState(() => (isDemo ? 'till@demo.local' : ''));
   const [amount, setAmount] = useState('');
-  const [rate, setRate] = useState('');
+  // A demo needs a price to turn pounds into sats, and a price is exactly what the simulated
+  // internet now answers for. Prefilling it keeps the demo to one press; it stays editable.
+  const [rate, setRate] = useState(() => (isDemo ? DEMO_RATE[loadSettings(appStore()).settings.currency] ?? '94000' : ''));
   const [memo, setMemo] = useState('');
   const [live, setLive] = useState<Live | null>(null);
   const [status, setStatus] = useState<string>('');

@@ -341,3 +341,20 @@ glossary that leads with the jargon has not helped anyone.
 The hero also gained its second, outline action: **See it with pretend sales**, which opens the demo
 in a new tab. A stranger can watch the whole thing work before pasting anything of their own, and
 nothing about the demo can touch a real wallet.
+
+### D-81 — The demo answers its own internet
+
+The demo banner promises that nothing leaves the device. That promise was only true of the
+explorer. A Lightning address typed into the till, a price lookup, a day stamp to a public calendar
+— each of those would have gone out over the real network from inside a pretend shop, and two of
+them would have dead-ended, because a fake shop's address does not resolve.
+
+So the simulator no longer answers only `/address/…`. In demo mode every off-origin request is
+intercepted: prices, LNURL-pay (any address works, because it is pretend), the LUD-21 verify that
+settles four seconds later, the day-stamp calendar, and the explorer. Anything unrecognised gets a
+local 404 — a demo must never quietly reach the internet, and a 404 is a dead end a visitor can see
+rather than a lie they cannot.
+
+Proven, not asserted: `node scripts/demo-check.mjs` walks eight pipes — the shop opens, an on-chain
+sale reaches paid, the Lightning address is pre-filled, an invoice is issued, it settles, the price
+lookup answers, the calendar answers, and **nothing left the device**.
