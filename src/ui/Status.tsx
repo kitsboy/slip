@@ -7,11 +7,14 @@
  */
 
 import { useEffect, useState } from 'react';
+import { VERSION } from '../core/buildinfo';
 
 interface State {
   online: boolean;
   installed: boolean;
   updateReady: boolean;
+  /** The version the live page reports, when it is not this build. */
+  newerVersion: string | null;
 }
 
 export default function Status() {
@@ -19,6 +22,7 @@ export default function Status() {
     online: typeof navigator === 'undefined' ? true : navigator.onLine,
     installed: false,
     updateReady: false,
+    newerVersion: null,
   });
 
   useEffect(() => {
@@ -40,6 +44,19 @@ export default function Status() {
         check();
         reg.addEventListener('updatefound', check);
       });
+    }
+
+    // Belt and braces: ask the live page what version it is. If the answer is not this
+    // build, the merchant is reading an old shell and must be told — a till that is wrong
+    // about its own version cannot be trusted about a payment.
+    if (typeof fetch === 'function') {
+      fetch('./index.html', { cache: 'no-store' })
+        .then((r) => (r.ok ? r.text() : ''))
+        .then((html) => {
+          const live = /<meta name="slip-version" content="([0-9][^"]*)" \/>/.exec(html)?.[1];
+          if (live && live !== VERSION) setState((s) => ({ ...s, newerVersion: live }));
+        })
+        .catch(() => undefined);
     }
 
     return () => {
@@ -66,6 +83,16 @@ export default function Status() {
           className="chip chip-accent"
         >
           new version ready — reload
+        </button>
+      )}
+      {state.newerVersion && !state.updateReady && (
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="chip chip-accent"
+          title={`this page is v${VERSION}`}
+        >
+          v{state.newerVersion} is live — reload when idle
         </button>
       )}
     </div>

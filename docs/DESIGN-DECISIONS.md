@@ -246,3 +246,28 @@ reads "Watching for payments" online and "Offline — not watching" offline, pin
 `tests/e2e/polish.mjs`. The counter shortcuts (`/` search, `c` charge, `n` next sale, `p` print) are
 letter keys only and never fire while a field has focus — someone typing a customer's name must not
 start a sale.
+
+## D-77 — A till may never be pinned to an old build
+`public/sw.js` shipped with `const CACHE = 'slip-v1'` and served `index.html` **cache-first with no
+revalidation**. A service worker only reinstalls when its own bytes change, and those bytes never
+changed, so a device that installed slip early kept the `index.html` it first cached — indefinitely.
+The real symptom: a merchant reading **v0.8.1 · 88edaa9** in the header while v0.25.0 was live, with
+nothing on their device able to fix it, and the "new version ready" chip unable to appear because no
+new worker was ever installed.
+
+Three changes, each fixing a different part:
+
+1. **The cache is named for the build.** `__BUILD__` in `sw.js` is replaced at build time with
+   `<version>-<commit>`, so every release changes the worker's bytes and the browser installs it.
+   `scripts/scan-bundle.sh` fails the build if the placeholder survives or the version is missing.
+2. **The shell is network-first.** A navigation asks the network and falls back to the cached shell;
+   static assets stay cache-first. A till that is online is never more than one load behind.
+3. **The page reports its own staleness.** `Status` fetches `index.html` with `no-store` and compares
+   the `slip-version` meta with the build it is running; a mismatch shows "v0.25.1 is live — reload
+   when idle". The worker still never reloads a live page — updates activate, a human presses the
+   button.
+
+The general rule this earns: **anything a device caches must be named for the thing that changed**, or
+the cache becomes a lie that outlives every fix. And any claim the app makes about itself — version
+included — must be checkable from outside the app, which is why the version lives in a meta tag a
+remote checker can read without running JavaScript.

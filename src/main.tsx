@@ -20,9 +20,14 @@ if (!el) throw new Error('slip: #root missing');
  */
 if ('serviceWorker' in navigator && window.isSecureContext) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {
-      /* offline shell unavailable; the app still runs from the network or disk */
-    });
+    navigator.serviceWorker
+      .register('./sw.js')
+      // Ask for a new worker on every launch. The worker is versioned per build, so this is
+      // how a device that was pinned to an old shell finds out there is a newer one.
+      .then((reg) => reg.update().catch(() => undefined))
+      .catch(() => {
+        /* offline shell unavailable; the app still runs from the network or disk */
+      });
   });
 }
 

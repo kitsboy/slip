@@ -85,6 +85,36 @@ function cspPlugin() {
   };
 }
 
+/**
+ * The service worker must be named for the build it belongs to.
+ *
+ * A worker only reinstalls when its own bytes change. A constant `slip-v1` cache name meant
+ * `sw.js` never changed between releases, so a device that installed slip early kept its
+ * first-cached `index.html` forever — a merchant read v0.8 in the header while v0.25 was
+ * live. Replacing `__BUILD__` with `<version>-<commit>` makes every release look new to the
+ * browser, which then installs the worker and deletes the old cache on activate.
+ */
+function swPlugin() {
+  return {
+    name: 'slip-sw-version',
+    apply: 'build' as const,
+    enforce: 'post' as const,
+    closeBundle() {
+      const src = resolve(import.meta.dirname, 'public/sw.js');
+      const out = resolve(import.meta.dirname, 'dist/sw.js');
+      try {
+        const worker = readFileSync(src, 'utf8').replaceAll(
+          '__BUILD__',
+          `${VERSION}-${COMMIT}`,
+        );
+        writeFileSync(out, worker, 'utf8');
+      } catch {
+        /* build failed earlier; nothing to version */
+      }
+    },
+  };
+}
+
 /** Prints the SHA-256 of the finished artifact so merchants can verify a download. */
 function hashReportPlugin() {
   return {
@@ -122,6 +152,7 @@ export default defineConfig({
     react(),
     viteSingleFile({ removeViteModuleLoader: true }),
     cspPlugin(),
+    swPlugin(),
     hashReportPlugin(),
   ],
   build: {

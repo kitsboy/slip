@@ -37,6 +37,18 @@ for claim in 'payment received' 'paid ✓' 'payment confirmed'; do
   if grep -qiF -- "$claim" "$FILE"; then report "claims a payment the engine cannot observe: $claim"; fi
 done
 
+# 5. The offline shell must be named for this build, or a device stays pinned forever.
+sw="$(dirname "$FILE")/sw.js"
+if [[ -f "$sw" ]]; then
+  if grep -qF '__BUILD__' "$sw"; then
+    report 'service worker cache name is not versioned — a device would stay pinned to one build'
+  fi
+  version=$(grep -oE '<meta name="slip-version" content="[0-9][^"]*" />' "$FILE" | head -1 | cut -d'"' -f4)
+  if [[ -n "$version" ]] && ! grep -qF "slip-${version}" "$sw"; then
+    report "service worker cache does not carry the build version (expected slip-${version})"
+  fi
+fi
+
 if [[ "$fail" -ne 0 ]]; then
   echo "scan-bundle: FAILED" >&2
   exit 1
