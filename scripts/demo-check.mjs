@@ -30,7 +30,9 @@ page.on('request', (r) => {
 });
 
 await page.goto(`${BASE}?demo=1`, { waitUntil: 'domcontentloaded' });
-await page.waitForSelector('[data-how-it-works]', { timeout: 30_000 });
+// A set-up shop's three-step explainer now lives behind a <details> (D-85), so the demo is ready when
+// its till is on screen — that is what the shop is here to show.
+await page.waitForSelector('[data-panel="till"]', { timeout: 30_000 });
 check('the demo shop opens', true);
 
 // --- on-chain pipe: add an item, charge, and let the simulated explorer confirm it.
