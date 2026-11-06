@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.29.0** — 2026-11-06T21:16:39Z — `674464e53044` — Which wallet do you use? A picker that names the taps, plus text size, calmer labels, and the cart in the desk rail.
+
 - **v0.28.0** — 2026-11-02T22:28:31Z — `67fef83ca1ba` — The counter pass: one hero figure per screen, a pinned charge bar that says what is missing, a keypad, bigger tiles, undo, live counts, and films you can see.
 
 - **v0.27.3** — 2026-11-02T20:37:01Z — `f55fd2ace287` — The demo stops telling comfortable lies: no invented balances, honest stamps, labelled pretend invoices.
