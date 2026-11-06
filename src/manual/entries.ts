@@ -45,6 +45,7 @@ export const MANUAL: readonly ManualEntry[] = [
     title: 'Your wallets',
     why: 'slip never holds money, so a wallet here is only a public address slip watches for you.',
     steps: [
+      'Not sure where the code is? Pick your wallet app at the top of Setup — slip names the exact taps for it.',
       'Paste the public code your wallet app gives you — one code, not a seed phrase.',
       'Compare address 0/0 with the same address in your own wallet.',
       'Tick the box only when they match, then save.',

@@ -414,3 +414,31 @@ Two items from the twenty were **not** built and are recorded as such: the two-p
 (it needs the till's single return restructured, and a half-done grid is worse than one honest
 column) and the text-size/density setting (tokens exist in CSS, no control yet). The wide `lg`
 container and the four-up item grid shipped, so a laptop no longer looks like a stretched phone.
+
+### D-84 — Recognition beats instruction, and the screen must fit the person reading it
+
+Two changes, one idea: the app should meet the person where they already are.
+
+1. **"Which wallet do you use?"** The first step of the product used to be a sentence about a public
+   code, which nine people in ten cannot act on. Setup and the wizard now open with a picker of eight
+   wallets; choosing one names the two or three taps for *that* app and puts the cursor in the right
+   field. Three rules keep it honest: the steps are **described, not guaranteed** ("menus move between
+   versions"); a Lightning-only wallet is **routed to the Lightning card** instead of being sent to
+   hunt for an xpub it cannot produce; and the catch-all says plainly that if the app offers seed
+   words or a private key, stop — that is not what slip wants. `src/core/walletGuides.ts` holds the
+   data; `tests/display.test.ts` pins the routing and the "no seed phrase" wording.
+
+2. **Text size and spacing are settings, not a browser zoom.** A counter is read at arm's length by
+   tired eyes, and a zoomed page is a broken-looking page. Two whole-page preferences (`normal|large`,
+   `comfortable|compact`) are applied as `data-size` / `data-density` on `<html>`, remembered on the
+   device, and defaulted safely: an older settings blob or an unknown value falls back rather than
+   being trusted.
+
+Two finishing decisions ride along, both from Mimi's list. **The eyebrow stops shouting**: an
+uppercase micro-label above every field made a calm page look like a form, so labels are now sentence
+case at 12px and the words carry the hierarchy. **The cart lives in the rail**: on a shop laptop the
+right column now holds the lines, the total and Charge as one panel — the earlier version kept the
+cart at the bottom of the left column, which put the items being charged an entire screen away from
+the button that charges them.
+
+Still deliberately unbuilt: one-brass-element-per-screen (a per-screen audit, not a mechanism).

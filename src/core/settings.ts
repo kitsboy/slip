@@ -44,6 +44,15 @@ export interface ShopSettings {
    * free to choose; the app never stamps itself across the screen.
    */
   readonly signature: string;
+  /**
+   * How big the type is and how tightly the cards pack.
+   *
+   * Two of the three people behind a counter are over forty. A POS that only fits a 25-year-old's
+   * eyesight gets zoomed with the browser and then looks broken, so the app offers the choice itself
+   * and remembers it. Both values are whole-page, never per-panel.
+   */
+  readonly textSize: 'normal' | 'large';
+  readonly density: 'comfortable' | 'compact';
   readonly language: 'en';
   readonly onboardedAt: string | null;
 }
@@ -161,6 +170,8 @@ export const DEFAULT_SETTINGS: ShopSettings = {
   staff: [],
   assist: DEFAULT_ASSIST,
   signature: 'giveabit.io',
+  textSize: 'normal',
+  density: 'comfortable',
   language: 'en',
   onboardedAt: null,
 };
@@ -296,6 +307,9 @@ export function sanitizeSettings(raw: unknown): { settings: ShopSettings; warnin
         const clean = input.signature.trim().slice(0, 40);
         return /^[\w .@:/+-]*$/.test(clean) ? clean : 'giveabit.io';
       })(),
+      // Display preferences survive an older stored file: anything unrecognised falls back.
+      textSize: input.textSize === 'large' ? 'large' : 'normal',
+      density: input.density === 'compact' ? 'compact' : 'comfortable',
       assist: (() => {
         const raw = (input.assist ?? {}) as Partial<Record<keyof AssistOptions, unknown>>;
         const out = { ...DEFAULT_ASSIST };

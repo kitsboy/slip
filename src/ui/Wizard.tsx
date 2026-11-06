@@ -25,6 +25,7 @@ import {
   type WizardStep,
 } from '../core/settings';
 import { createRepository, validateAccountInput } from '../core/accounts';
+import WalletPicker from './WalletPicker';
 import { assertNotSecret, SecretRefused, type SecretKind } from '../core/keys';
 import { hashPin, isValidPin } from '../core/pin';
 import type { Coin, NetworkId } from '../core/network';
@@ -200,6 +201,8 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
               </p>
             )}
           </div>
+
+          <WalletPicker />
 
           <div className="mt-4 rounded-lg border border-line p-3">
             <p className="text-xs">

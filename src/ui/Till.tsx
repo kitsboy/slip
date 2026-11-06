@@ -1061,6 +1061,10 @@ export default function Till() {
         </p>
       ) : (
         <>
+          {/* On a shop laptop the counter is two panes: choose and ring up on the left, the money
+              and the Charge press on the right, held in place while the list scrolls (D-83). */}
+          <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-6">
+          <div className="min-w-0">
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <label className="block" htmlFor="tl-wallet">
               <span className="eyebrow">Which wallet gets the money</span>
@@ -1347,6 +1351,10 @@ export default function Till() {
             <p className="mt-1 text-[11px] text-muted">Open sales: {sweepNote}</p>
           )}
 
+
+          </div>
+
+          <div className="lg:sticky lg:top-20">
           {cart.length > 0 && (
             <ul className="mt-3 space-y-1">
               {cart.map((l) => (
@@ -1410,7 +1418,6 @@ export default function Till() {
               </button>
             </p>
           )}
-
           {totals && (
             <div className="mt-3 rounded-xl border border-line bg-surface p-3" data-totals>
               <p className="eyebrow">The customer pays</p>
@@ -1468,6 +1475,8 @@ export default function Till() {
             )}
           </div>
           {status && <p className="mt-2 text-[11px] text-bad">{status}</p>}
+          </div>
+          </div>
 
           <AmountPad
             currency={settings.currency}

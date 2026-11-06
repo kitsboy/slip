@@ -170,6 +170,23 @@ export default function App() {
     return () => window.removeEventListener('slip:data-changed', read);
   }, []);
 
+  // Type size and spacing are whole-page attributes, set once here so every panel obeys them
+  // without knowing the setting exists.
+  useEffect(() => {
+    const apply = () => {
+      try {
+        const { settings } = loadSettings(appStore());
+        document.documentElement.dataset.size = settings.textSize;
+        document.documentElement.dataset.density = settings.density;
+      } catch {
+        /* a broken settings blob falls back to the stylesheet defaults */
+      }
+    };
+    apply();
+    window.addEventListener('slip:settings-changed', apply);
+    return () => window.removeEventListener('slip:settings-changed', apply);
+  }, []);
+
   useEffect(() => {
     applyTheme(theme, document.documentElement);
     try {

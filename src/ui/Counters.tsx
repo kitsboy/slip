@@ -25,6 +25,7 @@ import {
 } from '../core/accounts';
 import { hashPin, isValidPin, validateHandoff, verifyPin } from '../core/pin';
 import { createLedger } from '../core/ledger';
+import WalletPicker from './WalletPicker';
 import { buildHandover } from '../core/handover';
 import { paymentUri } from '../core/qr';
 import { renderQrSvg } from '../core/qr';
@@ -523,6 +524,10 @@ export default function Counters() {
             ))}
           </div>
         </fieldset>
+
+        {/* The first step of the product, answered by recognition: which app is it, and where does
+            that app keep the code. */}
+        {accounts.length === 0 && <WalletPicker />}
 
         <label className="mt-2 block" htmlFor="ct-xpub">
           <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">

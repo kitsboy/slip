@@ -35,6 +35,8 @@ export default function Settings() {
   const [staff, setStaff] = useState<{ name: string; walletId: string }[]>([...loaded.settings.staff]);
   const [assist, setAssist] = useState<AssistOptions>({ ...loaded.settings.assist });
   const [signature, setSignature] = useState(loaded.settings.signature);
+  const [textSize, setTextSize] = useState<'normal' | 'large'>(loaded.settings.textSize);
+  const [density, setDensity] = useState<'comfortable' | 'compact'>(loaded.settings.density);
   const [newStaff, setNewStaff] = useState('');
   const [newStaffWallet, setNewStaffWallet] = useState('');
   const wallets = createRepository(store).load().accounts;
@@ -57,6 +59,8 @@ export default function Settings() {
       staff,
       assist,
       signature,
+      textSize,
+      density,
       language: 'en',
       onboardedAt: loaded.settings.onboardedAt ?? new Date().toISOString(),
     });
@@ -93,6 +97,35 @@ export default function Settings() {
     <section className="mt-6 panel" data-panel="settings" id="settings">
       <p className="eyebrow">Your shop</p>
       <h2 className="panel-title mt-1">Settings</h2>
+
+      {/* Two choices that matter more than they look: the screen is read at arm's length, often by
+          tired eyes, and a POS that only fits young eyesight gets zoomed and then looks broken. */}
+      <div className="mt-3 grid gap-3 sm:grid-cols-2" data-display>
+        <label className="block" htmlFor="st-size">
+          <span className="eyebrow">Text size</span>
+          <select
+            id="st-size"
+            value={textSize}
+            onChange={(e) => setTextSize(e.target.value === 'large' ? 'large' : 'normal')}
+            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+          >
+            <option value="normal">Normal</option>
+            <option value="large">Larger — easier across the counter</option>
+          </select>
+        </label>
+        <label className="block" htmlFor="st-density">
+          <span className="eyebrow">Spacing</span>
+          <select
+            id="st-density"
+            value={density}
+            onChange={(e) => setDensity(e.target.value === 'compact' ? 'compact' : 'comfortable')}
+            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+          >
+            <option value="comfortable">Comfortable</option>
+            <option value="compact">Compact — more of the day on screen</option>
+          </select>
+        </label>
+      </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <label className="block" htmlFor="st-name">
