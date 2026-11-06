@@ -356,60 +356,64 @@ export default function App() {
           </a>
           <main className="mx-auto w-full max-w-3xl px-5 pb-28 pt-6 sm:pb-16 lg:max-w-6xl">
             <section>
-              <p className="eyebrow">a free till for Bitcoin</p>
-              <h1 className="mt-2 text-3xl font-semibold leading-[1.1] tracking-tight sm:text-4xl">
-                A till that pays you, not a bank.
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-secondary">
-                Your customer pays with Bitcoin. Every sale lands in your own wallet the moment it
-                happens — no card machine, no account with us, and nobody taking a cut. slip cannot
-                hold or move a penny: it shows the code, then tells you what it saw.
-              </p>
+              {onboarded ? (
+                /* A shop that has set up does not need to be sold the product again. The pitch
+                   collapses to one line, and the till is the first thing on the screen. */
+                <>
+                <div className="flex flex-wrap items-end justify-between gap-3" data-hero="compact">
+                  <div className="min-w-0">
+                    {/* No eyebrow here: a shop that is already trading does not need to be told
+                        again what it is looking at. */}
+                    <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
+                      A till that pays you, not a bank.
+                    </h1>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <InfoVideo
+                      src="videos/01-intro.mp4"
+                      poster="videos/01-intro.jpg"
+                      title="What slip is"
+                      seconds={12}
+                      label="What is slip? — 12s"
+                    />
+                    <a href="#learn" className="chip hover:text-ink">
+                      How it works
+                    </a>
+                  </div>
+                </div>
+                {/* Still there for the day a new member of staff starts — folded, not removed. */}
+                <details className="mt-2" data-hero-howto>
+                  <summary className="cursor-pointer text-xs text-muted">How it works, in three steps</summary>
+                  <HowItWorks onboarded={onboarded} onStart={() => setWizardOpen(true)} />
+                </details>
+                </>
+              ) : (
+                <>
+                  <p className="eyebrow">a free till for Bitcoin</p>
+                  <h1 className="mt-2 text-3xl font-semibold leading-[1.1] tracking-tight sm:text-4xl">
+                    A till that pays you, not a bank.
+                  </h1>
+                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-secondary">
+                    Your customer pays with Bitcoin. Every sale lands in your own wallet the moment it
+                    happens — no card machine, no account with us, and nobody taking a cut. slip cannot
+                    hold or move a penny: it shows the code, then tells you what it saw.
+                  </p>
 
-              <div className="mt-4">
-                <InfoVideo
-                  card
-                  src="videos/01-intro.mp4"
-                  poster="videos/01-intro.jpg"
-                  title="What slip is"
-                  seconds={12}
-                  label="What is slip? — 12 seconds"
-                />
-              </div>
+                  <div className="mt-4">
+                    <InfoVideo
+                      card
+                      src="videos/01-intro.mp4"
+                      poster="videos/01-intro.jpg"
+                      title="What slip is"
+                      seconds={12}
+                      label="What is slip? — 12 seconds"
+                    />
+                  </div>
 
-              <HowItWorks onboarded={onboarded} onStart={() => setWizardOpen(true)} />
+                  <HowItWorks onboarded={onboarded} onStart={() => setWizardOpen(true)} />
+                </>
+              )}
 
-              <Tech>
-                <p className="mt-6 max-w-2xl text-xs leading-relaxed text-muted">
-                  slip never holds money, never asks for a seed phrase, and has no server, account or
-                  API key behind it. You paste public wallet material once — an xpub, a descriptor, a
-                  Silent Payments address or a Lightning address — and every sale is paid directly to
-                  you.
-                </p>
-
-                <ul className="mt-3 flex flex-wrap gap-2">
-                  {TRUST.map(([label, detail]) => (
-                    <li key={label} className="chip" title={detail}>
-                      <span className="text-ink">{label}</span>
-                      <span className="opacity-70">· {detail}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {[
-                    ['Status', BUILD_STAGE],
-                    ['Rails live', 'BTC · LTC · Lightning · Silent Payments (display)'],
-                    ['Networks', 'mainnet · signet · testnet4 · LTC testnet'],
-                    ['Backend', 'none — by construction'],
-                  ].map(([k, v]) => (
-                    <div key={k} className="panel">
-                      <dt className="eyebrow">{k}</dt>
-                      <dd className="mt-1 text-sm">{v}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </Tech>
             </section>
 
             <Group
@@ -485,6 +489,38 @@ export default function App() {
               why="The manual, what slip will offer, and why it is built this way"
               active={activeSection === 'learn'}
             >
+              <Tech>
+                <p className="mt-6 max-w-2xl text-xs leading-relaxed text-muted">
+                  slip never holds money, never asks for a seed phrase, and has no server, account or
+                  API key behind it. You paste public wallet material once — an xpub, a descriptor, a
+                  Silent Payments address or a Lightning address — and every sale is paid directly to
+                  you.
+                </p>
+
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {TRUST.map(([label, detail]) => (
+                    <li key={label} className="chip" title={detail}>
+                      <span className="text-ink">{label}</span>
+                      <span className="opacity-70">· {detail}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {[
+                    ['Status', BUILD_STAGE],
+                    ['Rails live', 'BTC · LTC · Lightning · Silent Payments (display)'],
+                    ['Networks', 'mainnet · signet · testnet4 · LTC testnet'],
+                    ['Backend', 'none — by construction'],
+                  ].map(([k, v]) => (
+                    <div key={k} className="panel">
+                      <dt className="eyebrow">{k}</dt>
+                      <dd className="mt-1 text-sm">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </Tech>
+
               <Glossary />
               <Manual />
               <Services />

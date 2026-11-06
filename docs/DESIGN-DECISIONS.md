@@ -442,3 +442,26 @@ cart at the bottom of the left column, which put the items being charged an enti
 the button that charges them.
 
 Still deliberately unbuilt: one-brass-element-per-screen (a per-screen audit, not a mechanism).
+
+### D-85 — Fedi is a template, not a rail — and it stays switched off until it is asked for
+
+The temptation is to make slip "the Fedi point of sale": a federation client, a gateway, a sweep
+button. Every one of those needs **custody**, and custody would end the sentence the product is built
+on — *every sale pays straight into your own wallet*. So Fedi is handled as a **template**:
+
+- A merchant pastes the **Lightning address of their Fedi shared wallet**. slip watches it exactly
+  like any other Lightning address. No federation login, no guardians, no membership, no gateway.
+- slip already supports **three of Fedi's four pay paths** (Lightning, on-chain to a code the merchant
+  owns, and static address). The fourth — ecash between Fedi users — is invisible to any POS and is
+  said so, in the interface's own words.
+- The $400 sweep is **impossible without custody**, so it becomes a **nudge**: one sentence computed
+  from a threshold the merchant sets, with no control that moves a sat.
+
+**Prepared now, shipped deliberately later** (`src/core/fedi.ts`, `tests/fedi.test.ts`): the rail
+honesty table, the address check (syntax only, and it says the host still has to be asked), the sweep
+sentence, the card copy, and a hard `FEDI_CARD_ENABLED = false` pinned by a test so the card cannot
+switch itself on. What remains before it can ship: a live LNURL lookup behind a button, the setup card
+itself, and Cam's word.
+
+The same rule applies to every future rail: **a rail that needs custody is not a rail, it is a
+different product.**

@@ -84,8 +84,15 @@ check('the demo is reachable from the manual', (await page.locator('[data-panel=
 
 await nav.getByRole('link', { name: 'Books' }).click();
 await page.waitForTimeout(400);
-const scrolled = await page.evaluate(() => window.scrollY);
-check('a nav chip actually moves the page', scrolled > 500, String(scrolled));
+// The page got shorter when a set-up shop's hero collapsed, so a scroll-distance threshold is no
+// longer evidence of anything. What matters is that the section is actually on screen.
+const booksInView = await page.evaluate(() => {
+  const panel = document.querySelector('[data-panel="history"]');
+  if (!panel) return false;
+  const box = panel.getBoundingClientRect();
+  return box.top < window.innerHeight && box.bottom > 0;
+});
+check('a nav chip actually moves the page', booksInView, String(await page.evaluate(() => window.scrollY)));
 check('the books section is where the chip promised', (await page.locator('#books [data-panel="history"]').count()) === 1);
 
 // --- order --------------------------------------------------------------------------

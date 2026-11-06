@@ -93,6 +93,30 @@ export default function Settings() {
     window.location.reload();
   }
 
+  // Has anything been changed since the last save? A settings page that looks saved when it is
+  // not is a page that loses a merchant's shop name without telling them.
+  const dirty =
+    JSON.stringify(
+      sanitizeSettings({
+        businessName,
+        currency,
+        taxBps: Math.round(Number(taxPercent || '0') * 100),
+        taxInclusive: loaded.settings.taxInclusive,
+        tipPresetsBps: loaded.settings.tipPresetsBps,
+        receiptFooter,
+        explorerUrl,
+        rateEndpoint,
+        autoRate,
+        staff,
+        assist,
+        signature,
+        textSize,
+        density,
+        language: 'en',
+        onboardedAt: loaded.settings.onboardedAt,
+      }).settings,
+    ) !== JSON.stringify(loaded.settings);
+
   return (
     <section className="mt-6 panel" data-panel="settings" id="settings">
       <p className="eyebrow">Your shop</p>
@@ -350,13 +374,20 @@ export default function Settings() {
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={save}
-        className="mt-3 rounded-lg border border-accent px-3 py-2 text-xs font-semibold text-accent"
-      >
-        Save settings
-      </button>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={save}
+          className={`rounded-lg border border-accent px-3 py-2 text-xs font-semibold text-accent ${dirty ? 'ring-2 ring-accent/40' : ''}`}
+        >
+          Save settings
+        </button>
+        {dirty && (
+          <span className="text-xs text-warn" data-unsaved>
+            unsaved changes
+          </span>
+        )}
+      </div>
 
       {note && (
         <p

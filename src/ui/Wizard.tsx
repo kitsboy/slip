@@ -11,7 +11,7 @@
  * wallet before the counter opens.
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CURRENCIES } from '../core/currencies';
 import {
   WIZARD_STEPS,
@@ -64,6 +64,42 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
   const [refusal, setRefusal] = useState<SecretKind | null>(null);
   const [tryRefusal, setTryRefusal] = useState<SecretKind | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  /**
+   * A wizard that forgets is a wizard people abandon: a merchant who checks one detail on their
+   * wallet app and comes back should land where they left off. The draft is public material plus
+   * form fields — the PIN is never written, and completing the wizard clears it.
+   */
+  useEffect(() => {
+    try {
+      const raw = appStore().getItem('wizard:draft');
+      if (!raw) return;
+      const draft = JSON.parse(raw) as Record<string, unknown>;
+      if (typeof draft.step === 'number') setStep(Math.min(5, Math.max(1, draft.step)) as WizardStep);
+      if (typeof draft.businessName === 'string') setBusinessName(draft.businessName);
+      if (typeof draft.currency === 'string') setCurrency(draft.currency);
+      if (typeof draft.taxPercent === 'string') setTaxPercent(draft.taxPercent);
+      if (typeof draft.label === 'string') setLabel(draft.label);
+      if (typeof draft.networkId === 'string') setNetworkId(draft.networkId as NetworkId);
+      if (typeof draft.xpub === 'string') setXpub(draft.xpub);
+      if (typeof draft.checked === 'boolean') setChecked(draft.checked);
+      if (typeof draft.walletConfirmed === 'boolean') setWalletConfirmed(draft.walletConfirmed);
+      if (typeof draft.confirmedAddress === 'string') setConfirmedAddress(draft.confirmedAddress);
+    } catch {
+      /* a broken draft is no draft */
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      appStore().setItem(
+        'wizard:draft',
+        JSON.stringify({ step, businessName, currency, taxPercent, label, networkId, xpub, checked, walletConfirmed, confirmedAddress }),
+      );
+    } catch {
+      /* private mode: the draft simply does not persist */
+    }
+  }, [step, businessName, currency, taxPercent, label, networkId, xpub, checked, walletConfirmed, confirmedAddress]);
 
   const coin = NETWORKS.find((n) => n.id === networkId)?.coin ?? 'btc';
 
@@ -133,6 +169,11 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
   function finish() {
     const store = appStore();
     saveSettings(store, { ...settings, onboardedAt: new Date().toISOString() });
+    try {
+      appStore().removeItem('wizard:draft');
+    } catch {
+      /* nothing to clear */
+    }
     onDone();
   }
 
