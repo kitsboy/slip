@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.30.0** — 2026-11-06T23:30:13Z — `5a20de1628db` — A shop that is already trading lands on its till, not its sales pitch; the wizard keeps its draft and Settings admits unsaved changes.
+
 - **v0.29.0** — 2026-11-06T21:16:39Z — `674464e53044` — Which wallet do you use? A picker that names the taps, plus text size, calmer labels, and the cart in the desk rail.
 
 - **v0.28.0** — 2026-11-02T22:28:31Z — `67fef83ca1ba` — The counter pass: one hero figure per screen, a pinned charge bar that says what is missing, a keypad, bigger tiles, undo, live counts, and films you can see.
