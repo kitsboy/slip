@@ -26,7 +26,7 @@ const CANVASES = [
 
 const SCREENS = [
   { name: 'sell', hash: 'till', prepare: 'cart' },
-  { name: 'money-in', hash: 'history' },
+  { name: 'money-in', hash: 'requests' },
   { name: 'books', hash: 'books' },
   { name: 'setup', hash: 'wallets' },
   { name: 'learn', hash: 'learn' },
