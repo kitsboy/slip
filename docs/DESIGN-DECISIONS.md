@@ -465,3 +465,28 @@ itself, and Cam's word.
 
 The same rule applies to every future rail: **a rail that needs custody is not a rail, it is a
 different product.**
+
+### D-86 — The first sale opens the till, and a dead button is a bug even when nothing looks broken
+
+A shop should not have to press anything before its first customer. Opening the till exists because the
+day needs a beginning in the hashed log — a bookkeeping need, not the shopkeeper's. So the first
+**Charge** of the day writes the `open` line itself, labelled *opened by the first sale of the day*,
+and the counter then offers the one thing the shop may still want to say: **who is on**, written as a
+`handoff` line so the log keeps both names and both times. The collapsed card reads *"Your first sale
+opens it — or open it now to say who is on."*
+
+The reason this needed doing at all is the more important half. When the first sale was made to open
+the till, **nothing happened, and nothing complained**: a brand-new shop had a wallet but no active
+counter, because `activeAccountId` was only ever set by a staff hand-off. "Open the till" was a button
+that wrote no line. Two fixes, both at the root:
+
+- adding the **first** counter makes it active;
+- `active()` answers with the first counter when no pointer is set, so a store written before this
+  fix still works.
+
+`clearHandoff()` now clears the staff name and **keeps** the counter — clearing a hand-off says
+"nobody is named on this till", not "this shop has no till". Both behaviours are pinned in
+`tests/accounts.test.ts`, and the first-sale path in `tests/e2e/till.mjs`.
+
+The general rule: **a control that silently does nothing is worse than a control that is missing**,
+because the merchant concludes the feature is broken and stops trusting the rest.

@@ -416,6 +416,10 @@ export default function Till() {
     const payee = tipJar && staffId ? (wallets.find((w) => w.id === staffId) ?? wallet) : wallet;
     if (!payee || !totals || chargeSats === null) return;
 
+    // Nobody should have to open the till before their first customer. Not awaited: the sale is the
+    // important thing, and the log line is written beside it.
+    void ensureShiftOpen();
+
     // A fetched rate that has gone stale is refused, not used: the merchant needs to see the
     // price move before a customer is quoted it.
     if (settings.autoRate && quote) {
@@ -638,6 +642,24 @@ export default function Till() {
     }
   }
 
+  /** Renaming who holds the till is a hand-off line, so the log keeps both names and both times. */
+  async function sayWhoIsOn(staffName: string) {
+    setShiftBusy(true);
+    setShiftError(null);
+    try {
+      const repo = createRepository(appStore());
+      const account = repo.active();
+      if (!account) throw new Error('no counter chosen yet');
+      await repo.recordShift('handoff', account, staffName, 'named on the counter');
+      loadShift();
+      window.dispatchEvent(new Event('slip:data-changed'));
+    } catch (e) {
+      setShiftError(e instanceof Error ? e.message : 'could not record who is on');
+    } finally {
+      setShiftBusy(false);
+    }
+  }
+
   async function closeTill() {
     setShiftBusy(true);
     setShiftError(null);
@@ -652,6 +674,28 @@ export default function Till() {
       setShiftError(e instanceof Error ? e.message : 'could not close the till');
     } finally {
       setShiftBusy(false);
+    }
+  }
+
+  /**
+   * The first sale of the day opens the till.
+   *
+   * The shift log needs a beginning or the day cannot be reconciled — but making a shopkeeper press
+   * "Open the till" before their first customer is a step that exists for the books, not for them.
+   * So the first Charge writes the `open` line itself and names it plainly; the counter card then
+   * offers the one thing the shop may still want to say, which is who is on.
+   */
+  async function ensureShiftOpen(): Promise<void> {
+    if (shift) return;
+    const repo = createRepository(appStore());
+    const account = repo.active();
+    if (!account) return;
+    try {
+      await repo.recordShift('open', account, repo.currentStaff() ?? 'unassigned', 'opened by the first sale of the day');
+      loadShift();
+      window.dispatchEvent(new Event('slip:data-changed'));
+    } catch {
+      /* a sale must never fail because the log entry did */
     }
   }
 
@@ -1052,6 +1096,7 @@ export default function Till() {
           error={shiftError}
           onOpen={openTill}
           onClose={closeTill}
+          onHandoff={sayWhoIsOn}
         />
       )}
 

@@ -26,6 +26,8 @@ interface Props {
   readonly error?: string | null;
   readonly onOpen: (staffName: string, floatMinor: bigint | null) => void;
   readonly onClose: () => void;
+  /** Name whoever the first sale opened the till for. Writes a hand-off line, not a second open. */
+  readonly onHandoff?: (staffName: string) => void;
 }
 
 /** `12000n` → `120.00`, without pulling in a formatter for one number. */
@@ -37,10 +39,11 @@ function minorText(minor: bigint, currency: string): string {
   return `${negative ? '−' : ''}${whole}.${cents} ${currency}`;
 }
 
-export default function OpenTill({ staff, shift, currency, busy = false, error = null, onOpen, onClose }: Props) {
+export default function OpenTill({ staff, shift, currency, busy = false, error = null, onOpen, onClose, onHandoff }: Props) {
   const [name, setName] = useState(staff[0] ?? '');
   const [float, setFloat] = useState('');
   const [expanded, setExpanded] = useState(false);
+  const [naming, setNaming] = useState(false);
 
   if (shift) {
     const since = shift.since.slice(11, 16);
@@ -50,12 +53,44 @@ export default function OpenTill({ staff, shift, currency, busy = false, error =
         data-shift="open"
       >
         <p className="text-[11px] text-muted">
-          <span className="text-ink">{shift.staff} has the till</span> since {since}
+          <span className="text-ink">
+            {shift.staff === 'unassigned' ? 'The till is open' : `${shift.staff} has the till`}
+          </span>{' '}
+          since {since}
           {shift.floatMinor !== null ? ` · float ${minorText(shift.floatMinor, currency)}` : ' · no float counted'}
         </p>
-        <button type="button" onClick={onClose} disabled={busy} className="btn btn-secondary">
-          Close the till
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {shift.staff === 'unassigned' && onHandoff && (
+            naming ? (
+              <span className="flex items-center gap-1">
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Who is on"
+                  className="w-32 rounded-lg border border-line bg-bg p-1.5 text-xs outline-none focus:border-accent"
+                  aria-label="Who is on"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    onHandoff(name.trim() || 'unassigned');
+                    setNaming(false);
+                  }}
+                  className="btn btn-secondary"
+                >
+                  That is me
+                </button>
+              </span>
+            ) : (
+              <button type="button" onClick={() => setNaming(true)} className="btn btn-ghost">
+                Say who&rsquo;s on
+              </button>
+            )
+          )}
+          <button type="button" onClick={onClose} disabled={busy} className="btn btn-secondary">
+            Close the till
+          </button>
+        </div>
       </div>
     );
   }
@@ -67,8 +102,8 @@ export default function OpenTill({ staff, shift, currency, busy = false, error =
         data-shift="closed"
       >
         <p className="text-[11px] text-muted">
-          <span className="text-ink">The till isn&rsquo;t open yet.</span> One line in the day&rsquo;s
-          log says who is on.
+          <span className="text-ink">The till isn&rsquo;t open yet.</span> Your first sale opens it —
+          or open it now to say who is on.
         </p>
         <button type="button" onClick={() => setExpanded(true)} className="btn btn-secondary">
           Open the till

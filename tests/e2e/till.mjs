@@ -112,6 +112,14 @@ check('receipt names the invoice and index', /Invoice inv_/.test(receipt) && /in
 await page.getByRole('button', { name: 'Next sale' }).click();
 await page.waitForTimeout(300);
 
+// The first sale of the day opened the till by itself (checked here, on the counter, because the
+// payment screen replaces it while a customer is paying). Nobody should have to find a button
+// before their first customer, and the day still needs a beginning in the hashed log.
+const shiftCard = page.locator('[data-shift="open"]');
+check('the first sale opens the till', (await shiftCard.count()) === 1);
+const shiftText = (await shiftCard.count()) ? await shiftCard.first().innerText() : '';
+check('the shift card says who holds it', /has the till|The till is open/.test(shiftText), shiftText);
+
 // --- the next sale must use a DIFFERENT index -------------------------------
 await page.locator('button:has-text("Flat white")').first().click();
 await page.waitForTimeout(200);

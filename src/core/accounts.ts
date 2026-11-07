@@ -523,7 +523,14 @@ export function createRepository(store: KeyValueStore): Repository {
         purpose: v.draft.purpose,
         note: v.draft.note,
       };
-      write({ ...env, accounts: [...env.accounts, account] });
+      // The first counter becomes the active one. Without this a brand-new shop had a wallet but no
+      // active account, so "Open the till" and the first sale's own shift line both quietly did
+      // nothing — a dead button with no error on the counter.
+      write({
+        ...env,
+        accounts: [...env.accounts, account],
+        activeAccountId: env.activeAccountId ?? account.id,
+      });
       return account;
     },
 
@@ -550,8 +557,10 @@ export function createRepository(store: KeyValueStore): Repository {
     },
 
     clearHandoff() {
+      // Clearing a hand-off says "nobody is named on this till", not "this shop has no till". The
+      // active counter stays put; a null pointer made a single-counter shop unreachable.
       const env = read();
-      write({ ...env, activeAccountId: null, currentStaff: null });
+      write({ ...env, currentStaff: null });
     },
 
     setPin(pinHash) {
@@ -585,7 +594,9 @@ export function createRepository(store: KeyValueStore): Repository {
 
     active() {
       const env = read();
-      return env.accounts.find((a) => a.id === env.activeAccountId) ?? null;
+      // Self-healing: a store written before the first counter was made active still has an obvious
+      // answer, and a till with one counter should never be unreachable because a pointer is unset.
+      return env.accounts.find((a) => a.id === env.activeAccountId) ?? env.accounts[0] ?? null;
     },
 
     currentStaff() {

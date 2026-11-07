@@ -129,6 +129,22 @@ describe('counter repository', () => {
     expect(createRepository(store).load().accounts).toEqual([]);
   });
 
+  // The till could not be opened on a brand-new shop: the first counter was added but never made
+  // active, so "Open the till" and the first sale's shift line both did nothing, silently.
+  it('makes the first counter active, and heals a store that never said which one', () => {
+    const store = memoryStore();
+    const repo = createRepository(store);
+    const acct = repo.addAccount(draft());
+    expect(repo.active()?.id).toBe(acct.id);
+
+    // An older store with accounts but no pointer still answers with the obvious counter.
+    store.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ version: 1, accounts: repo.load().accounts, activeAccountId: null }),
+    );
+    expect(createRepository(store).active()?.id).toBe(acct.id);
+  });
+
   it('adds an account as UNCHECKED and only enables it after acknowledgement', () => {
     const store = memoryStore();
     const repo = createRepository(store);
@@ -163,7 +179,8 @@ describe('counter repository', () => {
     expect(repo.active()?.label).toBe('Front counter');
     repo.clearHandoff();
     expect(repo.currentStaff()).toBeNull();
-    expect(repo.active()).toBeNull();
+    // The till keeps its counter: clearing a hand-off is not the same as unchoosing the shop.
+    expect(repo.active()?.id).toBe(acct.id);
   });
 
   it('persists through a fresh repository instance (a reload)', () => {
