@@ -126,6 +126,8 @@ Cost: $0. Pages free tier, existing giveabit.io zone, no new zone, no paid featu
 |---|---|
 | [`docs/MERCHANT_GUIDE.md`](docs/MERCHANT_GUIDE.md) | a shop owner: get your xpub, add a counter, hand it to staff, back up |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | a developer: module map, the rules that shaped it, how it is tested |
+| [`docs/DESIGN-DECISIONS.md`](docs/DESIGN-DECISIONS.md) | why it works the way it does — every decision from D-33 onward |
+| [`docs/DESIGN-UPGRADE-BRIEF.md`](docs/DESIGN-UPGRADE-BRIEF.md) | the design pass: direction, checklist, plan, and the master prompt |
 | [`docs/SELF_HOSTING.md`](docs/SELF_HOSTING.md) | running it anywhere, including from a USB stick, and verifying a build |
 | [`SECURITY.md`](SECURITY.md) | the invariant, what is in scope, how to report |
 | [`PRIVACY.md`](PRIVACY.md) | exactly what is stored and what leaves the device |
