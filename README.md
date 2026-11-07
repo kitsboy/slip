@@ -128,6 +128,8 @@ Cost: $0. Pages free tier, existing giveabit.io zone, no new zone, no paid featu
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | a developer: module map, the rules that shaped it, how it is tested |
 | [`docs/DESIGN-DECISIONS.md`](docs/DESIGN-DECISIONS.md) | why it works the way it does — every decision from D-33 onward |
 | [`docs/DESIGN-UPGRADE-BRIEF.md`](docs/DESIGN-UPGRADE-BRIEF.md) | the design pass: direction, checklist, plan, and the master prompt |
+| [`docs/PROMPT-FOR-CLAUDE.md`](docs/PROMPT-FOR-CLAUDE.md) | the review brief handed to a design model: seven deliverables, strict IDs, evidence required |
+| [`docs/BRIEF-FOR-FABLE.md`](docs/BRIEF-FOR-FABLE.md) | the build contract: what an implementing model is given after the review is audited |
 | [`docs/SELF_HOSTING.md`](docs/SELF_HOSTING.md) | running it anywhere, including from a USB stick, and verifying a build |
 | [`SECURITY.md`](SECURITY.md) | the invariant, what is in scope, how to report |
 | [`PRIVACY.md`](PRIVACY.md) | exactly what is stored and what leaves the device |
