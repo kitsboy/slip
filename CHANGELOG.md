@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.17** — 2026-11-08T23:05:02Z — `69f0260b46b7` — the customer screen shows the shop and one number, and the eight counter passes land with it
+
 - **v0.31.16** — 2026-11-08T22:55:37Z — `14a231762f39` — the opening is a sign, and the five counter passes land with it
 
 - **v0.31.15** — 2026-11-08T22:36:33Z — `18fe2a6ae083` — the header carries the mark, and the ten counter fixes land with it
