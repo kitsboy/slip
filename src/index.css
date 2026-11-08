@@ -1161,3 +1161,58 @@ html[data-skin='v2'] .v2-gallery h2 {
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
+/* The existing till, under the flag only. Words, ids and the disabled state stay.
+   This is paint: a taller Charge, sats at the same rank as the total, remove as a
+   button rather than a blue link, fields that are not browser defaults. */
+html[data-skin='v2'] .btn-primary {
+  min-height: 56px;
+  padding: 0 20px;
+  border-radius: 12px;
+  font-size: 16px;
+  background: var(--v2-acc);
+  color: var(--v2-on-acc);
+  border-color: transparent;
+}
+html[data-skin='v2'] .btn-primary:active:not(:disabled) {
+  transform: translateY(1px);
+}
+html[data-skin='v2'] .charge-bar .btn-primary {
+  flex: 1 1 100%;
+}
+html[data-skin='v2'] [data-totals] {
+  border-color: var(--v2-edge);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-bottom: 0;
+}
+html[data-skin='v2'] [data-totals] + .charge-bar {
+  margin-top: 0;
+  border: 1px solid var(--v2-edge);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  background: var(--v2-card);
+}
+html[data-skin='v2'] [data-totals] .text-sm {
+  font-size: 20px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--v2-ink);
+  font-variant-numeric: tabular-nums;
+}
+html[data-skin='v2'] input,
+html[data-skin='v2'] select,
+html[data-skin='v2'] textarea {
+  min-height: 48px;
+  border: 1px solid var(--v2-edge);
+  border-radius: 12px;
+  background: var(--v2-sunk);
+  color: var(--v2-ink);
+}
+html[data-skin='v2'] button[aria-label^='Remove '] {
+  min-height: 48px;
+  padding: 0 8px;
+  color: var(--v2-ink);
+  text-decoration: none;
+  font-weight: 600;
+}
