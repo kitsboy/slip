@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.13** — 2026-11-08T21:07:13Z — `e31758f81b29` — the counter tiles carry drawn marks, not emoji
+
 - **v0.31.12** — 2026-11-08T19:55:00Z — `ae3b659097e4` — a 320px phone shows the coffee and Charge, and high contrast stays black
 
 - **v0.31.11** — 2026-11-08T19:27:39Z — `40a03111a22c` — a number key types an amount, and the customer window can be read across the counter
