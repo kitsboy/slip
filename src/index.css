@@ -1675,3 +1675,37 @@ html[data-skin='v2'] .v2-pay-word {
   text-transform: none;
   font-size: 16px;
 }
+
+/* A page has a name, a card, and one number. Same size everywhere was the form look. */
+html[data-skin='v2'] .panel:not([data-panel='till']) {
+  background: #3a342e;
+  border: 1px solid #9a9084;
+  box-shadow: none;
+}
+html[data-skin='v2'] .panel-title {
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 600;
+  color: #f7f2ea;
+}
+html[data-skin='v2'] .v2-tile span.font-semibold {
+  font-size: 16px;
+  font-weight: 600;
+  color: #f7f2ea;
+}
+html[data-skin='v2'] .v2-slip .figure {
+  font-size: 48px;
+  line-height: 1;
+  font-weight: 600;
+  border-bottom: 2px solid #f0a32a;
+  width: fit-content;
+  color: #f7f2ea;
+}
+@media (min-width: 1024px) {
+  html[data-skin='v2'] .v2-held {
+    padding: 16px;
+    background: #3a342e;
+    border: 1px solid #9a9084;
+    border-radius: 16px;
+  }
+}

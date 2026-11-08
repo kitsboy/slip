@@ -1406,7 +1406,7 @@ export default function Till() {
 
           </div>
 
-          <div className="lg:sticky lg:top-20">
+          <div className={`lg:sticky lg:top-20${isSkinV2() ? ' v2-held' : ''}`}>
           {cart.length > 0 && (
             <ul className="mt-3 space-y-1">
               {cart.map((l) => (
