@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.12** — 2026-11-08T19:55:00Z — `ae3b659097e4` — a 320px phone shows the coffee and Charge, and high contrast stays black
+
 - **v0.31.11** — 2026-11-08T19:27:39Z — `40a03111a22c` — a number key types an amount, and the customer window can be read across the counter
 
 - **v0.31.10** — 2026-11-08T19:06:48Z — `02c768cb434c` — money in is a list, books is one day, a mismatched wallet stops the sale
