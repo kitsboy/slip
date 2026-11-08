@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.5** — 2026-11-08T14:27:25Z — `9f2d01ee45cc` — the counter is the items and one number
+
 - **v0.31.4** — 2026-11-08T06:53:25Z — `f850b383d6f6` — the first screen is the items, not the form
 
 - **v0.31.3** — 2026-11-08T06:42:39Z — `4e7adf3dbae2` — the new look is now the normal till; the old one is at ?skin=v1
