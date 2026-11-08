@@ -109,9 +109,22 @@ window.slip = {
  * amount and nothing else. Same origin, same bundle, no second deploy — and it never reads the
  * merchant's books, so a customer cannot see the day's takings by tapping the screen.
  */
-const isDisplay = new URLSearchParams(window.location.search).get('display') === '1';
-const isDemo = new URLSearchParams(window.location.search).get('demo') === '1';
-const isExplain = new URLSearchParams(window.location.search).get('explain') === '1';
+const params = new URLSearchParams(window.location.search);
+const isDisplay = params.get('display') === '1';
+const isDemo = params.get('demo') === '1';
+const isExplain = params.get('explain') === '1';
+
+/**
+ * Hidden skin switch (P-1). `?skin=v2` turns the new tokens on; anything else, including
+ * no parameter, stays on v1. No storage key, no cookie, no CSP change — a reload without
+ * the parameter is the old till, pixel for pixel.
+ */
+document.documentElement.dataset.skin = params.get('skin') === 'v2' ? 'v2' : 'v1';
+if (document.documentElement.dataset.skin === 'v2') {
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  const light = document.documentElement.getAttribute('data-theme') === 'light';
+  themeMeta?.setAttribute('content', light ? '#f6f3ed' : '#17130f');
+}
 
 /**
  * Demo boot: seed the demo drawer, then replace fetch with a simulator. Both happen before React
