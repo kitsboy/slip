@@ -628,3 +628,66 @@ button {
 
 /* Do NOT hide overflow on html or body: it turns the body into its own scroll container, which
    breaks anchor jumps and window.scrollY. The nav is constrained at the source instead. */
+
+/* ---------------------------------------------------------------------------
+   Skin v2 — colour tokens only in this block. Inert until html[data-skin="v2"].
+   Existing --slip-* blocks above are untouched; components still read those until
+   a later pass. These names are the contract P-2 will consume.
+   Light is the base; dark overrides when the till is in its night theme.
+   Contrast mode is left on the v1 palette (this block does not match it).
+   --------------------------------------------------------------------------- */
+
+html[data-skin='v2'] {
+  --v2-bg: #f6f3ed;
+  --v2-card: #fdfcf9;
+  --v2-sunk: #ebe7e0;
+  --v2-raised: #fdfcf9;
+  --v2-ink: #171b22;
+  --v2-ink-2: #484d55;
+  --v2-edge: #6c727b;
+  --v2-line: #d4d1ca;
+  --v2-acc: #a84808;
+  --v2-on-acc: #ffffff;
+  --v2-good: #0b5d2a;
+  --v2-warn: #615a00;
+  --v2-bad: #a9000d;
+  --v2-qr-fg: #000000;
+  --v2-qr-bg: #ffffff;
+  color-scheme: light;
+}
+
+html[data-skin='v2'][data-theme='dark'] {
+  --v2-bg: #17130f;
+  --v2-card: #211c17;
+  --v2-sunk: #100d09;
+  --v2-raised: #2b2520;
+  --v2-ink: #f1eee9;
+  --v2-ink-2: #b4b1aa;
+  --v2-edge: #89867f;
+  --v2-line: #3b3732;
+  --v2-acc: #f0a32a;
+  --v2-on-acc: #100d09;
+  --v2-good: #76cf8a;
+  --v2-warn: #e8d34f;
+  --v2-bad: #fb8276;
+  --v2-qr-fg: #000000;
+  --v2-qr-bg: #ffffff;
+  color-scheme: dark;
+}
+
+/* High contrast preference: secondary ink and edges collapse toward primary ink. */
+@media (prefers-contrast: more) {
+  html[data-skin='v2'] {
+    --v2-ink-2: var(--v2-ink);
+    --v2-edge: var(--v2-ink);
+    --v2-line: var(--v2-ink);
+  }
+}
+
+/* Forced colours drop masks and authored borders. Scope is v2 only, so v1 is untouched.
+   border-color, not the border shorthand — a shorthand would draw a box on every element. */
+@media (forced-colors: active) {
+  html[data-skin='v2'] * {
+    border-color: CanvasText;
+  }
+}
