@@ -66,7 +66,7 @@ export default function CustomerDisplay() {
 
   if (!message || message.kind === 'clear') {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-3 p-8 text-center">
+      <main className="v2-display flex min-h-screen flex-col items-center justify-center gap-3 p-8 text-center">
         <p className="text-2xl tracking-[0.3em] text-muted">slip</p>
         <p className="text-sm text-muted">
           {connected ? 'Ready — the till has not rung anything up yet.' : 'This screen is not connected to a till.'}
@@ -76,8 +76,8 @@ export default function CustomerDisplay() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
-      <p className="text-sm uppercase tracking-[0.3em] text-muted">Pay exactly</p>
+    <main className="v2-display flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
+      <p className="v2-pay-word text-sm text-muted">Pay exactly</p>
       <p className="figure text-4xl">{message.sats ? formatSats(BigInt(message.sats)) : ''}</p>
       {message.uri && (
         <div

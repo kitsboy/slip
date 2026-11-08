@@ -1,7 +1,9 @@
-# Fedi — prepared, not switched on
+# Fedi — ready, switched off
 
-slip treats Fedi as a **template**, not a rail. The merchant's money stays in the merchant's Fedi
-wallet; slip only ever sees a public Lightning address.
+slip treats Fedi as a **template**, not a coin and not a rail. The coins slip sells in are
+Bitcoin and Litecoin, on mainnet, signet and testnet. Fedi ecash never sits beside them.
+The merchant's money stays in the merchant's Fedi wallet. slip only ever sees a public
+Lightning address, and only after the switch is turned on.
 
 ## What exists today
 
@@ -11,22 +13,22 @@ wallet; slip only ever sees a public Lightning address.
 | Address check — syntax only, never claims to know the host | `src/core/fedi.ts` | written, tested |
 | Sweep **nudge** (a sentence, no action) | `src/core/fedi.ts` | written, tested |
 | Card copy, in one reviewable place | `src/core/fedi.ts` | written |
+| The card itself | `src/ui/FediCard.tsx` | written, not mounted |
 | Switch | `FEDI_CARD_ENABLED = false` | off, pinned by test |
-| Live LNURL validation | `src/core/providers/lnurl.ts` | exists, used by the Lightning card |
-| The setup card itself | — | **not built** |
+| Live LNURL check | `fetchPayParams` in the card | wired, runs only if the card is mounted |
+| Hand-off | fills `#ln-addr` | the Lightning card already takes the payment |
 
-## What is left before it can ship
+## What one flip does
 
-1. **The card** — one panel in Setup: paste a Fedi Lightning address, press *check*, see the LNURL
-   reply in plain words, save it as a wallet of kind `lightning`.
-2. **The nudge UI** — a threshold field and the sentence, only where a Lightning wallet is selected.
-3. **A demo path** — the picker's Fedi entry already routes to the Lightning field; the demo's own
-   internet must answer the lookup (it already answers `/.well-known/lnurlp/*`).
-4. **Cam's go.**
+Set `FEDI_CARD_ENABLED` to `true`. The card appears under Setup. It can check a Lightning
+address, refuse a secret, and show the sweep sentence. It still cannot join a federation,
+hold ecash, or move money.
 
 ## The rules it must keep
 
 - No federation client, no login, no membership, no gateway, no custody, ever.
-- Never say *paid* for money slip did not see; a Fedi-to-Fedi ecash transfer happens where slip
-  cannot look, and the interface must say so rather than guess.
+- Never say *paid* for money slip did not see. A Fedi-to-Fedi ecash transfer happens where
+  slip cannot look, and the card says so.
 - A sweep is never a button. It is a sentence the merchant acts on inside Fedi.
+- The live coins stay Bitcoin and Litecoin, plus signet and testnet. Fedi is not added to
+  that list by turning the card on.

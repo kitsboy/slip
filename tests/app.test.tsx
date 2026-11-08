@@ -48,6 +48,11 @@ describe('app shell — the plain page', () => {
     expect(html).toContain('They pay you');
   });
 
+  it('does not put the Fedi card on a page while the switch is off', () => {
+    expect(render()).not.toContain('Pay to my Fedi account');
+    expect(render()).not.toContain('data-fedi-card');
+  });
+
   it('keeps the technical vocabulary out of the first screen', () => {
     const visible = text();
     for (const word of ['xpub', 'mempool', 'BIP-85', 'LNURL', 'descriptor']) {

@@ -831,7 +831,7 @@ export default function Till() {
     });
     const pending = invoice.status === 'awaiting' || invoice.status === 'seen';
     return (
-      <section className="mt-6 panel">
+      <section className={`mt-6 panel${isSkinV2() ? ' v2-pay' : ''}`}>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="eyebrow">Payment</p>
           <span className={`chip ${pending ? 'border-warn text-warn' : 'chip-good'}`}>

@@ -11,6 +11,8 @@ import Requests from './ui/Requests';
 import Settings from './ui/Settings';
 import Till from './ui/Till';
 import Lightning from './ui/Lightning';
+import FediCard from './ui/FediCard';
+import { FEDI_CARD_ENABLED } from './core/fedi';
 import AnchorPanel from './ui/AnchorPanel';
 import Pair from './ui/Pair';
 import Verify from './ui/Verify';
@@ -502,6 +504,7 @@ export default function App() {
               <Readiness />
               <Counters />
               <Settings />
+              {FEDI_CARD_ENABLED ? <FediCard /> : null}
               <Backup />
               <Advanced>
                 <KeyCheck />
