@@ -1123,7 +1123,7 @@ export default function Till() {
         <>
           {/* On a shop laptop the counter is two panes: choose and ring up on the left, the money
               and the Charge press on the right, held in place while the list scrolls (D-83). */}
-          <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-6">
+          <div className={`lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-6${isSkinV2() ? ' v2-two' : ''}`}>
           <div className={`min-w-0${isSkinV2() ? ' v2-sale' : ''}`}>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <label className="block" htmlFor="tl-wallet">
