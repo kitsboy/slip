@@ -638,22 +638,22 @@ button {
    --------------------------------------------------------------------------- */
 
 html[data-skin='v2'] {
-  --v2-bg: #d8ccb6;
-  --v2-card: #f7f3ec;
-  --v2-sunk: #cfc4b2;
-  --v2-raised: #f7f3ec;
-  --v2-ink: #1a1612;
-  --v2-ink-2: #3e3933;
-  --v2-edge: #5c564c;
-  --v2-line: #b7ad9e;
-  --v2-acc: #8f3a06;
-  --v2-on-acc: #ffffff;
-  --v2-good: #0b5d2a;
-  --v2-warn: #615a00;
-  --v2-bad: #a9000d;
+  --v2-bg: #24201c;
+  --v2-card: #322c26;
+  --v2-sunk: #1a1613;
+  --v2-raised: #3a342e;
+  --v2-ink: #f7f2ea;
+  --v2-ink-2: #e4d9cc;
+  --v2-edge: #9a9084;
+  --v2-line: #5c534a;
+  --v2-acc: #f0a32a;
+  --v2-on-acc: #1a1612;
+  --v2-good: #76cf8a;
+  --v2-warn: #e8d34f;
+  --v2-bad: #fb8276;
   --v2-qr-fg: #000000;
   --v2-qr-bg: #ffffff;
-  color-scheme: light;
+  color-scheme: dark;
 
   /* Type. System stack only — zero font bytes. Non-money text stays 18px or below. */
   --v2-font-ui: ui-sans-serif, system-ui, -apple-system, 'Segoe UI Variable Text', 'Segoe UI',
@@ -834,7 +834,7 @@ html[data-skin='v2']:not([data-theme='contrast']) {
 }
 
 html[data-skin='v2']:not([data-theme='dark']):not([data-theme='contrast']) {
-  --slip-accent: #8f3a06;
+  --slip-accent: #f0a32a;
 }
 
 html[data-skin='v2'][data-theme='dark'] {
@@ -1222,11 +1222,37 @@ html[data-skin='v2'] button[aria-label^='Remove '] {
 html[data-skin='v2'] .v2-demo {
   position: static;
   z-index: auto;
-  background: var(--v2-sunk);
+  background: #1a1613;
+  color: #f7f2ea;
+  border-bottom: 1px solid #9a9084;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+}
+
+/* Labels were 11px grey on a lamp. Every page uses the same readable type. */
+html[data-skin='v2'] .text-muted,
+html[data-skin='v2'] .text-secondary,
+html[data-skin='v2'] .text-xs,
+html[data-skin='v2'] .eyebrow,
+html[data-skin='v2'] [class*='text-[11px]'] {
   color: var(--v2-ink);
-  border-bottom: 1px solid var(--v2-edge);
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 16px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 500;
+}
+html[data-skin='v2'] .panel-title,
+html[data-skin='v2'] h1,
+html[data-skin='v2'] h2,
+html[data-skin='v2'] h3 {
+  color: var(--v2-ink);
+  letter-spacing: 0;
+  text-transform: none;
+}
+html[data-skin='v2'] .v2-price {
+  color: #e4d9cc;
 }
 html[data-skin='v2'] body {
   background-image: none;
@@ -1530,7 +1556,7 @@ html[data-skin='v2'] .v2-figure {
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   color: var(--v2-ink);
-  border-bottom: 2px solid #8f3a06;
+  border-bottom: 2px solid #f0a32a;
   width: fit-content;
 }
 html[data-skin='v2'][data-theme='dark'] .v2-figure {
@@ -1619,7 +1645,7 @@ html[data-skin='v2'] .v2-pay .figure {
   font-size: 56px;
   line-height: 1;
   letter-spacing: -0.03em;
-  border-bottom: 2px solid #8f3a06;
+  border-bottom: 2px solid #f0a32a;
   width: fit-content;
 }
 html[data-skin='v2'][data-theme='dark'] .v2-pay .figure {
@@ -1633,7 +1659,7 @@ html[data-skin='v2'] .v2-display .figure {
   font-size: 64px;
   line-height: 1;
   letter-spacing: -0.03em;
-  border-bottom: 2px solid #8f3a06;
+  border-bottom: 2px solid #f0a32a;
   width: fit-content;
   margin-inline: auto;
 }

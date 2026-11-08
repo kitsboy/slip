@@ -197,7 +197,7 @@ export default function App() {
       const light = theme === 'light';
       document
         .querySelector('meta[name="theme-color"]')
-        ?.setAttribute('content', light ? '#d8ccb6' : '#17130f');
+        ?.setAttribute('content', light ? '#24201c' : '#17130f');
     }
     try {
       saveTheme(appStore(), theme);

@@ -123,7 +123,7 @@ document.documentElement.dataset.skin = asked === 'v1' ? 'v1' : 'v2';
 if (document.documentElement.dataset.skin === 'v2') {
   const themeMeta = document.querySelector('meta[name="theme-color"]');
   const light = document.documentElement.getAttribute('data-theme') === 'light';
-  themeMeta?.setAttribute('content', light ? '#d8ccb6' : '#17130f');
+  themeMeta?.setAttribute('content', light ? '#24201c' : '#17130f');
 }
 
 /**
