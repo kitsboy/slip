@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.4** — 2026-11-08T06:53:25Z — `f850b383d6f6` — the first screen is the items, not the form
+
 - **v0.31.3** — 2026-11-08T06:42:39Z — `4e7adf3dbae2` — the new look is now the normal till; the old one is at ?skin=v1
 
 - **v0.31.2** — 2026-11-08T06:19:19Z — `e9b924f5b6d1` — Setup and More join the new look, still behind ?skin=v2
