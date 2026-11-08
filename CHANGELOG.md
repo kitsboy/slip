@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.9** — 2026-11-08T15:43:28Z — `6939ab49f55a` — each page has a name, a card, and one number
+
 - **v0.31.8** — 2026-11-08T15:34:40Z — `13e1e0d9a93b` — dim the page so the words on every tab can be read
 
 - **v0.31.7** — 2026-11-08T15:20:53Z — `8117d58d612b` — a stone page and a solid nav, so the words can be read
