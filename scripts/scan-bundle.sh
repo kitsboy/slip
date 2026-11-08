@@ -53,4 +53,14 @@ if [[ "$fail" -ne 0 ]]; then
   echo "scan-bundle: FAILED" >&2
   exit 1
 fi
+
+# 6. The component gallery is a dev page. It must not ship.
+if grep -qF 'data-slip-gallery' "$FILE"; then
+  report 'component gallery shipped in the production file'
+fi
+
+if [[ "$fail" -ne 0 ]]; then
+  echo "scan-bundle: FAILED" >&2
+  exit 1
+fi
 echo "scan-bundle: clean ($(wc -c < "$FILE") bytes)"

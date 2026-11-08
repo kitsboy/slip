@@ -135,17 +135,29 @@ if (isDemo) {
   seedDemo();
 }
 
-createRoot(el).render(
-  <React.StrictMode>
-    {isExplain ? (
-      <Explainer />
-    ) : isDisplay ? (
-      <CustomerDisplay />
-    ) : (
-      <>
-        {isDemo && <DemoBanner />}
-        <App />
-      </>
-    )}
-  </React.StrictMode>,
-);
+if (import.meta.env.DEV && params.get('gallery') === '1') {
+  // Dev server only. Vite drops this import from the production file, and
+  // scan-bundle refuses the build if the gallery marker survives.
+  void import('./ui/Gallery').then(({ default: Gallery }) => {
+    createRoot(el).render(
+      <React.StrictMode>
+        <Gallery />
+      </React.StrictMode>,
+    );
+  });
+} else {
+  createRoot(el).render(
+    <React.StrictMode>
+      {isExplain ? (
+        <Explainer />
+      ) : isDisplay ? (
+        <CustomerDisplay />
+      ) : (
+        <>
+          {isDemo && <DemoBanner />}
+          <App />
+        </>
+      )}
+    </React.StrictMode>,
+  );
+}
