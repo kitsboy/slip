@@ -638,15 +638,15 @@ button {
    --------------------------------------------------------------------------- */
 
 html[data-skin='v2'] {
-  --v2-bg: #f6f3ed;
-  --v2-card: #fdfcf9;
-  --v2-sunk: #ebe7e0;
-  --v2-raised: #fdfcf9;
-  --v2-ink: #171b22;
-  --v2-ink-2: #484d55;
-  --v2-edge: #6c727b;
-  --v2-line: #d4d1ca;
-  --v2-acc: #a84808;
+  --v2-bg: #d8ccb6;
+  --v2-card: #f7f3ec;
+  --v2-sunk: #cfc4b2;
+  --v2-raised: #f7f3ec;
+  --v2-ink: #1a1612;
+  --v2-ink-2: #3e3933;
+  --v2-edge: #5c564c;
+  --v2-line: #b7ad9e;
+  --v2-acc: #8f3a06;
   --v2-on-acc: #ffffff;
   --v2-good: #0b5d2a;
   --v2-warn: #615a00;
@@ -834,7 +834,7 @@ html[data-skin='v2']:not([data-theme='contrast']) {
 }
 
 html[data-skin='v2']:not([data-theme='dark']):not([data-theme='contrast']) {
-  --slip-accent: #a84808;
+  --slip-accent: #8f3a06;
 }
 
 html[data-skin='v2'][data-theme='dark'] {
@@ -1228,16 +1228,53 @@ html[data-skin='v2'] .v2-demo {
   font-size: 14px;
   line-height: 20px;
 }
+html[data-skin='v2'] body {
+  background-image: none;
+}
+
+/* The bar is solid in both themes. A see-through cream bar was the thing that looked broken. */
+html[data-skin='v2'] header,
+html[data-skin='v2'] nav[aria-label='Primary sections (phone)'] {
+  background: #1c1915;
+  color: #f4efe6;
+  border-color: #1c1915;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+html[data-skin='v2'] header .chip,
+html[data-skin='v2'] header .text-muted {
+  color: #f4efe6;
+  border-color: #8a8174;
+}
+html[data-skin='v2'] header .panel {
+  background: var(--v2-card);
+  color: var(--v2-ink);
+}
+html[data-skin='v2'] header .panel .text-muted,
+html[data-skin='v2'] header .panel a,
+html[data-skin='v2'] header .panel button {
+  color: var(--v2-ink);
+  border-color: var(--v2-edge);
+}
 html[data-skin='v2'] .v2-tab {
-  color: var(--v2-ink-2);
+  color: #e7e0d4;
   background: transparent;
   border-color: transparent;
-  font-weight: 500;
+  font-weight: 600;
+  box-shadow: none;
 }
 html[data-skin='v2'] .v2-tab-on {
-  color: var(--v2-ink);
+  color: #1c1915;
+  background: #f4efe6;
+  border-color: transparent;
   font-weight: 700;
-  box-shadow: inset 0 -3px 0 var(--v2-ink);
+  box-shadow: none;
+  border-radius: 12px;
+}
+html[data-skin='v2'] nav[aria-label='Primary sections (phone)'] a {
+  font-size: 13px;
+  margin: 6px 4px;
+  border-radius: 12px;
 }
 html[data-skin='v2'] .v2-tools {
   display: flex;
@@ -1471,8 +1508,9 @@ html[data-skin='v2'] .v2-catalog {
 html[data-skin='v2'] .v2-tile {
   min-height: 96px;
   border-radius: 16px;
-  border-color: var(--v2-line);
+  border-color: var(--v2-edge);
   background: var(--v2-card);
+  color: var(--v2-ink);
 }
 html[data-skin='v2'] .v2-tile:active {
   transform: translateY(1px);
@@ -1492,7 +1530,7 @@ html[data-skin='v2'] .v2-figure {
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   color: var(--v2-ink);
-  border-bottom: 2px solid #a84808;
+  border-bottom: 2px solid #8f3a06;
   width: fit-content;
 }
 html[data-skin='v2'][data-theme='dark'] .v2-figure {
@@ -1581,7 +1619,7 @@ html[data-skin='v2'] .v2-pay .figure {
   font-size: 56px;
   line-height: 1;
   letter-spacing: -0.03em;
-  border-bottom: 2px solid #a84808;
+  border-bottom: 2px solid #8f3a06;
   width: fit-content;
 }
 html[data-skin='v2'][data-theme='dark'] .v2-pay .figure {
@@ -1595,7 +1633,7 @@ html[data-skin='v2'] .v2-display .figure {
   font-size: 64px;
   line-height: 1;
   letter-spacing: -0.03em;
-  border-bottom: 2px solid #a84808;
+  border-bottom: 2px solid #8f3a06;
   width: fit-content;
   margin-inline: auto;
 }

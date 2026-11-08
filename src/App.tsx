@@ -197,7 +197,7 @@ export default function App() {
       const light = theme === 'light';
       document
         .querySelector('meta[name="theme-color"]')
-        ?.setAttribute('content', light ? '#f6f3ed' : '#17130f');
+        ?.setAttribute('content', light ? '#d8ccb6' : '#17130f');
     }
     try {
       saveTheme(appStore(), theme);
@@ -261,7 +261,7 @@ export default function App() {
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-5 py-3">
           <div className="flex items-center gap-2.5">
             {document.documentElement.dataset.skin === 'v2' ? (
-              <Brand variant="wordmark" height={18} />
+              <Brand variant="mark" height={28} />
             ) : (
               <span
                 aria-hidden
@@ -271,9 +271,7 @@ export default function App() {
               </span>
             )}
             <span className="flex items-baseline gap-2">
-              {document.documentElement.dataset.skin === 'v2' ? null : (
-                <span className="text-lg font-semibold tracking-tight">slip</span>
-              )}
+              <span className="text-lg font-semibold tracking-tight">slip</span>
               <span className="hidden text-xs text-muted sm:inline">point of sale</span>
             </span>
           </div>
