@@ -1923,6 +1923,50 @@ html[data-skin='v2'] .v2-display-idle-line {
   color: #f7f2ea;
   max-width: 18ch;
 }
+html[data-skin='v2'] .v2-display-shop {
+  margin: 0;
+  font-family: Palatino, 'Palatino Linotype', Georgia, serif;
+  font-size: 28px;
+  color: var(--v2-ink);
+}
+html[data-skin='v2'] .v2-stages {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 16px;
+  color: var(--v2-ink-2);
+}
+html[data-skin='v2'] .v2-stages .v2-on {
+  color: var(--v2-ink);
+  font-weight: 600;
+  border-bottom: 2px solid var(--v2-acc);
+}
+html[data-skin='v2'] .v2-jump {
+  outline: 2px solid var(--v2-acc);
+  outline-offset: 3px;
+}
+@keyframes v2-settle {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}
+html[data-skin='v2'] .v2-paid-figure {
+  animation: v2-settle 280ms ease;
+}
+html[data-skin='v2'] .v2-receipt .figure,
+html[data-skin='v2'] .v2-receipt h2,
+html[data-skin='v2'] .v2-receipt .text-xs {
+  border-bottom: 1px dotted var(--v2-edge);
+  padding-bottom: 6px;
+}
+html[data-skin='v2'] .v2-tile:focus-visible,
+html[data-skin='v2'] .v2-charge:focus-visible {
+  outline: 3px solid var(--v2-ink);
+  outline-offset: 3px;
+}
 html[data-skin='v2'] .v2-parts {
   color: #f7f2ea;
   padding: 24px 16px 48px;

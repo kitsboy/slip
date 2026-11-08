@@ -293,6 +293,16 @@ export default function Till() {
     return searchItems(filtered, query);
   }, [items, category, query]);
 
+  useEffect(() => {
+    if (!isSkinV2() || query.trim() === '') return;
+    const tile = document.querySelector('[data-panel="till"] .v2-tile');
+    if (!(tile instanceof HTMLElement)) return;
+    tile.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+    tile.classList.add('v2-jump');
+    const id = window.setTimeout(() => tile.classList.remove('v2-jump'), 280);
+    return () => window.clearTimeout(id);
+  }, [query, visible]);
+
   const totals = useMemo(() => {
     if (!wallet) return null;
     const lines = cart.map((l) => ({
@@ -554,6 +564,7 @@ export default function Till() {
         sats: created.invoice.amountAtoms.toString(),
         label: payee.label,
         status: 'awaiting',
+        shop: settings.businessName,
       });
     } catch (e) {
       setStatus(e instanceof Error ? e.message : 'could not create the invoice');
@@ -588,6 +599,7 @@ export default function Till() {
           sats: updated.amountAtoms.toString(),
           label: updated.walletLabel,
           status: updated.status === 'complete' ? 'paid' : updated.status === 'seen' ? 'seen' : 'awaiting',
+          shop: settings.businessName,
         });
         if (updated.status === 'complete' && leg2 && leg2.status !== 'complete') {
           // A split sale is not a sale until both legs are in. Say so rather than printing a
@@ -798,7 +810,7 @@ export default function Till() {
       dayDigestHex: anchor?.status === 'submitted' ? anchor.digestHex : null,
     });
     setReceipt(updated);
-    publishToDisplay({ kind: 'status', sats: updated.amountAtoms.toString(), label: updated.walletLabel, status: 'paid' });
+    publishToDisplay({ kind: 'status', sats: updated.amountAtoms.toString(), label: updated.walletLabel, status: 'paid', shop: settings.businessName });
     await callAgent('slip:paid', { invoice: updated, manual: true });
   }
 
@@ -984,7 +996,7 @@ export default function Till() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="eyebrow">Receipt</p>
-            <p className="figure mt-1 text-[2rem] font-bold leading-none tabular-nums">
+            <p className={`figure mt-1 text-[2rem] font-bold leading-none tabular-nums${isSkinV2() ? ' v2-paid-figure' : ''}`}>
               {formatSats(receipt.amountAtoms)}
             </p>
             <p className="mt-1 text-xs text-muted">
@@ -1616,16 +1628,17 @@ function printReceipt(
   const html = `<!doctype html><title>receipt ${esc(invoice.id)}</title>
 <style>
   @page { size: 80mm auto; margin: 4mm }
-  body { width: 72mm; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: #000; background: #fff; margin: 0 }
+  body { width: 72mm; font: 16px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; color: #000; background: #fff; margin: 0 }
   .tear { height: 10px; margin: 0 0 8px; background: radial-gradient(circle at 8px 0, #fff 7px, #000 7.5px) 0 0 / 16px 10px repeat-x }
-  h1 { font-size: 14px; margin: 0 0 2px }
+  h1 { font: 22px/1.2 Palatino, Georgia, serif; margin: 0 0 4px }
   .muted { color: #000 }
-  hr { border: 0; border-top: 1px dashed #000; margin: 8px 0 }
-  .big { font-size: 20px; font-weight: 700; margin: 4px 0 }
-  code { font-size: 11px; word-break: break-all }
+  hr { border: 0; border-top: 1px dotted #000; margin: 8px 0 }
+  .big { font-size: 28px; font-weight: 700; margin: 6px 0 }
+  code { font-size: 14px; word-break: break-all }
   table { width: 100%; border-collapse: collapse }
-  td { padding: 1px 0; vertical-align: top }
-  .status { display: inline-block; margin-top: 6px; border: 2px solid #000; padding: 2px 6px; font-weight: 700 }
+  td { padding: 4px 0; vertical-align: baseline; border-bottom: 1px dotted #000 }
+  td:last-child { text-align: right }
+  .status { display: inline-block; margin-top: 8px; border: 2px solid #000; padding: 4px 8px; font-weight: 700; font-size: 16px }
   .status-manual { border-style: dashed }
 </style>
 <div class="tear" aria-hidden="true"></div>

@@ -17,6 +17,7 @@ export interface DisplayMessage {
   readonly sats?: string;
   readonly label?: string;
   readonly status?: string;
+  readonly shop?: string;
   readonly at: string;
 }
 
@@ -78,6 +79,7 @@ export default function CustomerDisplay() {
   return (
     <main className="v2-display flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
       <p className="v2-pay-word">Pay exactly</p>
+      {message.shop ? <p className="v2-display-shop">{message.shop}</p> : null}
       <p className="figure">{message.sats ? formatSats(BigInt(message.sats)) : ''}</p>
       {message.uri && (
         <div
@@ -85,7 +87,6 @@ export default function CustomerDisplay() {
           dangerouslySetInnerHTML={{ __html: renderQrSvg(message.uri, { scale: 7, margin: 2 }) }}
         />
       )}
-      <p className="text-sm text-muted">{message.label ?? ''}</p>
       <p className={`text-sm ${message.status === 'paid' ? 'text-ok' : 'text-warn'}`}>
         {message.status === 'paid'
           ? 'Paid — thank you'

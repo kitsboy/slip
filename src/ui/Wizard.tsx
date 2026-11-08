@@ -13,6 +13,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import AddressText from './AddressText';
+import { isSkinV2 } from './skin';
 import { CURRENCIES } from '../core/currencies';
 import {
   WIZARD_STEPS,
@@ -193,6 +194,13 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
           />
         ))}
       </div>
+      {isSkinV2() && (
+        <p className="v2-stages">
+          <span className={step <= 2 ? 'v2-on' : undefined}>1 Shop</span>
+          <span className={step === 3 ? 'v2-on' : undefined}>2 Wallet</span>
+          <span className={step >= 4 ? 'v2-on' : undefined}>3 Ready</span>
+        </p>
+      )}
       <p className="eyebrow mt-4">
         step {step} of 5 · {stepper?.title}
       </p>
