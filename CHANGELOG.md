@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.15** — 2026-11-08T22:36:33Z — `18fe2a6ae083` — the header carries the mark, and the ten counter fixes land with it
+
 - **v0.31.14** — 2026-11-08T21:24:27Z — `95ba0cd4cc0d` — on a tablet with the keyboard open, the sale stays beside the items
 
 - **v0.31.13** — 2026-11-08T21:07:13Z — `e31758f81b29` — the counter tiles carry drawn marks, not emoji
