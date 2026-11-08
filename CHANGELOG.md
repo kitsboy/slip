@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.10** — 2026-11-08T19:06:48Z — `02c768cb434c` — money in is a list, books is one day, a mismatched wallet stops the sale
+
 - **v0.31.9** — 2026-11-08T15:43:28Z — `6939ab49f55a` — each page has a name, a card, and one number
 
 - **v0.31.8** — 2026-11-08T15:34:40Z — `13e1e0d9a93b` — dim the page so the words on every tab can be read
