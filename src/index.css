@@ -1316,3 +1316,34 @@ html[data-skin='v2'] [data-panel='requests'] button.border-accent {
   color: var(--v2-ink);
   background: var(--v2-card);
 }
+
+/* Setup and More, under the flag. The tools stay. The backup row says Optional.
+   Panels read as rows. The receipt check is the proof card. Learn stays open. */
+html[data-skin='v2'] .v2-section > div:first-child h2 {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--v2-ink);
+}
+html[data-skin='v2'] #setup .panel,
+html[data-skin='v2'] #more .panel {
+  border: 1px solid var(--v2-edge);
+  border-radius: 12px;
+  background: var(--v2-card);
+}
+html[data-skin='v2'] .v2-proof {
+  border-left: 4px solid var(--v2-good);
+}
+html[data-skin='v2'] .v2-learn summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: var(--v2-ink);
+}
+html[data-skin='v2'] [data-panel='wallets'] code strong {
+  font-weight: 700;
+  color: var(--v2-ink);
+}

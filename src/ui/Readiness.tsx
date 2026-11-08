@@ -101,7 +101,9 @@ export default function Readiness() {
             </span>
             <span className={`flex-1 ${row.done ? 'text-secondary' : 'text-ink'}`}>{row.label}</span>
             {row.manual ? (
-              <span className="text-[11px] text-muted">your job — slip cannot see it</span>
+              <span className="text-[11px] text-muted">
+                {isSkinV2() ? 'Optional — ' : ''}your job — slip cannot see it
+              </span>
             ) : row.done ? (
               <span className="text-[11px] text-muted">done</span>
             ) : (

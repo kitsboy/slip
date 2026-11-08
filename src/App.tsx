@@ -649,12 +649,23 @@ function Group({
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} className="mt-10 scroll-mt-16 sm:scroll-mt-24" hidden={!active}>
+    <section
+      id={id}
+      className={`mt-10 scroll-mt-16 sm:scroll-mt-24 ${document.documentElement.dataset.skin === 'v2' ? 'v2-section' : ''}`}
+      hidden={!active}
+    >
       <div className="flex flex-wrap items-baseline gap-2 border-b border-line pb-1">
         <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">{label}</h2>
         <span className="text-[11px] text-muted/80">{why}</span>
       </div>
-      {children}
+      {id === 'learn' && document.documentElement.dataset.skin === 'v2' ? (
+        <details className="v2-learn" open>
+          <summary>The manual</summary>
+          {children}
+        </details>
+      ) : (
+        children
+      )}
     </section>
   );
 }
