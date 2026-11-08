@@ -9,6 +9,7 @@
  */
 
 import { useMemo, useState } from 'react';
+import AddressText from './AddressText';
 import { SecretRefused, parseExtendedKey, resolveScript } from '../core/keys';
 import type { ScriptType } from '../core/keys';
 import { previewAddresses } from '../core/derive';
@@ -197,7 +198,9 @@ export default function KeyCheck() {
                 <span className="w-14 shrink-0 text-[11px] uppercase tracking-[0.08em] text-muted">
                   {a.path}
                 </span>
-                <code className="flex-1 break-all font-mono text-[11px]">{a.address}</code>
+                <code className="flex-1 break-all font-mono text-[11px]">
+                  <AddressText address={a.address} />
+                </code>
                 <button
                   type="button"
                   onClick={() => void navigator.clipboard?.writeText(a.address)}

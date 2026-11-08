@@ -1347,3 +1347,38 @@ html[data-skin='v2'] [data-panel='wallets'] code strong {
   font-weight: 700;
   color: var(--v2-ink);
 }
+
+/* The printed receipt is a separate file. These rules are the screen.
+   Groups of four, a gap, no spaces in the text. Charge stays in view on a phone.
+   One brass button: Charge. Everything else is ink. */
+html[data-skin='v2'] .v2-addr > span {
+  margin-right: 0.3em;
+}
+html[data-skin='v2'] .v2-addr > span:last-child {
+  margin-right: 0;
+}
+html[data-skin='v2'] .v2-addr-end {
+  font-weight: 700;
+  color: var(--v2-ink);
+}
+html[data-skin='v2'] {
+  overflow-x: clip;
+}
+@media (max-width: 639px) {
+  html[data-skin='v2'] .charge-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(64px + env(safe-area-inset-bottom));
+    z-index: 20;
+    margin: 0;
+    padding: 8px 12px;
+    background: var(--v2-card);
+    border-top: 1px solid var(--v2-edge);
+  }
+}
+html[data-skin='v2'] button.border-accent:not(.btn-primary) {
+  border-color: var(--v2-edge);
+  color: var(--v2-ink);
+  background: var(--v2-card);
+}

@@ -19,6 +19,7 @@ import { formatSats } from '../core/money';
 import { ScanField } from './Scan';
 import { escapeHtml, openPrintable } from './print';
 import { isSkinV2 } from './skin';
+import Sheet from './Sheet';
 import InfoVideo from './InfoVideo';
 import { store as appStore } from '../core/storage';
 
@@ -277,6 +278,7 @@ export default function History() {
           digest you can stamp.
         </p>
       ) : (
+        <>
         <ul className="mt-3 space-y-1">
           {visibleRows.map((row) => (
             <li key={row.id} className="rounded-lg border border-line p-2">
@@ -302,78 +304,69 @@ export default function History() {
                   refund
                 </button>
               )}
-              {refunding?.id === row.id && (
-                <div className="mt-2 rounded-lg border border-warn/40 p-2">
-                  <label className="block" htmlFor="rf-atoms">
-                    <span className="eyebrow">Amount to refund</span>
-                    <input
-                      id="rf-atoms"
-                      value={atoms}
-                      onChange={(e) => setAtoms(e.target.value)}
-                      inputMode="numeric"
-                      className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
-                    />
-                  </label>
-                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                    <label className="block" htmlFor="rf-method">
-                      <span className="eyebrow">How it went back</span>
-                      <select
-                        id="rf-method"
-                        value={method}
-                        onChange={(e) => setMethod(e.target.value as RefundMethod)}
-                        className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-xs outline-none focus:border-accent"
-                      >
-                        {(Object.keys(METHOD_LABEL) as RefundMethod[]).map((m) => (
-                          <option key={m} value={m}>
-                            {METHOD_LABEL[m]}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="block" htmlFor="rf-ref">
-                      <span className="eyebrow">Reference (txid, name)</span>
-                      <input
-                        id="rf-ref"
-                        value={reference}
-                        onChange={(e) => setReference(e.target.value)}
-                        className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-[11px] outline-none focus:border-accent"
-                      />
-                    </label>
-                  </div>
-                  <label className="mt-2 block" htmlFor="rf-reason">
-                    <span className="eyebrow">Reason</span>
-                    <input
-                      id="rf-reason"
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      placeholder="wrong order"
-                      className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-xs outline-none focus:border-accent"
-                    />
-                  </label>
-                  <div className="mt-2 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={saveRefund}
-                      className="rounded-lg border border-accent px-3 py-1.5 text-xs text-accent"
-                    >
-                      record refund
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setRefunding(null)}
-                      className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted"
-                    >
-                      cancel
-                    </button>
-                  </div>
-                  <p className="mt-1 text-[11px] text-warn">
-                    slip cannot send money anywhere. This records a refund you made yourself.
-                  </p>
-                </div>
-              )}
             </li>
           ))}
         </ul>
+        <Sheet open={refunding !== null} onClose={() => setRefunding(null)} title="Record a refund">
+          <label className="block" htmlFor="rf-atoms">
+            <span className="eyebrow">Amount to refund</span>
+            <input
+              id="rf-atoms"
+              value={atoms}
+              onChange={(e) => setAtoms(e.target.value)}
+              inputMode="numeric"
+              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
+            />
+          </label>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <label className="block" htmlFor="rf-method">
+              <span className="eyebrow">How it went back</span>
+              <select
+                id="rf-method"
+                value={method}
+                onChange={(e) => setMethod(e.target.value as RefundMethod)}
+                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-xs outline-none focus:border-accent"
+              >
+                {(Object.keys(METHOD_LABEL) as RefundMethod[]).map((m) => (
+                  <option key={m} value={m}>
+                    {METHOD_LABEL[m]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block" htmlFor="rf-ref">
+              <span className="eyebrow">Reference (txid, name)</span>
+              <input
+                id="rf-ref"
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-[11px] outline-none focus:border-accent"
+              />
+            </label>
+          </div>
+          <label className="mt-2 block" htmlFor="rf-reason">
+            <span className="eyebrow">Reason</span>
+            <input
+              id="rf-reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="wrong order"
+              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-xs outline-none focus:border-accent"
+            />
+          </label>
+          <div className="mt-2 flex gap-2">
+            <button type="button" onClick={saveRefund} className="btn btn-primary">
+              record refund
+            </button>
+            <button type="button" onClick={() => setRefunding(null)} className="btn btn-secondary">
+              cancel
+            </button>
+          </div>
+          <p className="mt-2 text-sm text-warn">
+            slip cannot send money anywhere. This records a refund you made yourself.
+          </p>
+        </Sheet>
+        </>
       )}
 
       <ScanField

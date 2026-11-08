@@ -121,11 +121,20 @@ export default function AnchorPanel() {
         <div className="rounded-lg border border-line px-2 py-1">
           <span className="eyebrow">Day digest</span>
           <p className="mt-0.5 break-all font-mono text-[11px]">
-            {book
-              ? isSkinV2()
-                ? `${book.digestHex.slice(0, 32).replace(/(.{4})/g, '$1 ').trim()}…`
-                : `${book.digestHex.slice(0, 32)}…`
-              : '—'}
+            {book ? (
+              isSkinV2() ? (
+                <span className="v2-addr">
+                  {(book.digestHex.slice(0, 32).match(/.{1,4}/g) ?? []).map((group, index) => (
+                    <span key={index}>{group}</span>
+                  ))}
+                  …
+                </span>
+              ) : (
+                `${book.digestHex.slice(0, 32)}…`
+              )
+            ) : (
+              '—'
+            )}
           </p>
         </div>
       </div>

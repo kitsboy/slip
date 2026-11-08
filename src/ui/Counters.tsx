@@ -38,19 +38,7 @@ import type { AccountPurpose, WalletColour } from '../core/accounts';
 import { store as appStore } from '../core/storage';
 import InfoVideo from './InfoVideo';
 import Tech from './Tech';
-import { isSkinV2 } from './skin';
-
-/** Display only. The value slip stores and copies is still the ungrouped address. */
-function groupedAddress(address: string): React.ReactNode {
-  const raw = address.replace(/\s+/g, '');
-  const chunk = (part: string) => part.match(/.{1,4}/g)?.join(' ') ?? part;
-  if (raw.length < 12) return chunk(raw);
-  return (
-    <>
-      <strong>{chunk(raw.slice(0, 6))}</strong> {chunk(raw.slice(6, -6))} <strong>{chunk(raw.slice(-6))}</strong>
-    </>
-  );
-}
+import AddressText from './AddressText';
 
 const NETWORKS: Array<{ id: NetworkId; coin: Coin; label: string }> = [
   { id: 'btc-mainnet', coin: 'btc', label: 'Bitcoin' },
@@ -372,7 +360,9 @@ export default function Counters() {
                   {statusOf(a) === 'ready' ? 'checked' : 'needs your check'}
                 </span>
               </div>
-              <p className="mt-1 break-all font-mono text-[11px] text-muted">{a.firstAddress}</p>
+              <p className="mt-1 break-all font-mono text-[11px] text-muted">
+                <AddressText address={a.firstAddress} />
+              </p>
               <p className="mt-0.5 text-[11px] uppercase tracking-[0.08em] text-muted">
                 {WALLET_COLOURS.find((c) => c.id === a.colour)?.label ?? '—'} ·{' '}
                 {purposeLabel(a.purpose)} · {a.networkId} · {a.scriptType} · fp {a.fingerprintHex}
@@ -421,7 +411,9 @@ export default function Counters() {
                     this counter, not an invoice. A real sale will reserve a fresh index before any
                     QR is shown.
                     <br />
-                    <span className="font-mono break-all">{a.firstAddress}</span>
+                    <span className="font-mono break-all">
+                      <AddressText address={a.firstAddress} />
+                    </span>
                   </p>
                 </div>
               )}
@@ -599,7 +591,7 @@ export default function Counters() {
                 <li key={a.address} className="flex gap-2 rounded border border-line px-2 py-1">
                   <span className="w-10 shrink-0 text-[11px] text-muted">{a.path}</span>
                   <code className="break-all font-mono text-[11px]">
-                    {isSkinV2() ? groupedAddress(a.address) : a.address}
+                    <AddressText address={a.address} />
                   </code>
                 </li>
               ))}
@@ -613,7 +605,9 @@ export default function Counters() {
               />
               <span>
                 I opened my wallet&apos;s Receive tab and address 0/0 is{' '}
-                <span className="font-mono text-ink">{validation.draft.firstAddress}</span>
+                <span className="font-mono text-ink">
+                  <AddressText address={validation.draft.firstAddress} />
+                </span>
               </span>
             </label>
             <button

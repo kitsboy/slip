@@ -25,6 +25,7 @@ import { loadSettings } from '../core/settings';
 import { paymentUri, renderQrSvg } from '../core/qr';
 import { store as appStore } from '../core/storage';
 import { isSkinV2 } from './skin';
+import AddressText from './AddressText';
 
 export default function Requests() {
   const settings = useMemo(() => loadSettings(appStore()).settings, []);
@@ -269,7 +270,9 @@ export default function Requests() {
                       }}
                     />
                     <div className="min-w-0 flex-1 text-[11px] text-muted">
-                      <p className="break-all font-mono">{showing.address}</p>
+                      <p className="break-all font-mono">
+                        <AddressText address={showing.address} />
+                      </p>
                       <p className="mt-1">
                         <span className="figure text-ink">{formatSats(showing.sats)}</span> · {r.label}
                       </p>

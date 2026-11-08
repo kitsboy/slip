@@ -15,6 +15,7 @@ import ConfirmButton from './ConfirmButton';
 import { loadSettings } from '../core/settings';
 import { fetchAddressActivity, formatAtoms, targetFor } from '../core/providers/esplora';
 import { formatSats } from '../core/money';
+import AddressText from './AddressText';
 import type { NetworkId } from '../core/network';
 import { ALL_NETWORK_IDS, networkById } from '../core/network';
 import { store as appStore } from '../core/storage';
@@ -200,7 +201,9 @@ export default function Watchlist() {
                   <span className="text-sm">{w.label}</span>
                   <span className="chip">{w.networkId}</span>
                 </div>
-                <p className="mt-0.5 break-all font-mono text-[11px] text-muted">{w.address}</p>
+                <p className="mt-0.5 break-all font-mono text-[11px] text-muted">
+                  <AddressText address={w.address} />
+                </p>
                 {s ? (
                   s.error ? (
                     <p className="mt-1 text-[11px] text-bad">{s.error}</p>

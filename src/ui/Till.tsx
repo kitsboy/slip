@@ -42,6 +42,7 @@ import { paymentLabel } from '../core/brand';
 import { registerDemoSale } from '../demo/fakeExplorer';
 import { isDemo } from '../core/storage';
 import { isSkinV2 } from './skin';
+import AddressText from './AddressText';
 import { store as appStore } from '../core/storage';
 import AwaitingStrip from './AwaitingStrip';
 import OpenTill, { type OpenShift } from './OpenTill';
@@ -865,7 +866,7 @@ export default function Till() {
               <span className="text-ink">{invoice.walletLabel}</span>.
             </p>
             <p className="mt-2 break-all rounded-lg border border-line bg-bg p-2 font-mono text-[11px]">
-              {invoice.address}
+              <AddressText address={invoice.address} />
             </p>
             <button
               type="button"
@@ -950,7 +951,9 @@ export default function Till() {
                       ? 'seen on its way — not confirmed yet'
                       : 'waiting for payment'}
                 </p>
-                <p className="mt-1 break-all font-mono text-[11px]">{leg2.address}</p>
+                <p className="mt-1 break-all font-mono text-[11px]">
+                  <AddressText address={leg2.address} />
+                </p>
                 <p className="mt-1 text-warn">
                   A split sale is one sale: the receipt appears when both legs are paid.
                 </p>
@@ -1007,7 +1010,9 @@ export default function Till() {
             dangerouslySetInnerHTML={{ __html: qrSvg(proofUri, 5) }}
           />
           <div className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
-            <p className="break-all font-mono">{receipt.address}</p>
+            <p className="break-all font-mono">
+              <AddressText address={receipt.address} />
+            </p>
             <p className="mt-1">
               {receipt.manual
                 ? 'This receipt records a manual confirmation. slip did not observe a payment.'
@@ -1144,7 +1149,7 @@ export default function Till() {
             )}
           </div>
           {isSkinV2() && (
-            <details className="v2-tools mt-2">
+            <details className="v2-tools mt-2" open>
               <summary>Tools</summary>
               <label className="mt-2 block" htmlFor="tl-rate">
                 <span className="eyebrow">What one {wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth ({settings.currency})</span>
@@ -1575,35 +1580,43 @@ function printReceipt(
 ): void {
   const esc = (s: string) => s.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]!);
   const at = (invoice.confirmedAt ?? invoice.createdAt).slice(0, 16).replace('T', ' ');
+  const status = invoice.note === 'rehearsal'
+    ? 'REHEARSAL — nothing was charged'
+    : invoice.manual
+      ? 'Marked paid by you'
+      : 'Paid — seen on chain';
   const html = `<!doctype html><title>receipt ${esc(invoice.id)}</title>
 <style>
-  @page { margin: 10mm }
-  body { font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; color: #000; background: #fff; margin: 0 }
-  h1 { font-size: 15px; margin: 0 0 2px }
-  .muted { color: #444 }
-  hr { border: 0; border-top: 1px solid #000; margin: 8px 0 }
+  @page { size: 80mm auto; margin: 4mm }
+  body { width: 72mm; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: #000; background: #fff; margin: 0 }
+  h1 { font-size: 14px; margin: 0 0 2px }
+  .muted { color: #000 }
+  hr { border: 0; border-top: 1px dashed #000; margin: 8px 0 }
   .big { font-size: 20px; font-weight: 700; margin: 4px 0 }
-  code { font-size: 10px; word-break: break-all }
+  code { font-size: 11px; word-break: break-all }
   table { width: 100%; border-collapse: collapse }
   td { padding: 1px 0; vertical-align: top }
+  .status { display: inline-block; margin-top: 6px; border: 2px solid #000; padding: 2px 6px; font-weight: 700 }
+  .status-manual { border-style: dashed }
 </style>
 <h1>${esc(shopName || 'slip')}</h1>
-<div class="muted">${esc(at)} UTC</div>
+<div>${esc(at)} UTC</div>
 <hr>
 <div class="big">${formatSats(invoice.amountAtoms)}</div>
 <div>${esc(formatFiat({ minor: invoice.amountMinor, currency: invoice.currency }))}</div>
+<div class="status ${invoice.manual || invoice.note === 'rehearsal' ? 'status-manual' : ''}">${esc(status)}</div>
 <hr>
 <table>
   <tr><td>Invoice</td><td>${esc(invoice.id)}</td></tr>
   <tr><td>Wallet</td><td>${esc(invoice.walletLabel)}</td></tr>
   <tr><td>Address</td><td><code>${esc(invoice.address)}</code></td></tr>
   <tr><td>Index</td><td>${invoice.index === null ? 'fixed address' : `#${invoice.index}`}</td></tr>
-  <tr><td>Status</td><td>${invoice.manual ? 'confirmed by a human' : 'observed by slip at the address above'}</td></tr>
 </table>
-${proof ? `<hr><div class="muted">Proof</div><code>${esc(formatProof(proof))}</code>` : ''}
+${invoice.manual ? '<p>slip did not observe a payment. This is a record of what you marked.</p>' : '<p>slip observed this payment at the address above.</p>'}
+${proof ? `<hr><div>Proof</div><code>${esc(formatProof(proof))}</code>` : ''}
 <hr>
-<div class="muted">${esc(footer || 'Thank you')}</div>
-<div class="muted">slip · watch-only · no keys, no server</div>`;
+<div>${esc(footer || 'Thank you')}</div>
+<div>slip · watch-only · no keys, no server</div>`;
   openPrintable(html, 'slip-receipt', 'width=380,height=620');
 }
 

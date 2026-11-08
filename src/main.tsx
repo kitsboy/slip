@@ -115,11 +115,11 @@ const isDemo = params.get('demo') === '1';
 const isExplain = params.get('explain') === '1';
 
 /**
- * Hidden skin switch (P-1). `?skin=v2` turns the new tokens on; anything else, including
- * no parameter, stays on v1. No storage key, no cookie, no CSP change — a reload without
- * the parameter is the old till, pixel for pixel.
+ * Hidden skin switch. The new look is the normal one. `?skin=v1` is the old till,
+ * kept so one bad publish can be undone without a redeploy. Nothing is stored.
  */
-document.documentElement.dataset.skin = params.get('skin') === 'v2' ? 'v2' : 'v1';
+const asked = params.get('skin');
+document.documentElement.dataset.skin = asked === 'v1' ? 'v1' : 'v2';
 if (document.documentElement.dataset.skin === 'v2') {
   const themeMeta = document.querySelector('meta[name="theme-color"]');
   const light = document.documentElement.getAttribute('data-theme') === 'light';

@@ -12,6 +12,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import AddressText from './AddressText';
 import { CURRENCIES } from '../core/currencies';
 import {
   WIZARD_STEPS,
@@ -357,7 +358,9 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
                 {validation.draft.preview.slice(0, 3).map((a) => (
                   <li key={a.address} className="flex gap-2 rounded border border-line px-2 py-1">
                     <span className="w-10 shrink-0 text-[11px] text-muted">{a.path}</span>
-                    <code className="break-all font-mono text-[11px]">{a.address}</code>
+                    <code className="break-all font-mono text-[11px]">
+                      <AddressText address={a.address} />
+                    </code>
                   </li>
                 ))}
               </ol>
@@ -370,7 +373,9 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
                 />
                 <span>
                   I opened my wallet and address 0/0 is{' '}
-                  <span className="font-mono text-ink">{validation.draft.firstAddress}</span>
+                  <span className="font-mono text-ink">
+                    <AddressText address={validation.draft.firstAddress} />
+                  </span>
                 </span>
               </label>
               <button
