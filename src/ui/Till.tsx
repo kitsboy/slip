@@ -980,7 +980,7 @@ export default function Till() {
   if (receipt) {
     const proofUri = paymentUri('bitcoin', { address: receipt.address, amountSats: receipt.amountAtoms });
     return (
-      <section className="mt-6 panel">
+              <section className={isSkinV2() ? 'v2-receipt' : 'mt-6 panel'}>
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="eyebrow">Receipt</p>
@@ -1053,7 +1053,7 @@ export default function Till() {
         )}
 
         <div className="mt-6 flex flex-wrap items-center gap-2 pb-1">
-          <button type="button" onClick={() => void finish()} className="btn btn-primary">
+          <button type="button" onClick={() => void finish()} className={`btn btn-primary${isSkinV2() ? ' v2-charge' : ''}`}>
             Next sale
           </button>
           <button
@@ -1220,6 +1220,7 @@ export default function Till() {
                     key={c}
                     type="button"
                     onClick={() => setCategory(c)}
+                    tabIndex={isSkinV2() ? 2 : undefined}
                     className={`rounded-full border px-3 text-[11px] ${category === c ? 'border-accent text-accent' : 'border-line text-muted'}`}
                   >
                     {c}
@@ -1229,6 +1230,7 @@ export default function Till() {
               <div className={`mt-2 flex flex-wrap items-start gap-2${isSkinV2() ? ' v2-find' : ''}`}>
                 <input
                   id="tl-search"
+                  tabIndex={isSkinV2() ? 1 : undefined}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="search items"
@@ -1252,6 +1254,7 @@ export default function Till() {
                     <button
                       key={i.id}
                       type="button"
+                      tabIndex={isSkinV2() ? 3 : undefined}
                       onClick={() => addLine(i)}
                       className={`relative flex min-h-24 flex-col justify-between rounded-xl border border-line bg-surface-2 p-3 text-left transition hover:border-accent active:scale-[0.98]${isSkinV2() ? ' v2-tile' : ''}`}
                     >
@@ -1308,7 +1311,7 @@ export default function Till() {
                   setCategory('All');
                 }}
                 aria-pressed={tipJar}
-                className={`btn ${tipJar ? 'btn-primary' : 'btn-secondary'}`}
+                className={isSkinV2() ? `btn btn-secondary${tipJar ? ' v2-on' : ''}` : `btn ${tipJar ? 'btn-primary' : 'btn-secondary'}`}
               >
                 Tip jar
               </button>
@@ -1520,6 +1523,7 @@ export default function Till() {
                 <span>Bitcoin</span>
                 <input
                   id="tl-rate"
+                  tabIndex={isSkinV2() ? 4 : undefined}
                   value={rate}
                   onChange={(e) => setRate(e.target.value)}
                   inputMode="decimal"
@@ -1532,7 +1536,8 @@ export default function Till() {
               type="button"
               onClick={charge}
               disabled={!wallet || !totals || chargeSats === null || compareStopped}
-              className="btn btn-primary flex-1 sm:flex-none"
+              tabIndex={isSkinV2() ? 5 : undefined}
+              className={`btn btn-primary flex-1 sm:flex-none${isSkinV2() ? ' v2-charge' : ''}`}
             >
               {settings.assist.rehearsal ? 'Rehearse' : 'Charge'}
               {totals && chargeSats !== null

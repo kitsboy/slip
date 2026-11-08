@@ -121,10 +121,21 @@ export default function History() {
 
   function printClose() {
     const report = closeReport(close, settings.businessName, settings.currency);
+    const rows = report.lines
+      .map((line) => {
+        const cut = line.indexOf(': ');
+        if (cut > 0 && cut < 28) {
+          return `<div class="row"><span>${escapeHtml(line.slice(0, cut))}</span><span>${escapeHtml(line.slice(cut + 2))}</span></div>`;
+        }
+        return `<p>${escapeHtml(line)}</p>`;
+      })
+      .join('');
     const html =
       `<!doctype html><title>${escapeHtml(report.title)}</title>` +
-      '<style>@page{margin:10mm}body{font:12px/1.5 ui-monospace,monospace;color:#000;background:#fff;margin:0}pre{margin:0}</style>' +
-      `<pre>${escapeHtml(report.lines.join('\n'))}</pre>`;
+      '<style>@page{size:80mm auto;margin:4mm}body{width:72mm;font:12px/1.45 ui-monospace,monospace;color:#000;background:#fff;margin:0}' +
+      '.row{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dotted #000;padding:3px 0}' +
+      '.row span:last-child{font-weight:700}p{margin:6px 0}</style>' +
+      rows;
     if (!openPrintable(html, 'slip-close')) {
       setNote({ kind: 'warn', text: 'allow pop-ups to print the day close' });
     }
@@ -176,6 +187,9 @@ export default function History() {
           {formatSats(close.byRail.manual)} marked by hand
           {close.refundedAtoms > 0n ? ` · ${formatSats(close.refundedAtoms)} refunded` : ''}
         </p>
+        {close.count === 0 && (
+          <p className="mt-3 text-sm text-ink">No sales on this day yet. Ring one up on Sell, and it lands here.</p>
+        )}
         {date !== todayIso && (
           <button type="button" className="btn btn-secondary mt-2 px-2 py-1 text-xs" onClick={() => setDate(todayIso)}>
             Show today

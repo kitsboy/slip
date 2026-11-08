@@ -12,6 +12,7 @@
 import { ageLabel, awaitingCount, awaitingSales } from '../core/awaiting';
 import { formatFiat } from '../core/money';
 import type { Invoice } from '../core/orders';
+import { isSkinV2 } from './skin';
 
 interface Props {
   readonly invoices: readonly Invoice[];
@@ -26,7 +27,7 @@ export default function AwaitingStrip({ invoices, onOpen }: Props) {
 
   return (
     <div
-      className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-accent bg-surface-2 px-3 py-2"
+      className={`mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-accent bg-surface-2 px-3 py-2${isSkinV2() ? ' v2-await' : ''}`}
       role="status"
       aria-label="Sales still waiting for payment"
       data-awaiting={total}

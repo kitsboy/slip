@@ -155,7 +155,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
     setWalletConfirmed(true);
     setConfirmedAddress(account.firstAddress);
     setVerifyChecked(false);
-    setMessage(`${account.label} saved — address 0/0 is ${account.firstAddress}`);
+    setMessage(`${account.label} saved. Address 0/0 is on screen, in groups of four. Check the bold ends against your wallet.`);
   }, [validation, checked]);
 
   async function savePin() {

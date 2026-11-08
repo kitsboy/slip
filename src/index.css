@@ -1986,3 +1986,147 @@ html[data-skin='v2'] .bg-white {
     min-height: 56px;
   }
 }
+
+/* The header is a sign, not a toolbar. The word sits in the middle. The mark
+   sits only in the top right. A faint copy of that same mark sits behind the word. */
+html[data-skin='v2'] .v2-head {
+  position: sticky;
+  top: 0;
+  background: var(--v2-bg);
+  border-bottom: 1px solid var(--v2-line);
+}
+html[data-skin='v2'] .v2-head::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: min(520px, 92vw);
+  height: 180px;
+  transform: translate(-50%, -50%);
+  background: url('./slip-mark.png') center / contain no-repeat;
+  opacity: 0.14;
+  pointer-events: none;
+}
+html[data-skin='v2'] .v2-head-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  min-height: 76px;
+  padding: 10px 96px 8px 96px;
+}
+html[data-skin='v2'] .v2-head-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  z-index: 1;
+}
+html[data-skin='v2'] .v2-head-title {
+  z-index: 1;
+  text-align: center;
+}
+html[data-skin='v2'] .v2-head-word {
+  display: block;
+  font-family: Palatino, 'Palatino Linotype', 'Iowan Old Style', Georgia, serif;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  color: var(--v2-ink);
+  padding-left: 0.18em;
+}
+html[data-skin='v2'] .v2-head-sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--v2-ink-2);
+}
+html[data-skin='v2'] .v2-head-logo {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  height: 40px;
+  width: auto;
+  z-index: 2;
+}
+@media (max-width: 639px) {
+  html[data-skin='v2'] .v2-head-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 12px 8px;
+  }
+  html[data-skin='v2'] .v2-head-tools {
+    margin-top: 8px;
+    justify-content: center;
+  }
+  html[data-skin='v2'] .v2-head-word {
+    font-size: 24px;
+  }
+  html[data-skin='v2'] .v2-head-logo {
+    height: 26px;
+    top: 8px;
+    right: 8px;
+  }
+  html[data-skin='v2'] .v2-head::before {
+    width: 160px;
+    height: 64px;
+    top: 22px;
+    opacity: 0.12;
+  }
+}
+
+/* Tabbing always shows where you are, including on the brass Charge button. */
+html[data-skin='v2'] :focus-visible {
+  outline: 3px solid var(--v2-ink);
+  outline-offset: 3px;
+}
+html[data-skin='v2'] .btn-primary:focus-visible,
+html[data-skin='v2'] .v2-charge:focus-visible {
+  outline: 3px solid var(--v2-bg);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px var(--v2-ink);
+}
+
+/* On Sell, Charge is the only filled button. */
+html[data-skin='v2'] [data-panel='till'] .btn-primary:not(.v2-charge) {
+  background: transparent;
+  color: var(--v2-ink);
+  border: 1px solid var(--v2-edge);
+}
+html[data-skin='v2'] .v2-on {
+  border-color: var(--v2-acc);
+  color: var(--v2-acc);
+}
+
+/* The on-screen receipt is a slip: one number, dotted lines. The torn edge stays on paper. */
+html[data-skin='v2'] .v2-receipt {
+  max-width: 420px;
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--v2-card);
+  border: 1px solid var(--v2-edge);
+  border-radius: 12px;
+  color: var(--v2-ink);
+}
+html[data-skin='v2'] .v2-receipt .figure {
+  font-size: 40px;
+}
+html[data-skin='v2'] .v2-receipt p + p {
+  border-top: 1px dotted var(--v2-edge);
+  padding-top: 6px;
+}
+
+/* A waiting sale is one line on a phone, so it cannot cover the first coffee. */
+@media (max-width: 400px) {
+  html[data-skin='v2'] .v2-await {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-height: 44px;
+    margin-top: 4px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+}

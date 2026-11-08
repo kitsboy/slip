@@ -41,7 +41,6 @@ import { applyTheme, loadTheme, saveTheme, systemTheme, type Theme } from './cor
 import Readiness from './ui/Readiness';
 import Wizard from './ui/Wizard';
 import Watcher from './ui/Watcher';
-import Brand from './ui/Brand';
 import { buildLabel } from './core/buildinfo';
 import { formatSats } from './core/money';
 import { isOnboarded } from './core/settings';
@@ -128,10 +127,11 @@ export default function App() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   // Live, device-read counts for the tab bar. Not decoration: each one is something to do.
-  const [shellCounts, setShellCounts] = useState<{ waiting: number; wallets: number; openAtoms: bigint | null }>({
+  const [shellCounts, setShellCounts] = useState<{ waiting: number; wallets: number; openAtoms: bigint | null; sold: boolean }>({
     waiting: 0,
     wallets: 0,
     openAtoms: null,
+    sold: false,
   });
   const [theme, setTheme] = useState<Theme>(() => {
     try {
@@ -162,11 +162,12 @@ export default function App() {
         setShellCounts({
           waiting: invoices.filter((invoice) => invoice.status !== 'complete' && invoice.status !== 'expired').length,
           wallets: accounts.length,
+          sold: invoices.some((invoice) => invoice.status === 'complete'),
           // A sale that is still waiting is a customer standing there. It stays reachable.
           openAtoms: open ? open.amountAtoms : null,
         });
       } catch {
-        setShellCounts({ waiting: 0, wallets: 0, openAtoms: null });
+        setShellCounts({ waiting: 0, wallets: 0, openAtoms: null, sold: false });
       }
     };
     read();
@@ -257,19 +258,42 @@ export default function App() {
   return (
     <div className="flex min-h-full flex-col">
       <Watcher />
-      <header className="sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur">
+      <header className={isSkinV2() ? 'v2-head sticky top-0 z-20' : 'sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur'}>
+        {isSkinV2() ? (
+          <div className="v2-head-row">
+            <div className="v2-head-tools">
+              <a href="#learn" className="chip hover:text-ink" aria-label="Help and the manual">
+                <span aria-hidden>?</span>
+              </a>
+              <button type="button" onClick={() => setWizardOpen(true)} className="chip hover:text-ink">
+                {onboarded ? 'run setup again' : 'start setup'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMenuOpen((open) => !open)}
+                className="chip hover:text-ink"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                aria-label="More: appearance, demo, version"
+              >
+                <span aria-hidden>⋯</span>
+              </button>
+            </div>
+            <div className="v2-head-title">
+              <span className="v2-head-word">slip</span>
+              <span className="v2-head-sub">point of sale</span>
+            </div>
+            <img className="v2-head-logo" src="./slip-mark.png" alt="" />
+          </div>
+        ) : (
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-5 py-3">
           <div className="flex items-center gap-2.5">
-            {document.documentElement.dataset.skin === 'v2' ? (
-              <Brand variant="mark" height={28} />
-            ) : (
-              <span
-                aria-hidden
-                className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-[13px] font-bold text-bg"
-              >
-                s
-              </span>
-            )}
+            <span
+              aria-hidden
+              className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-[13px] font-bold text-bg"
+            >
+              s
+            </span>
             <span className="flex items-baseline gap-2">
               <span className="text-lg font-semibold tracking-tight">slip</span>
               <span className="hidden text-xs text-muted sm:inline">point of sale</span>
@@ -299,6 +323,7 @@ export default function App() {
             </button>
           </div>
         </div>
+        )}
         {menuOpen && (
           <div className="mx-auto w-full max-w-3xl px-5 pb-3" role="menu" aria-label="Appearance and about">
             <div className="panel p-3">
@@ -383,9 +408,11 @@ export default function App() {
                   <div className="min-w-0">
                     {/* No eyebrow here: a shop that is already trading does not need to be told
                         again what it is looking at. */}
+                    {!shellCounts.sold && (
                     <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
                       A till that pays you, not a bank.
                     </h1>
+                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <InfoVideo

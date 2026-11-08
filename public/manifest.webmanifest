@@ -10,9 +10,9 @@
   "theme_color": "#0b0d10",
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%230b0d10'/%3E%3Cpath d='M160 96h192v224l-48-32-48 32-48-32-48 32z' fill='%23F7931A'/%3E%3Cpath d='M200 176h112M200 240h72' stroke='%230b0d10' stroke-width='24' stroke-linecap='round'/%3E%3C/svg%3E",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "./slip-mark.png",
+      "sizes": "300x220",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

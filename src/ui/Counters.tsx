@@ -204,7 +204,7 @@ export default function Counters() {
     refresh();
     setMessage({
       kind: 'ok',
-      text: `${account.label} saved and checked. First address ${account.firstAddress}`,
+      text: `${account.label} saved and checked. The first address is on screen in groups of four — check the bold ends.`,
     });
     setLabel('');
     setXpub('');
