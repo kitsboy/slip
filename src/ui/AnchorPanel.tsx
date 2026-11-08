@@ -17,6 +17,7 @@ import { createLedger } from '../core/ledger';
 import { CALENDARS, dayDigest, describeAnchor, submitAnchor, verifyLocally, type Anchor, type DayBook } from '../core/anchor';
 import { formatSats } from '../core/money';
 import { store as appStore } from '../core/storage';
+import { isSkinV2 } from './skin';
 
 function recentDays(count: number): string[] {
   const out: string[] = [];
@@ -119,7 +120,13 @@ export default function AnchorPanel() {
         </div>
         <div className="rounded-lg border border-line px-2 py-1">
           <span className="eyebrow">Day digest</span>
-          <p className="mt-0.5 break-all font-mono text-[11px]">{book ? book.digestHex.slice(0, 32) + '…' : '—'}</p>
+          <p className="mt-0.5 break-all font-mono text-[11px]">
+            {book
+              ? isSkinV2()
+                ? `${book.digestHex.slice(0, 32).replace(/(.{4})/g, '$1 ').trim()}…`
+                : `${book.digestHex.slice(0, 32)}…`
+              : '—'}
+          </p>
         </div>
       </div>
 

@@ -18,6 +18,7 @@ import { loadSettings } from '../core/settings';
 import { formatSats } from '../core/money';
 import { ScanField } from './Scan';
 import { escapeHtml, openPrintable } from './print';
+import { isSkinV2 } from './skin';
 import InfoVideo from './InfoVideo';
 import { store as appStore } from '../core/storage';
 
@@ -129,7 +130,7 @@ export default function History() {
 
   return (
     <section
-      className="mt-6 panel"
+      className={`mt-6 panel ${isSkinV2() ? 'v2-books' : ''}`}
       data-version={version}
       data-panel="history"
       data-close-count={close.count}
@@ -157,7 +158,7 @@ export default function History() {
       </p>
 
       {/* The day's line before its detail: the number a shopkeeper came for, and what it is made of. */}
-      <div className="mt-3 rounded-xl border border-line bg-surface p-3" data-today-line>
+      <div className={`mt-3 rounded-xl border border-line bg-surface p-3 ${isSkinV2() ? 'v2-slip' : ''}`} data-today-line>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="eyebrow">{date === todayIso ? 'Today' : 'That day'}</p>
           <p className="text-[11px] text-muted">
@@ -180,7 +181,7 @@ export default function History() {
         )}
       </div>
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-4">
+      <div className={`mt-3 grid gap-2 sm:grid-cols-4 ${isSkinV2() ? 'v2-leaders' : ''}`}>
         <label className="block" htmlFor="hs-date">
           <span className="eyebrow">Day</span>
           <select
@@ -208,7 +209,7 @@ export default function History() {
         ))}
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className={`mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4 ${isSkinV2() ? 'v2-leaders' : ''}`}>
         {(
           [
             ['on-chain', close.byRail.onchain],

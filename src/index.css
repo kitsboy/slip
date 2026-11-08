@@ -1258,3 +1258,61 @@ html[data-skin='v2'] .v2-rate-line {
   line-height: 20px;
   color: var(--v2-ink-2);
 }
+
+/* Books and Money in, under the flag. The numbers and the buttons stay.
+   The day's total is a slip. The little boxes become rows with a dotted leader. */
+html[data-skin='v2'] .v2-books [data-today-line] .figure {
+  font-size: clamp(28px, 8vw, 48px);
+  letter-spacing: -0.02em;
+}
+html[data-skin='v2'] .v2-leaders {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--v2-edge);
+  border-radius: 12px;
+  background: var(--v2-card);
+  padding: 4px 12px;
+}
+html[data-skin='v2'] .v2-leaders > div,
+html[data-skin='v2'] .v2-leaders > label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 2px dotted var(--v2-line);
+  border-radius: 0;
+  background: transparent;
+}
+html[data-skin='v2'] .v2-leaders > :last-child {
+  border-bottom: 0;
+}
+html[data-skin='v2'] .v2-leaders .eyebrow,
+html[data-skin='v2'] .v2-leaders dt {
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--v2-ink-2);
+}
+html[data-skin='v2'] .v2-leaders .figure,
+html[data-skin='v2'] .v2-leaders dd {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--v2-ink);
+}
+html[data-skin='v2'] .v2-form {
+  padding: 12px;
+  border: 1px solid var(--v2-edge);
+  border-radius: 12px;
+  background: var(--v2-sunk);
+}
+html[data-skin='v2'] [data-panel='requests'] button.border-accent {
+  min-height: 48px;
+  border-color: var(--v2-edge);
+  color: var(--v2-ink);
+  background: var(--v2-card);
+}
