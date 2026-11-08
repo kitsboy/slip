@@ -26,10 +26,14 @@ const CANVASES = [
 
 const SCREENS = [
   { name: 'sell', hash: 'till', prepare: 'cart' },
+  { name: 'empty', hash: 'till' },
+  { name: 'pay', hash: 'till', prepare: 'pay' },
   { name: 'money-in', hash: 'requests' },
   { name: 'books', hash: 'books' },
   { name: 'setup', hash: 'wallets' },
   { name: 'learn', hash: 'learn' },
+  { name: 'parts', hash: '', parts: true },
+  { name: 'customer', hash: '', customer: true },
 ];
 
 const THEMES = ['dark', 'light'];
@@ -50,19 +54,41 @@ for (const canvas of CANVASES) {
     for (const screen of SCREENS) {
       const url = new URL(BASE);
       url.searchParams.set('demo', '1');
-      url.hash = screen.hash;
+      if (screen.parts) url.searchParams.set('parts', '1');
+      if (screen.customer) url.searchParams.set('display', '1');
+      if (screen.hash) url.hash = screen.hash;
       await page.goto(url.toString(), { waitUntil: 'networkidle' });
       await page.waitForTimeout(600);
-      if (screen.prepare === 'cart') {
-        // Two items so the total, the quantity badge and the cart rail all have something to say.
+      if (screen.prepare === 'cart' || screen.prepare === 'pay') {
         const espresso = page.locator('button:has-text("Espresso")').first();
         if (await espresso.count()) {
           await espresso.click();
-          await espresso.click();
+          if (screen.prepare === 'cart') await espresso.click();
         }
-        const croissant = page.locator('button:has-text("Croissant")').first();
-        if (await croissant.count()) await croissant.click();
+        if (screen.prepare === 'cart') {
+          const croissant = page.locator('button:has-text("Croissant")').first();
+          if (await croissant.count()) await croissant.click();
+        }
+        if (screen.prepare === 'pay') {
+          const charge = page.getByRole('button', { name: /^Charge/ });
+          if (await charge.count()) await charge.click();
+        }
         await page.waitForTimeout(250);
+      }
+      if (screen.customer) {
+        await page.evaluate(() => {
+          const channel = new BroadcastChannel('slip-display');
+          channel.postMessage({
+            kind: 'pay',
+            sats: '11703',
+            label: 'Espresso — simulated',
+            status: 'waiting',
+            uri: 'bitcoin:bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu?amount=0.00011703',
+            at: new Date().toISOString(),
+          });
+          channel.close();
+        });
+        await page.waitForTimeout(300);
       }
       const file = join(OUT, `${canvas.name}-${screen.name}-${theme}.png`);
       await page.screenshot({ path: file, fullPage: canvas.name !== 'desk' });

@@ -6,6 +6,7 @@
  * payment. Every entry is two columns — what it means, and what it is called.
  */
 
+import { useMemo, useState } from 'react';
 import Tech from './Tech';
 
 interface Entry {
@@ -71,6 +72,17 @@ const WORDS: readonly Entry[] = [
 ];
 
 export default function Glossary() {
+  const [query, setQuery] = useState('');
+  const needle = query.trim().toLowerCase();
+  const shown = useMemo(
+    () =>
+      WORDS.filter((entry) => {
+        if (!needle) return true;
+        return `${entry.term} ${entry.plain} ${entry.technical}`.toLowerCase().includes(needle);
+      }).length,
+    [needle],
+  );
+
   return (
     <section className="mt-6 panel" data-panel="glossary" id="glossary">
       <p className="eyebrow">Plain words</p>
@@ -79,20 +91,37 @@ export default function Glossary() {
         Nothing here is required reading. It is here for the moment a word on another screen made
         you stop — and for the person who wants the exact name as well as the meaning.
       </p>
+      <label className="mt-3 block" htmlFor="gl-search">
+        <span className="eyebrow">Search</span>
+        <input
+          id="gl-search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="sats, paid, seed…"
+          className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+        />
+      </label>
+      <p className="mt-1 text-sm text-muted">
+        {shown} of {WORDS.length} words. A hidden word is still on the page.
+      </p>
 
       <dl className="mt-4 space-y-3">
-        {WORDS.map((entry) => (
-          <div key={entry.term} className="rounded-xl border border-line p-3">
-            <dt className="text-sm font-semibold text-ink">{entry.term}</dt>
-            <dd className="mt-1 text-sm leading-relaxed">{entry.plain}</dd>
-            <Tech>
-              <dd className="mt-1 text-xs leading-relaxed text-muted">
-                <span className="opacity-70">Exact term: </span>
-                {entry.technical}
-              </dd>
-            </Tech>
-          </div>
-        ))}
+        {WORDS.map((entry) => {
+          const match =
+            !needle || `${entry.term} ${entry.plain} ${entry.technical}`.toLowerCase().includes(needle);
+          return (
+            <div key={entry.term} className="rounded-xl border border-line p-3" hidden={!match}>
+              <dt className="text-sm font-semibold text-ink">{entry.term}</dt>
+              <dd className="mt-1 text-sm leading-relaxed">{entry.plain}</dd>
+              <Tech>
+                <dd className="mt-1 text-xs leading-relaxed text-muted">
+                  <span className="opacity-70">Exact term: </span>
+                  {entry.technical}
+                </dd>
+              </Tech>
+            </div>
+          );
+        })}
       </dl>
     </section>
   );

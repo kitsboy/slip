@@ -9,7 +9,8 @@
  * source of truth for totals.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { applyPadKey } from '../core/digit-guard';
 
 interface Props {
   readonly currency: string;
@@ -24,13 +25,24 @@ const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', '⌫'] as c
 export default function AmountPad({ currency, open, quick = [5, 10, 20, 50], onClose, onAmount }: Props) {
   const [value, setValue] = useState('');
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const key = event.key === 'Backspace' ? '⌫' : event.key;
+      if (!/^[0-9.]$/.test(event.key) && event.key !== 'Backspace') return;
+      event.preventDefault();
+      event.stopPropagation();
+      setValue((v) => applyPadKey(v, key));
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [open]);
+
   if (!open) return null;
 
   const press = (key: string) => {
-    if (key === '⌫') return setValue((v) => v.slice(0, -1));
-    if (key === '.' && value.includes('.')) return;
-    if (value.length >= 9) return;
-    setValue((v) => (v === '0' && key !== '.' ? key : v + key));
+    setValue((v) => applyPadKey(v, key));
   };
 
   return (

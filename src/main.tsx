@@ -4,6 +4,7 @@ import App from './App';
 import CustomerDisplay from './ui/CustomerDisplay';
 import DemoBanner from './ui/DemoBanner';
 import Explainer from './ui/Explainer';
+import Parts from './ui/Parts';
 import { installFakeExplorer } from './demo/fakeExplorer';
 import { seedDemo } from './demo/scenario';
 import './index.css';
@@ -113,6 +114,7 @@ const params = new URLSearchParams(window.location.search);
 const isDisplay = params.get('display') === '1';
 const isDemo = params.get('demo') === '1';
 const isExplain = params.get('explain') === '1';
+const isParts = params.get('parts') === '1';
 
 /**
  * Hidden skin switch. The new look is the normal one. `?skin=v1` is the old till,
@@ -152,6 +154,8 @@ if (import.meta.env.DEV && params.get('gallery') === '1') {
         <Explainer />
       ) : isDisplay ? (
         <CustomerDisplay />
+      ) : isParts ? (
+        <Parts />
       ) : (
         <>
           {isDemo && <DemoBanner />}

@@ -43,6 +43,7 @@ import { registerDemoSale } from '../demo/fakeExplorer';
 import { isDemo } from '../core/storage';
 import { isSkinV2 } from './skin';
 import { isCompareStopped } from '../core/compare-stop';
+import { shortcutAllowed } from '../core/digit-guard';
 import AddressText from './AddressText';
 import { store as appStore } from '../core/storage';
 import AwaitingStrip from './AwaitingStrip';
@@ -719,7 +720,7 @@ export default function Till() {
       const typing =
         el !== null &&
         (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
-      if (typing) return;
+      if (!shortcutAllowed(event.key, typing)) return;
 
       if (event.key === '/') {
         const field = document.getElementById('tl-search');
