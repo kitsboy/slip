@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.14** — 2026-11-08T21:24:27Z — `95ba0cd4cc0d` — on a tablet with the keyboard open, the sale stays beside the items
+
 - **v0.31.13** — 2026-11-08T21:07:13Z — `e31758f81b29` — the counter tiles carry drawn marks, not emoji
 
 - **v0.31.12** — 2026-11-08T19:55:00Z — `ae3b659097e4` — a 320px phone shows the coffee and Charge, and high contrast stays black
