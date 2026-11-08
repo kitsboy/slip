@@ -1216,3 +1216,45 @@ html[data-skin='v2'] button[aria-label^='Remove '] {
   text-decoration: none;
   font-weight: 600;
 }
+
+/* Counter, under the flag. Five tabs stay. The selected tab is an ink bar, never brass.
+   The demo strip sits in the page, not over the header. The price field lives in Tools. */
+html[data-skin='v2'] .v2-demo {
+  position: static;
+  z-index: auto;
+  background: var(--v2-sunk);
+  color: var(--v2-ink);
+  border-bottom: 1px solid var(--v2-edge);
+  font-size: 14px;
+  line-height: 20px;
+}
+html[data-skin='v2'] .v2-tab {
+  color: var(--v2-ink-2);
+  background: transparent;
+  border-color: transparent;
+  font-weight: 500;
+}
+html[data-skin='v2'] .v2-tab-on {
+  color: var(--v2-ink);
+  font-weight: 700;
+  box-shadow: inset 0 -3px 0 var(--v2-ink);
+}
+html[data-skin='v2'] .v2-tools {
+  border: 1px solid var(--v2-edge);
+  border-radius: 12px;
+  background: var(--v2-sunk);
+  padding: 8px 12px;
+}
+html[data-skin='v2'] .v2-tools summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  cursor: pointer;
+}
+html[data-skin='v2'] .v2-rate-line {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--v2-ink-2);
+}

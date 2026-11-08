@@ -41,6 +41,7 @@ import { openPrintable } from './print';
 import { paymentLabel } from '../core/brand';
 import { registerDemoSale } from '../demo/fakeExplorer';
 import { isDemo } from '../core/storage';
+import { isSkinV2 } from './skin';
 import { store as appStore } from '../core/storage';
 import AwaitingStrip from './AwaitingStrip';
 import OpenTill, { type OpenShift } from './OpenTill';
@@ -1128,6 +1129,7 @@ export default function Till() {
                 ))}
               </select>
             </label>
+            {isSkinV2() ? null : (
             <label className="block" htmlFor="tl-rate">
               <span className="eyebrow">What one {wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth ({settings.currency})</span>
               <input
@@ -1139,7 +1141,24 @@ export default function Till() {
                 className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
               />
             </label>
+            )}
           </div>
+          {isSkinV2() && (
+            <details className="v2-tools mt-2">
+              <summary>Tools</summary>
+              <label className="mt-2 block" htmlFor="tl-rate">
+                <span className="eyebrow">What one {wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth ({settings.currency})</span>
+                <input
+                  id="tl-rate"
+                  value={rate}
+                  onChange={(e) => setRate(e.target.value)}
+                  inputMode="decimal"
+                  placeholder="60000.00"
+                  className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+                />
+              </label>
+            </details>
+          )}
 
           {items.length === 0 && (
             <div className="mt-3 rounded-lg border border-line p-3">
@@ -1481,6 +1500,11 @@ export default function Till() {
                   ? ` · ${splitPercent}% to ${wallets.find((w) => w.id === splitWalletId)?.label ?? '—'}`
                   : ''}
               </p>
+              {isSkinV2() && (
+                <p className="v2-rate-line">
+                  Price used: {rate.trim() === '' ? 'not set' : `${rate} ${settings.currency}`}
+                </p>
+              )}
             </div>
           )}
 

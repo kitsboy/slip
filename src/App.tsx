@@ -241,10 +241,15 @@ export default function App() {
     }
   })();
 
+  const v2 = document.documentElement.dataset.skin === 'v2';
   const tabClass = (t: Tab) =>
-    activeSection === t
-      ? 'border-accent bg-accent/10 text-accent'
-      : 'border-line text-muted hover:border-accent hover:text-accent';
+    v2
+      ? activeSection === t
+        ? 'v2-tab v2-tab-on'
+        : 'v2-tab'
+      : activeSection === t
+        ? 'border-accent bg-accent/10 text-accent'
+        : 'border-line text-muted hover:border-accent hover:text-accent';
 
   return (
     <div className="flex min-h-full flex-col">
@@ -572,7 +577,13 @@ export default function App() {
             data-tab={t}
             aria-current={activeSection === t ? 'location' : undefined}
             className={`relative flex min-h-[52px] flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${
-              activeSection === t ? 'text-accent' : 'text-muted'
+              document.documentElement.dataset.skin === 'v2'
+                ? activeSection === t
+                  ? 'v2-tab v2-tab-on'
+                  : 'v2-tab'
+                : activeSection === t
+                  ? 'text-accent'
+                  : 'text-muted'
             }`}
           >
             <TabIcon tab={t} />

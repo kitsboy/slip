@@ -7,10 +7,13 @@
  */
 
 import { clearDemo } from '../core/storage';
+import { isSkinV2 } from './skin';
 
 export default function DemoBanner() {
   return (
-    <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2 border-b border-warn bg-warn/10 px-3 py-1.5 text-[11px] text-warn">
+    <div
+      className={`sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2 border-b border-warn bg-warn/10 px-3 py-1.5 text-[11px] text-warn ${isSkinV2() ? 'v2-demo' : ''}`}
+    >
       <span>
         <strong className="text-[11px] uppercase tracking-[0.08em]">Demo</strong> — a pretend shop. Nothing leaves
         this device, no money is involved, and the explorer is simulated.
