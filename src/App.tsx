@@ -20,6 +20,7 @@ import SilentPay from './ui/SilentPay';
 import Install from './ui/Install';
 import InfoVideo from './ui/InfoVideo';
 import HowItWorks from './ui/HowItWorks';
+import { isSkinV2 } from './ui/skin';
 import NextStep from './ui/NextStep';
 import Tech, { Advanced } from './ui/Tech';
 import Glossary from './ui/Glossary';
@@ -405,6 +406,33 @@ export default function App() {
                   <HowItWorks onboarded={onboarded} onStart={() => setWizardOpen(true)} />
                 </details>
                 </>
+              ) : isSkinV2() ? (
+                <div className="v2-start">
+                  <h1 className="v2-start-title">A till that pays you, not a bank.</h1>
+                  <p className="v2-start-line">
+                    Your customer pays with Bitcoin. Every sale lands in your own wallet. slip cannot
+                    hold or move a penny.
+                  </p>
+                  <div className="v2-start-actions">
+                    <button type="button" onClick={() => setWizardOpen(true)} className="btn btn-primary">
+                      Set up my shop
+                    </button>
+                    <a className="btn btn-secondary" href="?demo=1" target="_blank" rel="noreferrer noopener">
+                      See it with pretend sales
+                    </a>
+                  </div>
+                  <InfoVideo
+                    src="videos/01-intro.mp4"
+                    poster="videos/01-intro.jpg"
+                    title="What slip is"
+                    seconds={12}
+                    label="What is slip? — 12 seconds"
+                  />
+                  <details className="v2-start-more">
+                    <summary>How it works</summary>
+                    <HowItWorks onboarded={onboarded} onStart={() => setWizardOpen(true)} />
+                  </details>
+                </div>
               ) : (
                 <>
                   <p className="eyebrow">a free till for Bitcoin</p>

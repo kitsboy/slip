@@ -1148,23 +1148,6 @@ export default function Till() {
             </label>
             )}
           </div>
-          {isSkinV2() && (
-            <details className="v2-tools mt-2" open>
-              <summary>Price</summary>
-              <label className="mt-2 block" htmlFor="tl-rate">
-                <span className="eyebrow">What one {wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth ({settings.currency})</span>
-                <input
-                  id="tl-rate"
-                  value={rate}
-                  onChange={(e) => setRate(e.target.value)}
-                  inputMode="decimal"
-                  placeholder="60000.00"
-                  className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
-                />
-              </label>
-            </details>
-          )}
-
           {items.length === 0 && (
             <div className="mt-3 rounded-lg border border-line p-3">
               <p className="text-xs text-muted">No items yet. Start from a template:</p>
@@ -1515,16 +1498,38 @@ export default function Till() {
 
           {/* The bar stays at thumb height on a phone: the shopkeeper never scrolls to find the
               button that takes the money. */}
-          <div className="charge-bar mt-3 flex flex-wrap items-center gap-2">
+          <div className={`charge-bar mt-3 flex flex-wrap items-center gap-2${isSkinV2() ? ' v2-rail' : ''}`}>
+            {isSkinV2() && (
+              <p className="v2-figure">
+                {totals
+                  ? formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })
+                  : `0.00 ${settings.currency}`}
+              </p>
+            )}
+            {isSkinV2() && (
+              <label className="v2-price" htmlFor="tl-rate">
+                <span>Bitcoin</span>
+                <input
+                  id="tl-rate"
+                  value={rate}
+                  onChange={(e) => setRate(e.target.value)}
+                  inputMode="decimal"
+                  placeholder="60000.00"
+                  aria-label={`What one ${wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth (${settings.currency})`}
+                />
+              </label>
+            )}
             <button
               type="button"
               onClick={charge}
               disabled={!wallet || !totals || chargeSats === null}
               className="btn btn-primary flex-1 sm:flex-none"
             >
-              {settings.assist.rehearsal ? 'Rehearse' : 'Charge'}{' '}
+              {settings.assist.rehearsal ? 'Rehearse' : 'Charge'}
               {totals && chargeSats !== null
-                ? `${formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })} · ${formatSats(chargeSats)}`
+                ? isSkinV2()
+                  ? ` ${formatSats(chargeSats)}`
+                  : ` ${formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })} · ${formatSats(chargeSats)}`
                 : ''}
             </button>
             <button
