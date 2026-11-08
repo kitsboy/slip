@@ -1077,9 +1077,9 @@ export default function Till() {
 
   return (
     <section className="mt-6 panel" data-panel="till">
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+      <div className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1${isSkinV2() && wallets.length === 0 ? ' v2-open-status' : ''}`}>
         <p className="eyebrow">Till</p>
-        <span className={`badge ${online ? 'badge-pending' : 'badge-bad'}`}>
+        <span className={`badge ${online ? 'badge-pending' : 'badge-bad'}${isSkinV2() ? ' v2-watch' : ''}`}>
           {online ? 'Watching for payments' : 'Offline — not watching'}
         </span>
       </div>
@@ -1282,7 +1282,9 @@ export default function Till() {
             </>
           )}
 
-          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <details className={isSkinV2() ? 'v2-tools' : undefined} open>
+            {isSkinV2() && <summary>Tools</summary>}
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <label className="block" htmlFor="tl-custom">
               <span className="eyebrow">Custom amount ({settings.currency}) — added to the items</span>
               <input
@@ -1404,6 +1406,8 @@ export default function Till() {
               </label>
             </div>
           )}
+
+          </details>
 
           {rateNote && (
             <p className="mt-1 flex items-center gap-2 text-[11px] text-muted">

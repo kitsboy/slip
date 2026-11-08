@@ -259,7 +259,7 @@ export default function History() {
           type="button"
           onClick={printClose}
           disabled={close.count === 0}
-          className="btn btn-primary px-3 py-2 text-xs"
+          className={`btn btn-primary px-3 py-2 text-xs${isSkinV2() ? ' v2-close' : ''}`}
         >
           Close the day
         </button>

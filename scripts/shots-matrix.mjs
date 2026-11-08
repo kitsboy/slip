@@ -99,5 +99,31 @@ for (const canvas of CANVASES) {
   }
 }
 
+/* One black high-contrast frame per screen, phone width. The page must stay black. */
+{
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    colorScheme: 'dark',
+    deviceScaleFactor: 2,
+    reducedMotion: 'reduce',
+  });
+  const page = await context.newPage();
+  await page.emulateMedia({ colorScheme: 'dark', contrast: 'more' });
+  for (const screen of SCREENS) {
+    const url = new URL(BASE);
+    url.searchParams.set('demo', '1');
+    if (screen.parts) url.searchParams.set('parts', '1');
+    if (screen.customer) url.searchParams.set('display', '1');
+    if (screen.hash) url.hash = screen.hash;
+    await page.goto(url.toString(), { waitUntil: 'networkidle' });
+    await page.waitForTimeout(400);
+    const file = join(OUT, `phone-${screen.name}-contrast.png`);
+    await page.screenshot({ path: file });
+    shots += 1;
+    console.log(file);
+  }
+  await context.close();
+}
+
 await browser.close();
 console.log(`\n${shots} screenshots in ${OUT}`);

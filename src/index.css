@@ -1610,24 +1610,118 @@ html[data-skin='v2'] [data-totals] .figure,
 html[data-skin='v2'] .v2-rate-line {
   display: none;
 }
+html:not([data-skin='v2']) details:not([class]) {
+  display: contents;
+}
+html[data-skin='v2'] .v2-start {
+  max-width: 38rem;
+  margin: 8px auto 28px;
+  text-align: center;
+}
 html[data-skin='v2'] .v2-start-title {
-  font-size: 32px;
+  font-family: Palatino, 'Palatino Linotype', 'Iowan Old Style', Georgia, serif;
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 500;
   line-height: 1.05;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
+  color: var(--v2-ink);
 }
 html[data-skin='v2'] .v2-start-line {
-  margin-top: 8px;
-  max-width: 36ch;
+  margin: 14px auto 0;
+  max-width: 34ch;
+  font-size: 18px;
+  line-height: 1.45;
   color: var(--v2-ink-2);
 }
 html[data-skin='v2'] .v2-start-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 16px 0;
+  justify-content: center;
+  gap: 10px;
+  margin: 22px 0 8px;
+}
+html[data-skin='v2'] .v2-start-quiet {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
 }
 html[data-skin='v2'] .v2-start-more {
+  margin: 0;
+}
+html[data-skin='v2'] .v2-start-more > summary {
+  font-size: 16px;
+  color: var(--v2-ink);
+  cursor: pointer;
+}
+html[data-skin='v2'] .v2-watch {
+  font-size: 16px;
+  color: var(--v2-ink);
+  border-color: var(--v2-edge);
+}
+
+/* Extra till controls sit in a tools drawer. The Bitcoin price stays in the bar. */
+html[data-skin='v2'] .v2-tools {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   margin-top: 12px;
+  border: 1px solid var(--v2-edge);
+  border-radius: 12px;
+  padding: 8px 12px 12px;
+  background: var(--v2-card);
+}
+html[data-skin='v2'] .v2-tools > summary {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--v2-ink);
+  cursor: pointer;
+}
+html[data-skin='v2'] .v2-tools input,
+html[data-skin='v2'] .v2-tools select {
+  background: var(--v2-sunk);
+  border: 1px solid var(--v2-edge);
+  color: var(--v2-ink);
+  min-height: 44px;
+  padding: 8px 12px;
+  box-sizing: border-box;
+}
+html[data-skin='v2'] .v2-open-status {
+  justify-content: center;
+}
+
+/* Money in is one group. Every field stays. */
+html[data-skin='v2'] .v2-money-in {
+  background: var(--v2-card);
+  border: 1px solid var(--v2-edge);
+  border-radius: 16px;
+  padding: 16px;
+}
+html[data-skin='v2'] .v2-money-in .v2-form {
+  margin-top: 12px;
+}
+html[data-skin='v2'] .v2-money-in li .chip {
+  border-radius: 999px;
+}
+
+/* Books: three chunks. Close the day is the only filled button. */
+html[data-skin='v2'] [data-panel='history'] [data-today-line] {
+  margin-top: 16px;
+}
+html[data-skin='v2'] [data-panel='history'] .v2-leaders {
+  margin-top: 16px;
+}
+html[data-skin='v2'] [data-panel='history'] .btn-primary:not(.v2-close) {
+  background: transparent;
+  color: var(--v2-ink);
+  border: 1px solid var(--v2-edge);
+}
+html[data-skin='v2'] .v2-close {
+  min-height: 44px;
 }
 @media (max-width: 639px) {
   html[data-skin='v2'] main {
@@ -1646,10 +1740,12 @@ html[data-skin='v2'] .v2-start-more {
   }
   html[data-skin='v2'] .v2-rail .v2-figure {
     grid-column: 1;
+    grid-row: 1;
     font-size: 22px;
   }
   html[data-skin='v2'] .v2-rail .v2-price {
     grid-column: 1;
+    grid-row: 2;
   }
   html[data-skin='v2'] .charge-bar .btn-primary {
     grid-column: 2;

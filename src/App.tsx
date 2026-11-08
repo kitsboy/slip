@@ -448,17 +448,19 @@ export default function App() {
                       See it with pretend sales
                     </a>
                   </div>
-                  <InfoVideo
-                    src="videos/01-intro.mp4"
-                    poster="videos/01-intro.jpg"
-                    title="What slip is"
-                    seconds={12}
-                    label="What is slip? — 12 seconds"
-                  />
-                  <details className="v2-start-more">
-                    <summary>How it works</summary>
-                    <HowItWorks onboarded={onboarded} onStart={() => setWizardOpen(true)} />
-                  </details>
+                  <div className="v2-start-quiet">
+                    <InfoVideo
+                      src="videos/01-intro.mp4"
+                      poster="videos/01-intro.jpg"
+                      title="What slip is"
+                      seconds={12}
+                      label="What is slip? — 12 seconds"
+                    />
+                    <details className="v2-start-more">
+                      <summary>How it works</summary>
+                      <HowItWorks onboarded={onboarded} onStart={() => setWizardOpen(true)} />
+                    </details>
+                  </div>
                 </div>
               ) : (
                 <>
