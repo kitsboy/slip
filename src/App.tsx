@@ -38,6 +38,7 @@ import { applyTheme, loadTheme, saveTheme, systemTheme, type Theme } from './cor
 import Readiness from './ui/Readiness';
 import Wizard from './ui/Wizard';
 import Watcher from './ui/Watcher';
+import Brand from './ui/Brand';
 import { buildLabel } from './core/buildinfo';
 import { formatSats } from './core/money';
 import { isOnboarded } from './core/settings';
@@ -189,6 +190,12 @@ export default function App() {
 
   useEffect(() => {
     applyTheme(theme, document.documentElement);
+    if (document.documentElement.dataset.skin === 'v2') {
+      const light = theme === 'light';
+      document
+        .querySelector('meta[name="theme-color"]')
+        ?.setAttribute('content', light ? '#f6f3ed' : '#17130f');
+    }
     try {
       saveTheme(appStore(), theme);
     } catch {
@@ -245,14 +252,20 @@ export default function App() {
       <header className="sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-5 py-3">
           <div className="flex items-center gap-2.5">
-            <span
-              aria-hidden
-              className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-[13px] font-bold text-bg"
-            >
-              s
-            </span>
+            {document.documentElement.dataset.skin === 'v2' ? (
+              <Brand variant="wordmark" height={18} />
+            ) : (
+              <span
+                aria-hidden
+                className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-[13px] font-bold text-bg"
+              >
+                s
+              </span>
+            )}
             <span className="flex items-baseline gap-2">
-              <span className="text-lg font-semibold tracking-tight">slip</span>
+              {document.documentElement.dataset.skin === 'v2' ? null : (
+                <span className="text-lg font-semibold tracking-tight">slip</span>
+              )}
               <span className="hidden text-xs text-muted sm:inline">point of sale</span>
             </span>
           </div>
