@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.7** — 2026-11-08T15:20:53Z — `8117d58d612b` — a stone page and a solid nav, so the words can be read
+
 - **v0.31.6** — 2026-11-08T15:00:50Z — `3bb42641ce1c` — the pay screen is one number; Fedi is ready and stays off
 
 - **v0.31.5** — 2026-11-08T14:27:25Z — `9f2d01ee45cc` — the counter is the items and one number
