@@ -1004,7 +1004,7 @@ export default function Till() {
                 : 'seen on chain'}
           </span>
         </div>
-        <h2 className="mt-2 text-sm font-semibold">
+        <h2 className={`mt-2 text-sm font-semibold${isSkinV2() ? ' v2-paid' : ''}`}>
           {receipt.note === 'rehearsal'
             ? 'REHEARSAL — nothing was charged'
             : receipt.manual
@@ -1607,6 +1607,7 @@ function printReceipt(
 <style>
   @page { size: 80mm auto; margin: 4mm }
   body { width: 72mm; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: #000; background: #fff; margin: 0 }
+  .tear { height: 10px; margin: 0 0 8px; background: radial-gradient(circle at 8px 0, #fff 7px, #000 7.5px) 0 0 / 16px 10px repeat-x }
   h1 { font-size: 14px; margin: 0 0 2px }
   .muted { color: #000 }
   hr { border: 0; border-top: 1px dashed #000; margin: 8px 0 }
@@ -1617,6 +1618,7 @@ function printReceipt(
   .status { display: inline-block; margin-top: 6px; border: 2px solid #000; padding: 2px 6px; font-weight: 700 }
   .status-manual { border-style: dashed }
 </style>
+<div class="tear" aria-hidden="true"></div>
 <h1>${esc(shopName || 'slip')}</h1>
 <div>${esc(at)} UTC</div>
 <hr>

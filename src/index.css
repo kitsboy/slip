@@ -1593,8 +1593,7 @@ html[data-skin='v2'] .v2-shift .btn {
 }
 html[data-skin='v2'] [data-next-step],
 html[data-skin='v2'] [data-totals] .figure,
-html[data-skin='v2'] .v2-rate-line,
-html[data-skin='v2'] [data-charge-blocker] {
+html[data-skin='v2'] .v2-rate-line {
   display: none;
 }
 html[data-skin='v2'] .v2-start-title {
@@ -1618,11 +1617,34 @@ html[data-skin='v2'] .v2-start-more {
 }
 @media (max-width: 639px) {
   html[data-skin='v2'] main {
-    padding-bottom: 220px;
+    padding-bottom: 160px;
   }
   html[data-skin='v2'] .v2-rail .btn-secondary,
   html[data-skin='v2'] .v2-rail > span {
     display: none;
+  }
+  /* One row: the price, the rate, and Charge. A stacked bar was covering the first item. */
+  html[data-skin='v2'] .charge-bar.v2-rail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px;
+  }
+  html[data-skin='v2'] .v2-rail .v2-figure {
+    grid-column: 1;
+    font-size: 22px;
+  }
+  html[data-skin='v2'] .v2-rail .v2-price {
+    grid-column: 1;
+  }
+  html[data-skin='v2'] .charge-bar .btn-primary {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    flex: none;
+    width: auto;
+  }
+  html[data-skin='v2'] .v2-rail [data-charge-blocker] {
+    grid-column: 1 / -1;
   }
 }
 html[data-skin='v2'] .v2-pay {
@@ -1760,4 +1782,143 @@ html[data-skin='v2'] .v2-parts section {
   flex-direction: column;
   gap: 12px;
   align-items: flex-start;
+}
+
+/* Amount keys are a thumb target, not a keyboard key. 64px, in both skins. */
+html[data-skin='v2'] .v2-key {
+  min-width: 64px;
+  min-height: 64px;
+  font-size: 22px;
+  transition: transform var(--v2-m-press);
+}
+html[data-skin='v2'] .v2-key:active {
+  transform: translateY(1px);
+}
+html[data-skin='v2'] .btn-primary {
+  transition: transform var(--v2-m-press);
+}
+
+/* The paid word arrives. Reduced motion turns the move off. */
+html[data-skin='v2'] .v2-paid {
+  animation: v2-paid-in var(--v2-m-ink) both;
+}
+@keyframes v2-paid-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* High contrast stays a night page. A white high-contrast page is the lamp. */
+@media (prefers-contrast: more) {
+  html[data-skin='v2'] {
+    --v2-bg: #000000;
+    --v2-card: #000000;
+    --v2-sunk: #000000;
+    --v2-raised: #000000;
+    --v2-ink: #ffffff;
+    --v2-ink-2: #ffffff;
+    --v2-edge: #ffffff;
+    --v2-line: #ffffff;
+    --v2-acc: #ffb340;
+    --v2-on-acc: #000000;
+    --slip-bg: #000000;
+    --slip-surface: #000000;
+    --slip-ink: #ffffff;
+    --slip-accent: #ffb340;
+    color-scheme: dark;
+  }
+  html[data-skin='v2'] body,
+  html[data-skin='v2'] header,
+  html[data-skin='v2'] nav[aria-label='Primary sections (phone)'],
+  html[data-skin='v2'] .panel,
+  html[data-skin='v2'] .v2-tile,
+  html[data-skin='v2'] .charge-bar,
+  html[data-skin='v2'] .v2-demo {
+    background: #000000;
+    color: #ffffff;
+    border-color: #ffffff;
+  }
+}
+
+html[data-skin='v2'][data-theme='contrast'] {
+  --v2-bg: #000000;
+  --v2-card: #000000;
+  --v2-ink: #ffffff;
+  --v2-ink-2: #ffffff;
+  --v2-edge: #ffffff;
+  --v2-acc: #ffb340;
+  --v2-on-acc: #000000;
+  --slip-bg: #000000;
+  --slip-surface: #000000;
+  --slip-ink: #ffffff;
+  --slip-accent: #ffb340;
+  color-scheme: dark;
+}
+html[data-skin='v2'][data-theme='contrast'] body,
+html[data-skin='v2'][data-theme='contrast'] header,
+html[data-skin='v2'][data-theme='contrast'] nav,
+html[data-skin='v2'][data-theme='contrast'] .panel,
+html[data-skin='v2'][data-theme='contrast'] .v2-tile,
+html[data-skin='v2'][data-theme='contrast'] .charge-bar,
+html[data-skin='v2'][data-theme='contrast'] .v2-demo {
+  background: #000000;
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+/* The QR plate stays white. A black module on a black page cannot be scanned. */
+html[data-skin='v2'] .bg-white {
+  background: #ffffff;
+  color: #000000;
+}
+
+/* Forced colours would paint the page white. Keep the night; the focus ring still uses the system. */
+@media (forced-colors: active) {
+  html[data-skin='v2'] {
+    forced-color-adjust: none;
+  }
+  html[data-skin='v2'] :focus-visible {
+    forced-color-adjust: auto;
+    outline: 3px solid Highlight;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-skin='v2'] .v2-paid,
+  html[data-skin='v2'] .v2-key:active,
+  html[data-skin='v2'] .v2-tile:active,
+  html[data-skin='v2'] .btn-primary:active {
+    animation: none;
+    transform: none;
+  }
+}
+
+@media (max-width: 400px) {
+  html[data-skin='v2'] .v2-tile {
+    min-height: 72px;
+    padding: 8px 10px;
+  }
+  html[data-skin='v2'] .v2-cats {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-height: 40px;
+    margin-top: 4px;
+  }
+  html[data-skin='v2'] .v2-find {
+    margin-top: 4px;
+  }
+  html[data-skin='v2'] [data-panel='till'] > .mt-1 {
+    margin-top: 0;
+    min-height: 0;
+  }
+  html[data-skin='v2'] .charge-bar.v2-rail {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  html[data-skin='v2'] .v2-rail .v2-figure,
+  html[data-skin='v2'] .v2-rail .v2-price {
+    grid-row: 1;
+  }
+  html[data-skin='v2'] .charge-bar .btn-primary {
+    grid-row: 1;
+    min-height: 56px;
+  }
 }

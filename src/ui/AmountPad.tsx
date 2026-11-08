@@ -79,7 +79,7 @@ export default function AmountPad({ currency, open, quick = [5, 10, 20, 50], onC
               key={key}
               type="button"
               onClick={() => press(key)}
-              className="h-14 rounded-xl border border-line bg-surface text-xl font-semibold active:scale-[0.98]"
+              className="v2-key h-16 min-h-16 min-w-16 rounded-xl border border-line bg-surface text-xl font-semibold"
             >
               {key}
             </button>
