@@ -1115,7 +1115,7 @@ export default function Till() {
           {/* On a shop laptop the counter is two panes: choose and ring up on the left, the money
               and the Charge press on the right, held in place while the list scrolls (D-83). */}
           <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-6">
-          <div className="min-w-0">
+          <div className={`min-w-0${isSkinV2() ? ' v2-sale' : ''}`}>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <label className="block" htmlFor="tl-wallet">
               <span className="eyebrow">Which wallet gets the money</span>
@@ -1150,7 +1150,7 @@ export default function Till() {
           </div>
           {isSkinV2() && (
             <details className="v2-tools mt-2" open>
-              <summary>Tools</summary>
+              <summary>Price</summary>
               <label className="mt-2 block" htmlFor="tl-rate">
                 <span className="eyebrow">What one {wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth ({settings.currency})</span>
                 <input
@@ -1222,7 +1222,7 @@ export default function Till() {
             </div>
           )}
 
-          <div className="mt-3 flex flex-wrap gap-1">
+          <div className={`mt-3 flex flex-wrap gap-1${isSkinV2() ? ' v2-cats' : ''}`}>
                 {cats.map((c) => (
                   <button
                     key={c}
@@ -1234,7 +1234,7 @@ export default function Till() {
                   </button>
                 ))}
               </div>
-              <div className="mt-2 flex flex-wrap items-start gap-2">
+              <div className={`mt-2 flex flex-wrap items-start gap-2${isSkinV2() ? ' v2-find' : ''}`}>
                 <input
                   id="tl-search"
                   value={query}
@@ -1253,7 +1253,7 @@ export default function Till() {
                   }}
                 />
               </div>
-              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+              <div className={`mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4${isSkinV2() ? ' v2-catalog' : ''}`}>
                 {visible.map((i) => {
                   const inCart = cart.find((l) => l.item.id === i.id);
                   return (
@@ -1261,7 +1261,7 @@ export default function Till() {
                       key={i.id}
                       type="button"
                       onClick={() => addLine(i)}
-                      className="relative flex min-h-24 flex-col justify-between rounded-xl border border-line bg-surface-2 p-3 text-left transition hover:border-accent active:scale-[0.98]"
+                      className={`relative flex min-h-24 flex-col justify-between rounded-xl border border-line bg-surface-2 p-3 text-left transition hover:border-accent active:scale-[0.98]${isSkinV2() ? ' v2-tile' : ''}`}
                     >
                       {inCart && (
                         <span
@@ -1522,7 +1522,10 @@ export default function Till() {
               disabled={!wallet || !totals || chargeSats === null}
               className="btn btn-primary flex-1 sm:flex-none"
             >
-              {settings.assist.rehearsal ? 'Rehearse' : 'Charge'} {chargeSats !== null ? formatSats(chargeSats) : ''}
+              {settings.assist.rehearsal ? 'Rehearse' : 'Charge'}{' '}
+              {totals && chargeSats !== null
+                ? `${formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })} · ${formatSats(chargeSats)}`
+                : ''}
             </button>
             <button
               type="button"

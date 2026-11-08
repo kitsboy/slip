@@ -1240,17 +1240,36 @@ html[data-skin='v2'] .v2-tab-on {
   box-shadow: inset 0 -3px 0 var(--v2-ink);
 }
 html[data-skin='v2'] .v2-tools {
-  border: 1px solid var(--v2-edge);
-  border-radius: 12px;
-  background: var(--v2-sunk);
-  padding: 8px 12px;
-}
-html[data-skin='v2'] .v2-tools summary {
-  min-height: 48px;
   display: flex;
   align-items: center;
-  font-weight: 600;
+  gap: 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+html[data-skin='v2'] .v2-tools summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--v2-ink-2);
   cursor: pointer;
+}
+html[data-skin='v2'] .v2-tools .eyebrow {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+html[data-skin='v2'] .v2-tools input {
+  border: 0;
+  background: transparent;
+  min-height: 44px;
+  padding: 0;
+  font-size: 16px;
 }
 html[data-skin='v2'] .v2-rate-line {
   margin: 8px 0 0;
@@ -1381,4 +1400,75 @@ html[data-skin='v2'] button.border-accent:not(.btn-primary) {
   border-color: var(--v2-edge);
   color: var(--v2-ink);
   background: var(--v2-card);
+}
+
+/* The first screen is the counter, not a form. The pitch, the day card and the
+   settings boxes stop eating the items. The words stay in the page for the checks. */
+html[data-skin='v2'] #sell > div:first-child,
+html[data-skin='v2'] [data-hero='compact'] h1,
+html[data-skin='v2'] [data-hero-howto] {
+  display: none;
+}
+html[data-skin='v2'] [data-hero='compact'] {
+  margin: 0;
+}
+html[data-skin='v2'] [data-next-step].panel {
+  margin-top: 8px;
+  padding: 0 0 8px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+html[data-skin='v2'] [data-next-step] .eyebrow {
+  display: none;
+}
+html[data-skin='v2'] [data-next-step] p {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+  font-size: 14px;
+}
+html[data-skin='v2'] [data-panel='till'].panel {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+html[data-skin='v2'] [data-panel='till'] > div:first-child .eyebrow,
+html[data-skin='v2'] [data-panel='till'] .panel-title {
+  display: none;
+}
+html[data-skin='v2'] [data-shift='closed'] {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+html[data-skin='v2'] label[for='tl-wallet'] .eyebrow {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+html[data-skin='v2'] .v2-sale {
+  display: flex;
+  flex-direction: column;
+}
+html[data-skin='v2'] .v2-cats,
+html[data-skin='v2'] .v2-find,
+html[data-skin='v2'] .v2-catalog {
+  order: -1;
+}
+html[data-skin='v2'] .v2-tile {
+  min-height: 96px;
+  border-radius: 16px;
+  border-color: var(--v2-line);
+  background: var(--v2-card);
+}
+html[data-skin='v2'] .v2-tile:active {
+  transform: translateY(1px);
 }
