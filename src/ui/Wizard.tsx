@@ -28,6 +28,7 @@ import {
 import { createRepository, validateAccountInput } from '../core/accounts';
 import WalletPicker from './WalletPicker';
 import { assertNotSecret, SecretRefused, type SecretKind } from '../core/keys';
+import { setCompareStopped } from '../core/compare-stop';
 import { hashPin, isValidPin } from '../core/pin';
 import type { Coin, NetworkId } from '../core/network';
 import { store as appStore } from '../core/storage';
@@ -60,6 +61,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
   const [checked, setChecked] = useState(false);
   const [pin, setPin] = useState('');
   const [walletConfirmed, setWalletConfirmed] = useState(false);
+  const [matchStop, setMatchStop] = useState(false);
   const [confirmedAddress, setConfirmedAddress] = useState('');
   const [verifyChecked, setVerifyChecked] = useState(false);
   const [refusal, setRefusal] = useState<SecretKind | null>(null);
@@ -378,6 +380,36 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
                   </span>
                 </span>
               </label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setCompareStopped(false);
+                    setChecked(true);
+                    setMatchStop(false);
+                  }}
+                >
+                  They match
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={() => {
+                    setCompareStopped(true);
+                    setChecked(false);
+                    setMatchStop(true);
+                  }}
+                >
+                  They don&apos;t match
+                </button>
+              </div>
+              {matchStop && (
+                <p className="mt-2 rounded-lg border border-bad p-2 text-sm text-bad" role="alert" data-compare-stop>
+                  They don&apos;t match. slip will not take a sale until address 0/0 matches your wallet.
+                  There is no skip. Check the address, then press They match.
+                </p>
+              )}
               <button
                 type="button"
                 onClick={saveWallet}
@@ -386,6 +418,11 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
               >
                 {walletConfirmed ? 'Saved' : 'Save wallet'}
               </button>
+              {!checked && (
+                <p className="mt-1 text-xs text-warn" role="status" data-blocker>
+                  Tick the box, or press They match, before saving. slip will not guess.
+                </p>
+              )}
             </>
           )}
         </div>
@@ -425,8 +462,37 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
                 wallet before you take money.
               </p>
               <code className="mt-2 block break-all rounded-lg border border-accent bg-bg p-4 font-mono text-lg font-semibold leading-relaxed text-ink sm:text-xl">
-                {confirmedAddress}
+                <AddressText address={confirmedAddress} />
               </code>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setCompareStopped(false);
+                    setVerifyChecked(true);
+                    setMatchStop(false);
+                  }}
+                >
+                  They match
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={() => {
+                    setCompareStopped(true);
+                    setVerifyChecked(false);
+                    setMatchStop(true);
+                  }}
+                >
+                  They don&apos;t match
+                </button>
+              </div>
+              {matchStop && (
+                <p className="mt-2 rounded-lg border border-bad p-2 text-sm text-bad" role="alert" data-compare-stop>
+                  They don&apos;t match. This setup cannot open the counter. There is no skip.
+                </p>
+              )}
               <p className="mt-3 text-sm leading-relaxed">
                 If this address doesn&rsquo;t match the first address in your wallet, go back and check it.
               </p>
@@ -502,16 +568,26 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
           <button
             type="button"
             onClick={finish}
-            disabled={!walletConfirmed || !verifyChecked}
+            disabled={!walletConfirmed || !verifyChecked || matchStop}
             className="btn btn-primary"
           >
             Finish setup
           </button>
         )}
-        <button type="button" onClick={onDone} className="btn btn-ghost ml-auto">
+        <button type="button" onClick={onDone} disabled={matchStop} className="btn btn-ghost ml-auto">
           I know what I&rsquo;m doing — skip to the workbench
         </button>
       </div>
+      {matchStop && (
+        <p className="mt-2 text-xs text-bad" role="alert" data-compare-stop>
+          There is no skip. The addresses do not match, so the counter stays closed.
+        </p>
+      )}
+      {step === 5 && (!walletConfirmed || !verifyChecked) && !matchStop && (
+        <p className="mt-1 text-xs text-warn" role="status" data-blocker>
+          Check address 0/0 and press They match before opening the counter.
+        </p>
+      )}
     </div>
   );
 }

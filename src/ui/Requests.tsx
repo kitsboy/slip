@@ -26,6 +26,8 @@ import { paymentUri, renderQrSvg } from '../core/qr';
 import { store as appStore } from '../core/storage';
 import { isSkinV2 } from './skin';
 import AddressText from './AddressText';
+import AwaitingStrip from './AwaitingStrip';
+import Sheet from './Sheet';
 
 export default function Requests() {
   const settings = useMemo(() => loadSettings(appStore()).settings, []);
@@ -39,6 +41,7 @@ export default function Requests() {
   const [rate, setRate] = useState('');
   const [showing, setShowing] = useState<{ request: StandingRequest; address: string; sats: bigint } | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [refundsOpen, setRefundsOpen] = useState(false);
 
   const data = ledger.load();
   const clock = budgetClock(data.invoices, data.requests);
@@ -194,6 +197,13 @@ export default function Requests() {
 
       {note && <p className="mt-2 text-[11px] text-muted">{note}</p>}
 
+      <AwaitingStrip
+        invoices={data.invoices}
+        onOpen={() => {
+          location.hash = 'books';
+        }}
+      />
+
       <dl className={`mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 ${isSkinV2() ? 'v2-leaders' : ''}`}>
         {[
           ['In (30d)', formatSats(clock.in30dAtoms)],
@@ -211,6 +221,13 @@ export default function Requests() {
         A blunt clock: completed takings over 30 days against requests due in the next 30. It is a
         sanity check, not accounting.
       </p>
+
+      <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="panel-title">Standing requests</h3>
+        <button type="button" className="btn btn-secondary px-3 py-2 text-xs" onClick={() => setRefundsOpen(true)}>
+          Refunds
+        </button>
+      </div>
 
       {data.requests.length === 0 && (
         <EmptyState>
@@ -288,6 +305,16 @@ export default function Requests() {
           })}
         </ul>
       )}
+
+      <Sheet open={refundsOpen} onClose={() => setRefundsOpen(false)} title="Refunds">
+        <p className="text-sm leading-relaxed">
+          A refund is a record of money you sent back yourself. slip cannot send it. Open Books, find
+          the sale, and record it there.
+        </p>
+        <a className="btn btn-primary mt-3 inline-block" href="#books" onClick={() => setRefundsOpen(false)}>
+          Open Books
+        </a>
+      </Sheet>
     </section>
   );
 }

@@ -428,6 +428,11 @@ export default function Settings() {
           back to top
         </a>
       </div>
+      {confirmWipe.trim().toUpperCase() !== 'WIPE' && (
+        <p className="mt-1 text-xs text-warn" role="status" data-blocker>
+          Type WIPE to confirm. The button stays grey until then.
+        </p>
+      )}
     </section>
   );
 }

@@ -86,6 +86,9 @@ export default function AmountPad({ currency, open, quick = [5, 10, 20, 50], onC
         >
           Add to the sale
         </button>
+        <p className="mt-1 text-xs text-warn" role="status" data-blocker hidden={Boolean(value && Number(value) > 0) || undefined}>
+          Type an amount first.
+        </p>
       </div>
     </div>
   );

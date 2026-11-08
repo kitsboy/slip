@@ -21,6 +21,7 @@ import { escapeHtml, openPrintable } from './print';
 import { isSkinV2 } from './skin';
 import Sheet from './Sheet';
 import InfoVideo from './InfoVideo';
+import Blocker from './Blocker';
 import { store as appStore } from '../core/storage';
 
 function today(): string {
@@ -249,6 +250,7 @@ export default function History() {
           Close the day
         </button>
       </div>
+      <Blocker show={close.count === 0}>Nothing sold on this day yet, so there is no sheet to close and no CSV to download.</Blocker>
 
       {note && (
         <p

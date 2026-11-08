@@ -42,6 +42,7 @@ import { paymentLabel } from '../core/brand';
 import { registerDemoSale } from '../demo/fakeExplorer';
 import { isDemo } from '../core/storage';
 import { isSkinV2 } from './skin';
+import { isCompareStopped } from '../core/compare-stop';
 import AddressText from './AddressText';
 import { store as appStore } from '../core/storage';
 import AwaitingStrip from './AwaitingStrip';
@@ -98,6 +99,12 @@ export default function Till() {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [receipt, setReceipt] = useState<Invoice | null>(null);
   const [status, setStatus] = useState<string>('');
+  const [compareStopped, setCompareStoppedFlag] = useState(() => isCompareStopped());
+  useEffect(() => {
+    const sync = () => setCompareStoppedFlag(isCompareStopped());
+    window.addEventListener('slip:compare-stop', sync);
+    return () => window.removeEventListener('slip:compare-stop', sync);
+  }, []);
   const [online, setOnline] = useState(navigator.onLine);
   const [staffId, setStaffId] = useState<string>('');
   const [quote, setQuote] = useState<RateQuote | null>(null);
@@ -1522,7 +1529,7 @@ export default function Till() {
             <button
               type="button"
               onClick={charge}
-              disabled={!wallet || !totals || chargeSats === null}
+              disabled={!wallet || !totals || chargeSats === null || compareStopped}
               className="btn btn-primary flex-1 sm:flex-none"
             >
               {settings.assist.rehearsal ? 'Rehearse' : 'Charge'}
@@ -1546,9 +1553,11 @@ export default function Till() {
               today on this wallet: <span className="figure">{formatSats(walletTakings)}</span>
             </span>
             {/* A greyed button with no reason is a dead end. Say what is missing, and where. */}
-            {(!wallet || !totals || chargeSats === null) && (
+            {(!wallet || !totals || chargeSats === null || compareStopped) && (
               <p className="w-full text-xs text-warn" data-charge-blocker>
-                {!wallet
+                {compareStopped
+                  ? 'The addresses did not match. Open Setup and check address 0/0. slip will not take a sale until they match.'
+                  : !wallet
                   ? 'Add a wallet first — Setup, then Wallets.'
                   : !totals
                     ? 'Add an item or type an amount first.'

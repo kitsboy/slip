@@ -39,6 +39,7 @@ import { store as appStore } from '../core/storage';
 import InfoVideo from './InfoVideo';
 import Tech from './Tech';
 import AddressText from './AddressText';
+import { setCompareStopped } from '../core/compare-stop';
 
 const NETWORKS: Array<{ id: NetworkId; coin: Coin; label: string }> = [
   { id: 'btc-mainnet', coin: 'btc', label: 'Bitcoin' },
@@ -91,6 +92,7 @@ export default function Counters() {
   const [xpub, setXpub] = useState('');
   const [refusal, setRefusal] = useState<SecretKind | null>(null);
   const [checked, setChecked] = useState(false);
+  const [matchStop, setMatchStop] = useState(false);
   const [colour, setColour] = useState<WalletColour>('orange');
   const [purpose, setPurpose] = useState<AccountPurpose>('till');
   const [note, setNote] = useState('');
@@ -610,6 +612,35 @@ export default function Counters() {
                 </span>
               </span>
             </label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  setCompareStopped(false);
+                  setChecked(true);
+                  setMatchStop(false);
+                }}
+              >
+                They match
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={() => {
+                  setCompareStopped(true);
+                  setChecked(false);
+                  setMatchStop(true);
+                }}
+              >
+                They don&apos;t match
+              </button>
+            </div>
+            {matchStop && (
+              <p className="mt-2 rounded-lg border border-bad p-2 text-sm text-bad" role="alert" data-compare-stop>
+                They don&apos;t match. slip will not take a sale until address 0/0 matches your wallet. There is no skip.
+              </p>
+            )}
             <button
               type="button"
               onClick={addAccount}
@@ -618,6 +649,11 @@ export default function Counters() {
             >
               Save counter
             </button>
+            {!checked && (
+              <p className="mt-1 text-xs text-warn" role="status" data-blocker>
+                Tick the box, or press They match, before saving.
+              </p>
+            )}
           </div>
         )}
       </div>

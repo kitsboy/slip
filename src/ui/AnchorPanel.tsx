@@ -18,6 +18,7 @@ import { CALENDARS, dayDigest, describeAnchor, submitAnchor, verifyLocally, type
 import { formatSats } from '../core/money';
 import { store as appStore } from '../core/storage';
 import { isSkinV2 } from './skin';
+import Blocker from './Blocker';
 
 function recentDays(count: number): string[] {
   const out: string[] = [];
@@ -158,6 +159,13 @@ export default function AnchorPanel() {
           </button>
         )}
       </div>
+      <Blocker show={Boolean(busy || !book || book.count === 0 || existing?.status === 'submitted')}>
+        {busy
+          ? 'Wait — the stamp is still being sent.'
+          : existing?.status === 'submitted'
+            ? 'This day is already stamped.'
+            : 'Nothing completed on this day, so there is no digest to stamp.'}
+      </Blocker>
 
       <p className="mt-2 text-[11px] leading-relaxed text-muted">
         Calendars: {CALENDARS.join(' · ')} — third parties we do not control. They learn that a

@@ -1676,6 +1676,24 @@ html[data-skin='v2'] .v2-pay-word {
   font-size: 16px;
 }
 
+html[data-skin='v2'] .v2-leaders {
+  display: block;
+}
+html[data-skin='v2'] .v2-leaders > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  border: 0;
+  border-bottom: 1px dotted #9a9084;
+  border-radius: 0;
+  background: transparent;
+  padding: 8px 0;
+}
+html[data-skin='v2'] .v2-money-in li {
+  border-color: #9a9084;
+}
+
 /* A page has a name, a card, and one number. Same size everywhere was the form look. */
 html[data-skin='v2'] .panel:not([data-panel='till']) {
   background: #3a342e;
