@@ -51,6 +51,7 @@ import OpenTill, { type OpenShift } from './OpenTill';
 import ScanToCart from './ScanToCart';
 import InfoVideo from './InfoVideo';
 import AmountPad from './AmountPad';
+import ItemMark from './Mark';
 import { announceOnce, cueForTransition, primeAudio } from '../core/sound';
 
 interface CartLine {
@@ -1262,8 +1263,8 @@ export default function Till() {
                           ×{inCart.quantity}
                         </span>
                       )}
-                      <span className="block text-2xl" aria-hidden>
-                        {i.emoji ?? '•'}
+                      <span className="block" aria-hidden>
+                        <ItemMark id={i.id} emoji={i.emoji} />
                       </span>
                       <span className="mt-2 block text-sm font-semibold leading-tight">{i.name}</span>
                       <span className="figure mt-1 block text-sm tabular-nums text-secondary">

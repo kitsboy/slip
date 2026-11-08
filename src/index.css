@@ -1541,6 +1541,20 @@ html[data-skin='v2'] .v2-tile {
 html[data-skin='v2'] .v2-tile:active {
   transform: translateY(1px);
 }
+html[data-skin='v2'] .v2-tile svg {
+  width: 30px;
+  height: 30px;
+  stroke: var(--v2-acc);
+}
+html[data-skin='v2'] .v2-mark-emoji {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--v2-edge);
+  border-radius: 8px;
+  font-size: 14px;
+}
 
 /* The one number. Brass rule, not a form label. */
 html[data-skin='v2'] .v2-rail {
