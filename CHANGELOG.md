@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.1** — 2026-11-08T06:13:19Z — `af0182ff047b` — new look behind ?skin=v2; the default till is unchanged
+
 - **v0.31.0** — 2026-11-07T17:07:58Z — `36ebeb8d1341` — The first sale opens the till by itself, and the counter that was never active now answers.
 
 - **v0.30.0** — 2026-11-06T23:30:13Z — `5a20de1628db` — A shop that is already trading lands on its till, not its sales pitch; the wizard keeps its draft and Settings admits unsaved changes.
