@@ -48,7 +48,10 @@ for (const canvas of CANVASES) {
     });
     const page = await context.newPage();
     for (const screen of SCREENS) {
-      await page.goto(`${BASE}?demo=1#${screen.hash}`, { waitUntil: 'networkidle' });
+      const url = new URL(BASE);
+      url.searchParams.set('demo', '1');
+      url.hash = screen.hash;
+      await page.goto(url.toString(), { waitUntil: 'networkidle' });
       await page.waitForTimeout(600);
       if (screen.prepare === 'cart') {
         // Two items so the total, the quantity badge and the cart rail all have something to say.
