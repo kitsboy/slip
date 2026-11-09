@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.24** — 2026-11-09T23:12:15Z — `81f05117fc16` — A footer that says the thing out loud: the measured zero is the headline, and the camera rule ships
+
 - **v0.31.23** — 2026-11-09T21:32:51Z — `e256c9eef8ca` — A receipt prints on a full A4 page. A day with only cancelled sales says the drawer is empty. A waiting code still scans after a reload.
 
 - **v0.31.22** — 2026-11-09T21:04:44Z — `61f209252c6c` — The checks find the counter again. A mismatched address cannot be charged. The phone total sits on its own line.
