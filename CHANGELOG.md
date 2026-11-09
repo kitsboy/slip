@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.25** — 2026-11-09T23:17:15Z — `d9edef108fb9` — The seal's diamond is drawn rather than typed, so it cannot show as a box on a phone that lacks the glyph
+
 - **v0.31.24** — 2026-11-09T23:12:15Z — `81f05117fc16` — A footer that says the thing out loud: the measured zero is the headline, and the camera rule ships
 
 - **v0.31.23** — 2026-11-09T21:32:51Z — `e256c9eef8ca` — A receipt prints on a full A4 page. A day with only cancelled sales says the drawer is empty. A waiting code still scans after a reload.
