@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.23** — 2026-11-09T21:32:51Z — `e256c9eef8ca` — A receipt prints on a full A4 page. A day with only cancelled sales says the drawer is empty. A waiting code still scans after a reload.
+
 - **v0.31.22** — 2026-11-09T21:04:44Z — `61f209252c6c` — The checks find the counter again. A mismatched address cannot be charged. The phone total sits on its own line.
 
 - **v0.31.21** — 2026-11-09T20:16:50Z — `88fde54ee0ed` — The shop name and a paid line are a quiet rose. The open phone tab is a filled brass chip.
