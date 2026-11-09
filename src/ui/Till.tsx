@@ -101,6 +101,7 @@ export default function Till() {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [receipt, setReceipt] = useState<Invoice | null>(null);
   const [status, setStatus] = useState<string>('');
+  const [notice, setNotice] = useState('');
   const [compareStopped, setCompareStoppedFlag] = useState(() => isCompareStopped());
   useEffect(() => {
     const sync = () => setCompareStoppedFlag(isCompareStopped());
@@ -154,6 +155,7 @@ export default function Till() {
     }
   });
   const poller = useRef<number | null>(null);
+  const focusSearch = useRef(false);
 
   const ledger = useMemo<LedgerRepository>(() => createLedger(appStore()), []);
   const wallet = wallets.find((w) => w.id === walletId) ?? null;
@@ -297,7 +299,7 @@ export default function Till() {
     if (!isSkinV2() || query.trim() === '') return;
     const tile = document.querySelector('[data-panel="till"] .v2-tile');
     if (!(tile instanceof HTMLElement)) return;
-    tile.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+    tile.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
     tile.classList.add('v2-jump');
     const id = window.setTimeout(() => tile.classList.remove('v2-jump'), 280);
     return () => window.clearTimeout(id);
@@ -305,6 +307,11 @@ export default function Till() {
 
   useEffect(() => {
     if (!isSkinV2()) return;
+    if (focusSearch.current && !receipt && !invoice) {
+      focusSearch.current = false;
+      document.getElementById('tl-search')?.focus();
+      return;
+    }
     if (receipt) {
       document.getElementById('tl-next')?.focus();
       return;
@@ -312,7 +319,7 @@ export default function Till() {
     if (!invoice) return;
     const check = document.getElementById('tl-check');
     check?.focus({ preventScroll: true });
-    document.querySelector('#tl-pay .v2-qr, #tl-pay .v2-split-codes')?.scrollIntoView({ block: 'center' });
+    document.querySelector('#tl-pay .v2-qr, #tl-pay .v2-split-codes')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }, [invoice?.id, receipt?.id]);
 
   const totals = useMemo(() => {
@@ -770,6 +777,13 @@ export default function Till() {
       const typing =
         el !== null &&
         (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
+      if (event.key === 'Escape') {
+        if (document.querySelector('[role="dialog"], [role="menu"]')) return;
+        if (!invoice || receipt) return;
+        event.preventDefault();
+        abandon();
+        return;
+      }
       if (!shortcutAllowed(event.key, typing)) return;
 
       if (event.key === '/') {
@@ -791,7 +805,7 @@ export default function Till() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [receipt, proof, settings.businessName, settings.receiptFooter]);
+  }, [receipt, proof, settings.businessName, settings.receiptFooter, invoice]);
 
   // Poll only while a payment screen is open. Never in the background: a till that chatters
   // to an explorer while idle is a privacy leak with no benefit.
@@ -827,6 +841,7 @@ export default function Till() {
     }
     setInvoice(null);
     setStatus('');
+    setNotice('Sale cancelled. Nothing was paid.');
     // A cancelled sale leaves the strip at once; a "waiting" line for a dead invoice is a lie.
     setInvoices(ledger.load().invoices);
   }
@@ -915,6 +930,8 @@ export default function Till() {
     setCustom('');
     setTipJar(false);
     setStatus('');
+    setNotice('');
+    focusSearch.current = true;
     reload();
     // Every panel reads the same store: the books changed, so the footer seal and the day close
     // must recompute rather than showing the digest from before this sale.
@@ -1156,6 +1173,11 @@ export default function Till() {
               ? 'Marked paid by you'
               : 'Paid — seen on chain'}
         </h2>
+        {receipt.index !== null && (
+          <p className={`mt-2 text-sm font-semibold text-ink${isSkinV2() ? ' v2-next-address' : ''}`}>
+            This sale was address #{receipt.index}. Next sale uses address #{ledger.book(receipt.walletId).next}.
+          </p>
+        )}
 
         <div className="mt-3 flex flex-wrap items-start gap-3">
           <div
@@ -1175,11 +1197,6 @@ export default function Till() {
               Invoice {receipt.id} · wallet {receipt.walletLabel}
               {receipt.index !== null ? ` · index #${receipt.index}` : ' · fixed address'}
             </p>
-            {receipt.index !== null && (
-              <p className="mt-1 text-sm text-ink">
-                This sale was address #{receipt.index}. Next sale uses address #{ledger.book(receipt.walletId).next}.
-              </p>
-            )}
           </div>
         </div>
 
@@ -1380,6 +1397,11 @@ export default function Till() {
                 ))}
               </div>
               <div className={`mt-2 flex flex-wrap items-start gap-2${isSkinV2() ? ' v2-find' : ''}`}>
+                {notice && (
+                  <p className="v2-notice w-full text-base text-ink" data-cancelled>
+                    {notice}
+                  </p>
+                )}
                 <input
                   id="tl-search"
                   tabIndex={isSkinV2() ? 1 : undefined}

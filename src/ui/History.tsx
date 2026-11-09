@@ -117,14 +117,33 @@ export default function History() {
     a.download = `slip-sales-${date}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    const textOf = (selector: string) => (document.querySelector(selector) as HTMLElement | null)?.innerText;
+    const readProse = (node: HTMLElement) => {
+      const copy = node.cloneNode(true) as HTMLElement;
+      copy.querySelectorAll('button, select, label').forEach((el) => el.remove());
+      copy.querySelectorAll('.chip').forEach((el) => el.insertAdjacentText('afterend', ' '));
+      const lines: string[] = [];
+      const walk = (el: HTMLElement) => {
+        const hasText = [...el.childNodes].some(
+          (child) => child.nodeType === Node.TEXT_NODE && (child.textContent ?? '').trim().length > 0,
+        );
+        if (hasText || el.children.length === 0) {
+          const line = el.innerText.replace(/\s+/g, ' ').trim();
+          if (line) lines.push(line);
+          return;
+        }
+        for (const child of el.children) walk(child as HTMLElement);
+      };
+      walk(copy);
+      return lines.join('\n');
+    };
     const bits = [
-      textOf('[data-today-line]'),
-      textOf('[data-books-totals]'),
-      textOf('[data-books-rails]'),
-      textOf('[data-books-observed]'),
-      ...[...document.querySelectorAll('[data-sale-row]')].map((row) => (row as HTMLElement).innerText),
-    ].filter((bit): bit is string => Boolean(bit && bit.trim()));
+      document.querySelector('[data-today-line]'),
+      document.querySelector('[data-books-observed]'),
+      ...document.querySelectorAll('[data-sale-row]'),
+    ]
+      .filter((node): node is HTMLElement => node instanceof HTMLElement)
+      .map((node) => readProse(node))
+      .filter((bit) => bit.length > 0);
     const words = bits.join('\n\n').replace(/[ \t]+\n/g, '\n').trim();
     const html =
       `<!doctype html><title>Books</title>` +
