@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.18** — 2026-11-09T16:49:05Z — `15aead1a2821` — A split pay screen says which counter is in and which is still waiting; tap either code to fill the screen; each still decodes to the right bitcoin link.
+
 - **v0.31.17** — 2026-11-08T23:05:02Z — `69f0260b46b7` — the customer screen shows the shop and one number, and the eight counter passes land with it
 
 - **v0.31.16** — 2026-11-08T22:55:37Z — `14a231762f39` — the opening is a sign, and the five counter passes land with it
