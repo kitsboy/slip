@@ -2291,13 +2291,35 @@ html[data-skin='v2'] .bg-white {
   html[data-skin='v2'] .v2-paid,
   html[data-skin='v2'] .v2-key:active,
   html[data-skin='v2'] .v2-tile:active,
-  html[data-skin='v2'] .btn-primary:active {
+  html[data-skin='v2'] .btn-primary:active,
+  html[data-skin='v2'] body::before {
     animation: none;
     transform: none;
+  }
+  html[data-skin='v2'] .v2-head::before {
+    animation: none;
+    transform: translateX(-50%);
   }
 }
 
 @media (max-width: 400px) {
+  html[data-skin='v2'] .v2-head-row {
+    padding: 10px 48px 6px;
+  }
+  html[data-skin='v2'] .v2-head-sub {
+    margin-top: 2px;
+  }
+  html[data-skin='v2'] .v2-head::before {
+    top: 6px;
+    height: 44px;
+  }
+  /* The first tile sits higher on a short phone: less air at the top of the till. */
+  html[data-skin='v2'] .v2-two > .v2-sale {
+    padding-top: 0;
+  }
+  html[data-skin='v2'] .v2-sale .v2-wallet-row {
+    margin-top: 8px;
+  }
   html[data-skin='v2'] .v2-tile {
     min-height: 72px;
     padding: 8px 10px;
@@ -2337,6 +2359,26 @@ html[data-skin='v2'] .v2-head {
   background: var(--v2-bg);
   border-bottom: 1px solid var(--v2-line);
 }
+html[data-skin='v2'] #root {
+  position: relative;
+  z-index: 1;
+}
+html[data-skin='v2'] body::before {
+  /* A whisper of the slip mark, far back and very faint, that barely drifts. */
+  content: '';
+  position: fixed;
+  inset: auto 0 0;
+  height: 100vh;
+  background: radial-gradient(closest-side, var(--v2-acc), transparent 72%);
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+  animation: v2-breathe 26s ease-in-out infinite alternate;
+}
+@keyframes v2-breathe {
+  from { opacity: 0.035; transform: scale(1) translateY(0); }
+  to { opacity: 0.07; transform: scale(1.06) translateY(-12px); }
+}
 html[data-skin='v2'] .v2-head::before {
   content: '';
   position: absolute;
@@ -2348,6 +2390,12 @@ html[data-skin='v2'] .v2-head::before {
   background: url('./slip-mark.png') center / contain no-repeat;
   opacity: 0.1;
   pointer-events: none;
+  animation: v2-head-drift 18s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+@keyframes v2-head-drift {
+  from { transform: translateX(-50%) scale(1); }
+  to { transform: translateX(-50%) scale(1.04); }
 }
 html[data-skin='v2'] .v2-head-row {
   position: relative;

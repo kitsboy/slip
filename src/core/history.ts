@@ -42,6 +42,9 @@ export interface DayClose {
   /** How much of the day a human confirmed rather than the chain. */
   readonly manualAtoms: bigint;
   readonly observedAtoms: bigint;
+  /** Sales started on this day and cancelled before they paid. Not takings — a separate number. */
+  readonly cancelledAtoms: bigint;
+  readonly cancelledCount: number;
 }
 
 /** Which rail a sale came in on — read from the invoice, never inferred from the amount. */
@@ -94,6 +97,11 @@ export function dayClose(
     if (row.manual) manual += row.atoms;
   }
 
+  // Sales that never paid are not takings; the sheet tells the truth that a few were
+  // started and walked away from, and never adds them to the total.
+  const cancelled = invoices.filter((i) => i.status === 'cancelled' && i.createdAt.slice(0, 10) === date);
+  const cancelledAtoms = cancelled.reduce((sum, i) => sum + i.amountAtoms, 0n);
+
   return {
     date,
     rows,
@@ -104,6 +112,8 @@ export function dayClose(
     byRail,
     manualAtoms: manual,
     observedAtoms: gross - manual,
+    cancelledAtoms,
+    cancelledCount: cancelled.length,
   };
 }
 
@@ -183,6 +193,9 @@ export function closeReport(close: DayClose, shopName: string, currency: string)
     '',
     `Observed by slip: ${money(close.observedAtoms)}`,
     `Confirmed by a human: ${money(close.manualAtoms)}`,
+    close.cancelledCount > 0
+      ? `Cancelled, not taken: ${close.cancelledCount} (${money(close.cancelledAtoms)})`
+      : '',
     '',
     ...close.rows.map(
       (r) =>

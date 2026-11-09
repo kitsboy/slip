@@ -103,6 +103,22 @@ describe('day close', () => {
     expect(line.split(',')[0]).toBe('inv_a1');
   });
 
+  it('keeps a cancelled sale off the takings and names it on the sheet', () => {
+    const close = dayClose(
+      [
+        inv({ id: 'inv_paid', amountAtoms: 10_000n }),
+        inv({ id: 'inv_walk', status: 'cancelled', amountAtoms: 4_000n }),
+      ],
+      [],
+      '2026-10-31',
+    );
+    expect(close.count).toBe(1);
+    expect(close.netAtoms).toBe(10_000n);
+    expect(close.cancelledCount).toBe(1);
+    expect(close.cancelledAtoms).toBe(4_000n);
+    expect(closeReport(close, 'Café Nord', 'USD').lines.join('\n')).toContain('Cancelled, not taken: 1');
+  });
+
   it('prints a close report that never calls a manual line observed', () => {
     const close = dayClose([inv({ manual: true })], [], '2026-10-31');
     const report = closeReport(close, 'Café Nord', 'USD');

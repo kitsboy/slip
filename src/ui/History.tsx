@@ -60,6 +60,16 @@ export default function History() {
     return rows.length > 0 ? rows : close.rows;
   }, [find, close.rows, data.invoices]);
 
+  // Sales that were started on this day and walked away from. Kept separate from the
+  // takings: they were never paid, so they never join the day's total.
+  const cancelledRows = useMemo(
+    () =>
+      data.invoices
+        .filter((i) => i.status === 'cancelled' && i.createdAt.slice(0, 10) === date)
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0)),
+    [data.invoices, date],
+  );
+
   const [refunding, setRefunding] = useState<SaleRow | null>(null);
   const [atoms, setAtoms] = useState('');
   const [method, setMethod] = useState<RefundMethod>('onchain-sent');
@@ -204,7 +214,7 @@ export default function History() {
       </p>
 
       {/* The day's line before its detail: the number a shopkeeper came for, and what it is made of. */}
-      <div className={`mt-3 rounded-xl border border-line bg-surface p-3 ${isSkinV2() ? 'v2-slip' : ''}`} data-today-line data-books-sheet>
+      <div className={`mt-3 rounded-xl border border-line bg-surface p-3 ${isSkinV2() ? 'v2-slip' : ''}`} data-today-line data-books-sheet data-cancelled-count={close.cancelledCount} data-cancelled-atoms={close.cancelledAtoms.toString()}>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="eyebrow">{date === todayIso ? 'Today' : 'That day'}</p>
           <p className="text-[11px] text-muted">
@@ -215,6 +225,12 @@ export default function History() {
         <p className="figure mt-1 text-[2rem] font-bold leading-none tabular-nums">
           {formatSats(close.netAtoms)}
         </p>
+        {close.cancelledCount > 0 && (
+          <p className="mt-1 text-xs text-muted" data-cancelled>
+            {close.cancelledCount} {close.cancelledCount === 1 ? 'sale was' : 'sales were'} started and cancelled —{' '}
+            {formatSats(close.cancelledAtoms)} was never taken
+          </p>
+        )}
         <p className="mt-1 text-xs text-muted">
           {formatSats(close.byRail.onchain)} on-chain · {formatSats(close.byRail.lightning)} Lightning ·{' '}
           {formatSats(close.byRail.manual)} marked by hand
@@ -416,6 +432,29 @@ export default function History() {
           </p>
         </Sheet>
         </>
+      )}
+
+      {cancelledRows.length > 0 && (
+        <div className="mt-3" data-cancelled-list>
+          <p className="eyebrow">Cancelled on this day</p>
+          <ul className="mt-1 space-y-1">
+            {cancelledRows.map((inv) => (
+              <li key={inv.id} className="rounded-lg border border-dashed border-line p-2 opacity-80" data-sale-row data-cancelled={inv.id}>
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="text-xs">
+                    {inv.createdAt.slice(11, 16)} · {inv.walletLabel}
+                    {inv.note ? ` · ${inv.note}` : ''}
+                  </span>
+                  <span className="figure text-xs line-through opacity-60">{formatSats(inv.amountAtoms)}</span>
+                </div>
+                <p className="mt-0.5 text-[11px] text-muted">
+                  <span className="chip mr-1">cancelled</span>
+                  {inv.id}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       <ScanField
