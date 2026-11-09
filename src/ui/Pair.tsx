@@ -112,17 +112,18 @@ export default function Pair() {
             <div className="mt-2 flex items-start gap-2">
               {code.startsWith('SLIP-WALLET-1|') ? (
                 <div
-                  className="h-40 w-40 shrink-0 rounded-lg bg-white p-1"
-                  dangerouslySetInnerHTML={{ __html: renderQrSvg(code, { scale: 4, margin: 2 }) }}
+                  className="v2-pair-qr shrink-0 rounded-xl bg-white p-3"
+                  dangerouslySetInnerHTML={{ __html: renderQrSvg(code, { scale: 6, margin: 4 }) }}
                 />
               ) : null}
               <div className="min-w-0 flex-1 text-[11px] text-warn">{code}</div>
             </div>
           )}
           {showing && code?.startsWith('SLIP-WALLET-1|') && (
-            <p className="mt-1 text-[11px] text-warn">
-              This code contains a public xpub: anyone who scans it can see every address of this
-              wallet. That is what makes it useful — and why you only show it to yourself.
+            <p className="mt-1 text-sm text-ink">
+              {showing.source === 'xpub' || showing.source === 'descriptor'
+                ? 'HD wallet. This code is your public xpub. Anyone who scans it can see every address. slip cannot spend it.'
+                : 'This code is public wallet material. slip cannot spend it.'}
             </p>
           )}
         </div>
@@ -171,6 +172,7 @@ export default function Pair() {
               import (unchecked)
             </button>
           </div>
+          {!preview && <p className="mt-1 text-xs text-warn" role="status" data-blocker>Read a code first. Nothing is imported until the details check out.</p>}
 
           {preview && (
             <dl className="mt-2 space-y-0.5 text-[11px] text-muted">

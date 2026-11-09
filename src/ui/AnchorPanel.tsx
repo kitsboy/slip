@@ -145,7 +145,7 @@ export default function AnchorPanel() {
           type="button"
           onClick={() => void stamp()}
           disabled={busy || !book || book.count === 0 || existing?.status === 'submitted'}
-          className="rounded-lg border border-accent px-3 py-2 text-xs text-accent disabled:border-line disabled:text-muted"
+          className={isSkinV2() ? 'btn btn-primary px-3 py-2 text-xs v2-close' : 'rounded-lg border border-accent px-3 py-2 text-xs text-accent disabled:border-line disabled:text-muted'}
         >
           {busy ? 'submitting…' : existing?.status === 'submitted' ? 'already stamped' : 'stamp with a calendar'}
         </button>
@@ -178,7 +178,7 @@ export default function AnchorPanel() {
           <p className="mt-1 text-muted">
             {existing.status === 'submitted'
               ? isDemo
-                ? `simulated stamp ${existing.submittedAt?.slice(0, 16).replace('T', ' ')} UTC — the demo answers its own calendar and sent nothing`
+                ? `rehearsal — simulated stamp ${existing.submittedAt?.slice(0, 16).replace('T', ' ')} UTC — the demo answers its own calendar and sent nothing`
                 : `submitted ${existing.submittedAt?.slice(0, 16).replace('T', ' ')} UTC to ${existing.calendar} · proof kept (${existing.proofBase64?.length ?? 0} bytes)`
               : existing.status === 'failed'
                 ? `nothing was sent successfully (${existing.error ?? 'unknown error'})`

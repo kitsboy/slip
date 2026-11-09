@@ -74,8 +74,8 @@ const RATE_CACHE = new Map<string, { at: number; promise: Promise<RateQuote> }>(
 const TABS_KEY = 'slip.tabs.v1';
 const LAST_SALE_KEY = 'slip.lastSale.v1';
 
-function qrSvg(text: string, scale = 5): string {
-  return renderQrSvg(text, { scale, margin: 2 });
+function qrSvg(text: string, scale = 8): string {
+  return renderQrSvg(text, { scale, margin: 4 });
 }
 
 export default function Till() {
@@ -302,6 +302,17 @@ export default function Till() {
     const id = window.setTimeout(() => tile.classList.remove('v2-jump'), 280);
     return () => window.clearTimeout(id);
   }, [query, visible]);
+
+  useEffect(() => {
+    if (!isSkinV2()) return;
+    if (receipt) {
+      document.getElementById('tl-next')?.focus();
+      return;
+    }
+    if (!invoice) return;
+    const qr = document.querySelector('#tl-pay .v2-qr');
+    qr?.scrollIntoView({ block: 'center' });
+  }, [invoice?.id, receipt?.id]);
 
   const totals = useMemo(() => {
     if (!wallet) return null;
@@ -614,12 +625,12 @@ export default function Till() {
               ledger.putInvoice(secondUpdated);
               setLeg2(secondUpdated);
               if (secondUpdated.status !== 'complete') {
-                setStatus('first wallet paid — waiting for the second leg');
+                setStatus('first wallet is in — the sale is not paid until both are');
                 return;
               }
             }
           } catch {
-            setStatus('first wallet paid — could not check the second leg');
+            setStatus('first wallet is in — could not check the second leg, so this sale is not paid');
             return;
           }
         }
@@ -852,7 +863,7 @@ export default function Till() {
     });
     const pending = invoice.status === 'awaiting' || invoice.status === 'seen';
     return (
-      <section className={`mt-6 panel${isSkinV2() ? ' v2-pay' : ''}`}>
+      <section className={`mt-6 panel${isSkinV2() ? ' v2-pay' : ''}`} id="tl-pay" tabIndex={-1}>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="eyebrow">Payment</p>
           <span className={`chip ${pending ? 'border-warn text-warn' : 'chip-good'}`}>
@@ -863,6 +874,16 @@ export default function Till() {
         <p className="figure mt-1 text-[2.5rem] font-bold leading-none tabular-nums">
           {formatSats(invoice.amountAtoms)}
         </p>
+        {(wallet?.source === 'xpub' || wallet?.source === 'descriptor') && (
+          <p className="mt-1 text-sm text-ink">
+            HD wallet. Address #{invoice.index ?? 0} comes from your public code. Each sale gets the next one. slip cannot spend it.
+          </p>
+        )}
+        {leg2 && (
+          <p className="mt-1 text-sm text-ink">
+            This wallet: {formatSats(invoice.amountAtoms)}. The other wallet: {formatSats(leg2.amountAtoms)}. Neither is paid until both are in.
+          </p>
+        )}
         <p className="mt-1 text-sm text-secondary">
           {checkedAt === null
             ? 'watching — the first check is on its way'
@@ -870,11 +891,10 @@ export default function Till() {
         </p>
 
         <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:items-start">
-          <div className="relative shrink-0 rounded-2xl border-2 border-accent/40 bg-white p-3">
+          <div className={`relative shrink-0 rounded-2xl bg-white p-4${isSkinV2() ? ' v2-qr' : ' border-2 border-accent/40'}`}>
             <div
-              className="h-64 w-64"
-              // Our own SVG built from a matrix — no merchant text is injected here.
-              dangerouslySetInnerHTML={{ __html: qrSvg(uri, 7) }}
+              className={isSkinV2() ? 'v2-qr-box' : 'h-64 w-64'}
+              dangerouslySetInnerHTML={{ __html: qrSvg(uri, 8) }}
             />
             <span aria-hidden className="pointer-events-none absolute -left-1 -top-1 h-4 w-4 border-l-2 border-t-2 border-accent" />
             <span aria-hidden className="pointer-events-none absolute -right-1 -top-1 h-4 w-4 border-r-2 border-t-2 border-accent" />
@@ -951,7 +971,7 @@ export default function Till() {
             <p className="eyebrow">Second leg · {leg2.walletLabel}</p>
             <div className="mt-2 flex flex-wrap items-start gap-3">
               <div
-                className="h-40 w-40 shrink-0 rounded-lg bg-white p-1"
+                className={`h-56 w-56 shrink-0 rounded-xl bg-white p-3${isSkinV2() ? ' v2-qr' : ''}`}
                 dangerouslySetInnerHTML={{
                   __html: qrSvg(
                     paymentUri('bitcoin', {
@@ -959,18 +979,19 @@ export default function Till() {
                       amountSats: leg2.amountAtoms,
                       label: leg2.walletLabel,
                     }),
-                    4,
+                    8,
                   ),
                 }}
               />
               <div className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
                 <p className="figure text-sm text-ink">{formatSats(leg2.amountAtoms)}</p>
+                <p>This leg: {formatSats(leg2.amountAtoms)}. The first wallet: {formatSats(invoice.amountAtoms)}.</p>
                 <p>
                   {leg2.status === 'complete'
-                    ? 'this leg is paid'
+                    ? 'this leg is in — the sale is not paid yet'
                     : leg2.status === 'seen'
                       ? 'seen on its way — not confirmed yet'
-                      : 'waiting for payment'}
+                      : 'waiting — not paid'}
                 </p>
                 <p className="mt-1 break-all font-mono text-[11px]">
                   <AddressText address={leg2.address} />
@@ -1065,7 +1086,7 @@ export default function Till() {
         )}
 
         <div className="mt-6 flex flex-wrap items-center gap-2 pb-1">
-          <button type="button" onClick={() => void finish()} className={`btn btn-primary${isSkinV2() ? ' v2-charge' : ''}`}>
+          <button type="button" id="tl-next" onClick={() => void finish()} className={`btn btn-primary${isSkinV2() ? ' v2-charge' : ''}`}>
             Next sale
           </button>
           <button
@@ -1118,6 +1139,7 @@ export default function Till() {
         <OpenTill
           staff={settings.staff.map((person) => person.name)}
           shift={shift}
+          counter={wallet?.label ?? ''}
           currency={settings.currency}
           busy={shiftBusy}
           error={shiftError}
@@ -1137,7 +1159,7 @@ export default function Till() {
               and the Charge press on the right, held in place while the list scrolls (D-83). */}
           <div className={`lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-6${isSkinV2() ? ' v2-two' : ''}`}>
           <div className={`min-w-0${isSkinV2() ? ' v2-sale' : ''}`}>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <div className={`mt-3 grid gap-2 sm:grid-cols-2${isSkinV2() ? ' v2-wallet-row' : ''}`}>
             <label className="block" htmlFor="tl-wallet">
               <span className="eyebrow">Which wallet gets the money</span>
               <select

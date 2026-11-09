@@ -349,7 +349,9 @@ export default function Counters() {
         </p>
       )}
 
-      {accounts.length > 0 && (
+      {accounts.length === 0 && (
+        <p className="mt-3 text-sm text-ink">Next step: paste your public code below. That is how a sale lands in your own wallet.</p>
+      )}
         <ul className="mt-4 space-y-2">
           {accounts.map((a) => (
             <li key={a.id} className="rounded-lg border border-line p-3">
@@ -373,6 +375,17 @@ export default function Counters() {
               <p className="mt-1 break-all font-mono text-[11px] text-muted">
                 <AddressText address={a.firstAddress} />
               </p>
+              {(a.source === 'xpub' || a.source === 'descriptor') && (
+                <div className="mt-2 flex items-start gap-3">
+                  <div
+                    className="v2-pair-qr shrink-0 rounded-xl bg-white p-2"
+                    dangerouslySetInnerHTML={{ __html: renderQrSvg(a.xpub, { scale: 4, margin: 4 }) }}
+                  />
+                  <p className="text-sm text-ink">
+                    HD wallet. This is your public code. Each sale gets the next address. Anyone who scans it can see every address. slip cannot spend it.
+                  </p>
+                </div>
+              )}
               <p className="mt-0.5 text-[11px] uppercase tracking-[0.08em] text-muted">
                 {WALLET_COLOURS.find((c) => c.id === a.colour)?.label ?? '—'} ·{' '}
                 {purposeLabel(a.purpose)} · {a.networkId} · {a.scriptType} · fp {a.fingerprintHex}
@@ -444,7 +457,6 @@ export default function Counters() {
             </li>
           ))}
         </ul>
-      )}
 
       <div className="mt-5 border-t border-line pt-4">
         <h3 className="text-sm font-semibold">Add a wallet</h3>

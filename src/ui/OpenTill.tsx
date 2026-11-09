@@ -22,6 +22,7 @@ export interface OpenShift {
 interface Props {
   readonly staff: readonly string[];
   readonly shift: OpenShift | null;
+  readonly counter?: string;
   readonly currency: string;
   readonly busy?: boolean;
   readonly error?: string | null;
@@ -40,7 +41,7 @@ function minorText(minor: bigint, currency: string): string {
   return `${negative ? '−' : ''}${whole}.${cents} ${currency}`;
 }
 
-export default function OpenTill({ staff, shift, currency, busy = false, error = null, onOpen, onClose, onHandoff }: Props) {
+export default function OpenTill({ staff, shift, counter = '', currency, busy = false, error = null, onOpen, onClose, onHandoff }: Props) {
   const [name, setName] = useState(staff[0] ?? '');
   const [float, setFloat] = useState('');
   const [expanded, setExpanded] = useState(false);
@@ -56,6 +57,7 @@ export default function OpenTill({ staff, shift, currency, busy = false, error =
         <p className="text-[11px] text-muted">
           <span className="text-ink">
             {shift.staff === 'unassigned' ? 'The till is open' : `${shift.staff} has the till`}
+            {counter ? ` · ${counter}` : ''}
           </span>{' '}
           since {since}
           {shift.floatMinor !== null ? ` · float ${minorText(shift.floatMinor, currency)}` : ' · no float counted'}

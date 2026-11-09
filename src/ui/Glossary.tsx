@@ -88,8 +88,7 @@ export default function Glossary() {
       <p className="eyebrow">Plain words</p>
       <h2 className="panel-title mt-1">Every term, in English</h2>
       <p className="mt-1 text-sm leading-relaxed text-secondary">
-        Nothing here is required reading. It is here for the moment a word on another screen made
-        you stop — and for the person who wants the exact name as well as the meaning.
+        Next step: set up a wallet, then ring a sale on Sell. Nothing here is required reading.
       </p>
       <label className="mt-3 block" htmlFor="gl-search">
         <span className="eyebrow">Search</span>

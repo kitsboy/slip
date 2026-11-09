@@ -83,8 +83,8 @@ export default function CustomerDisplay() {
       <p className="figure">{message.sats ? formatSats(BigInt(message.sats)) : ''}</p>
       {message.uri && (
         <div
-          className="h-72 w-72 rounded-xl bg-white p-2"
-          dangerouslySetInnerHTML={{ __html: renderQrSvg(message.uri, { scale: 7, margin: 2 }) }}
+          className="v2-qr-box rounded-xl bg-white p-3"
+          dangerouslySetInnerHTML={{ __html: renderQrSvg(message.uri, { scale: 8, margin: 4 }) }}
         />
       )}
       <p className={`text-sm ${message.status === 'paid' ? 'text-ok' : 'text-warn'}`}>

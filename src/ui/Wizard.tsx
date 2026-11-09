@@ -560,6 +560,9 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
         >
           Back
         </button>
+        {step === 1 && (
+          <p className="text-xs text-warn" role="status" data-blocker>This is the first step. There is nothing before it.</p>
+        )}
         {step < 5 ? (
           <button
             type="button"

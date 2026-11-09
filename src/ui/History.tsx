@@ -117,6 +117,24 @@ export default function History() {
     a.download = `slip-sales-${date}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    const report = closeReport(close, settings.businessName, settings.currency);
+    const rows = report.lines
+      .map((line) => {
+        const cut = line.indexOf(': ');
+        if (cut > 0 && cut < 28) {
+          return `<div class="row"><span>${escapeHtml(line.slice(0, cut))}</span><span>${escapeHtml(line.slice(cut + 2))}</span></div>`;
+        }
+        return `<p>${escapeHtml(line)}</p>`;
+      })
+      .join('');
+    const html =
+      `<!doctype html><title>${escapeHtml(report.title)}</title>` +
+      '<style>@page{size:80mm auto;margin:4mm}body{width:72mm;font:16px/1.45 ui-monospace,monospace;color:#000;background:#fff;margin:0}' +
+      '.row{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dotted #000;padding:4px 0}' +
+      '.row span:last-child{font-weight:700}p{margin:6px 0}</style>' +
+      `<h1>${escapeHtml(report.title)}</h1>` +
+      rows;
+    openPrintable(html, 'slip-books');
   }
 
   function printClose() {
