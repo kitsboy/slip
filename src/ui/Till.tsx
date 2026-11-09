@@ -1506,14 +1506,17 @@ export default function Till() {
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <label className="block" htmlFor="tl-custom">
               <span className="eyebrow">Custom amount ({settings.currency}) — added to the items</span>
-              <input
-                id="tl-custom"
-                value={custom}
-                onChange={(e) => setCustom(e.target.value)}
-                inputMode="decimal"
-                placeholder="12.50"
-                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
-              />
+              <span className={isSkinV2() ? 'v2-custom-in' : undefined}>
+                <input
+                  id="tl-custom"
+                  value={custom}
+                  onChange={(e) => setCustom(e.target.value)}
+                  inputMode="decimal"
+                  placeholder="12.50"
+                  className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+                />
+                {isSkinV2() && <span className="v2-unit" aria-hidden>{settings.currency}</span>}
+              </span>
               <button
                 type="button"
                 onClick={() => setPadOpen(true)}
@@ -1670,10 +1673,10 @@ export default function Till() {
                       setUndone({ item: l.item, quantity: l.quantity });
                       setCart((lines) => lines.filter((x) => x.item.id !== l.item.id));
                     }}
-                    className="ml-1 text-xs text-muted underline underline-offset-2"
+                    className={`grid h-9 w-9 place-items-center rounded-lg border border-line text-base text-secondary${isSkinV2() ? ' v2-qremove' : ''}`}
                     aria-label={`Remove ${l.item.name} entirely`}
                   >
-                    remove
+                    ×
                   </button>
                 </li>
               ))}
@@ -1736,29 +1739,37 @@ export default function Till() {
           <div className={`charge-bar mt-3 flex flex-wrap items-center gap-2${isSkinV2() ? ' v2-rail' : ''}`}>
             {isSkinV2() && (
               <p className="v2-figure">
-                {totals
-                  ? formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })
+                {totals && chargeSats !== null
+                  ? (
+                    <>
+                      <span className="v2-sats" aria-hidden>≈ {formatSats(chargeSats)}</span>
+                      <span className="v2-fiat">{formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })}</span>
+                    </>
+                  )
                   : `0.00 ${settings.currency}`}
               </p>
             )}
             {isSkinV2() && (
               <label className="v2-price" htmlFor="tl-rate">
                 <span>Bitcoin</span>
-                <input
-                  id="tl-rate"
-                  tabIndex={isSkinV2() ? 4 : undefined}
-                  value={rate}
-                  onChange={(e) => setRate(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key !== 'Enter' || !isSkinV2()) return;
-                    e.preventDefault();
-                    const charge = document.getElementById('tl-charge') as HTMLButtonElement | null;
-                    if (charge && !charge.disabled) charge.focus();
-                  }}
-                  inputMode="decimal"
-                  placeholder="60000.00"
-                  aria-label={`What one ${wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth (${settings.currency})`}
-                />
+                <span className="v2-price-in">
+                  <input
+                    id="tl-rate"
+                    tabIndex={isSkinV2() ? 4 : undefined}
+                    value={rate}
+                    onChange={(e) => setRate(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key !== 'Enter' || !isSkinV2()) return;
+                      e.preventDefault();
+                      const charge = document.getElementById('tl-charge') as HTMLButtonElement | null;
+                      if (charge && !charge.disabled) charge.focus();
+                    }}
+                    inputMode="decimal"
+                    placeholder="60000.00"
+                    aria-label={`What one ${wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth (${settings.currency})`}
+                  />
+                  <span className="v2-unit" aria-hidden>{settings.currency}</span>
+                </span>
               </label>
             )}
             <button
