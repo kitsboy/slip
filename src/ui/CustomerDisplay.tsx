@@ -14,7 +14,9 @@ import { formatSats } from '../core/money';
 export interface DisplayMessage {
   readonly kind: 'pay' | 'status' | 'clear';
   readonly uri?: string;
+  readonly uri2?: string;
   readonly sats?: string;
+  readonly sats2?: string;
   readonly label?: string;
   readonly status?: string;
   readonly shop?: string;
@@ -43,6 +45,18 @@ export function publishToDisplay(message: Omit<DisplayMessage, 'at'>): void {
     // No channel on this device: the display window will say it is not connected, which is
     // the honest outcome rather than a silent stale total.
   }
+}
+
+function Code({ uri, sats }: { readonly uri: string; readonly sats?: string }) {
+  return (
+    <div className="v2-display-code">
+      {sats ? <p className="figure">{formatSats(BigInt(sats))}</p> : null}
+      <div
+        className="v2-display-qr"
+        dangerouslySetInnerHTML={{ __html: renderQrSvg(uri, { scale: 8, margin: 4 }) }}
+      />
+    </div>
+  );
 }
 
 export default function CustomerDisplay() {
@@ -76,23 +90,38 @@ export default function CustomerDisplay() {
     );
   }
 
+  const paid = message.status === 'paid';
+  const seen = message.status === 'seen';
+  const split = Boolean(message.uri && message.uri2);
+
   return (
     <main className="v2-display flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
       <p className="v2-pay-word">Pay exactly</p>
-      {message.shop ? <p className="v2-display-shop">{message.shop}</p> : null}
-      <p className="figure">{message.sats ? formatSats(BigInt(message.sats)) : ''}</p>
-      {message.uri && (
-        <div
-          className="v2-qr-box rounded-xl bg-white p-3"
-          dangerouslySetInnerHTML={{ __html: renderQrSvg(message.uri, { scale: 8, margin: 4 }) }}
-        />
+      <p className="v2-display-shop">{message.shop?.trim() || 'slip'}</p>
+      {!split && <p className="figure">{message.sats ? formatSats(BigInt(message.sats)) : ''}</p>}
+      {split && message.uri && message.uri2 ? (
+        <div className="v2-display-pair">
+          <Code uri={message.uri} sats={message.sats} />
+          <Code uri={message.uri2} sats={message.sats2} />
+        </div>
+      ) : (
+        message.uri && (
+          <div className="v2-display-code">
+            <div
+              className="v2-display-qr"
+              dangerouslySetInnerHTML={{ __html: renderQrSvg(message.uri, { scale: 8, margin: 4 }) }}
+            />
+          </div>
+        )
       )}
-      <p className={`text-sm ${message.status === 'paid' ? 'text-ok' : 'text-warn'}`}>
-        {message.status === 'paid'
+      <p className={`v2-display-status ${paid ? 'text-ok' : 'text-warn'}`}>
+        {paid
           ? 'Paid — thank you'
-          : message.status === 'seen'
+          : seen
             ? 'Seen — waiting for a block'
-            : 'Waiting for payment'}
+            : split
+              ? 'Neither is paid until both are in'
+              : 'Waiting for payment'}
       </p>
     </main>
   );

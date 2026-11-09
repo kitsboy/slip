@@ -310,8 +310,9 @@ export default function Till() {
       return;
     }
     if (!invoice) return;
-    const qr = document.querySelector('#tl-pay .v2-qr');
-    qr?.scrollIntoView({ block: 'center' });
+    const check = document.getElementById('tl-check');
+    check?.focus({ preventScroll: true });
+    document.querySelector('#tl-pay .v2-qr, #tl-pay .v2-split-codes')?.scrollIntoView({ block: 'center' });
   }, [invoice?.id, receipt?.id]);
 
   const totals = useMemo(() => {
@@ -544,6 +545,7 @@ export default function Till() {
       setProof(null);
       setStatus('waiting');
 
+      let secondInvoice: Invoice | null = null;
       if (leg2Wallet && leg2Atoms > 0n) {
         const second = createInvoice({
           wallet: leg2Wallet,
@@ -560,6 +562,7 @@ export default function Till() {
         // Both legs are real addresses to the payer, so both must be registered: an unregistered
         // leg used to fall back to a made-up 100,000 sats, or hang for ever on 'waiting'.
         if (isDemo) registerDemoSale(second.invoice.address, second.invoice.amountAtoms);
+        secondInvoice = second.invoice;
         setLeg2(second.invoice);
       } else {
         setLeg2(null);
@@ -572,7 +575,15 @@ export default function Till() {
           amountSats: created.invoice.amountAtoms,
           label: paymentLabel(payee.label, settings.signature),
         }),
+        uri2: secondInvoice
+          ? paymentUri('bitcoin', {
+              address: secondInvoice.address,
+              amountSats: secondInvoice.amountAtoms,
+              label: secondInvoice.walletLabel,
+            })
+          : undefined,
         sats: created.invoice.amountAtoms.toString(),
+        sats2: secondInvoice ? secondInvoice.amountAtoms.toString() : undefined,
         label: payee.label,
         status: 'awaiting',
         shop: settings.businessName,
@@ -605,11 +616,26 @@ export default function Till() {
         if (cue) announceOnce(updated.id, cue, { enabled: settings.assist.soundOnPayment });
         ledger.putInvoice(updated);
         setInvoice((cur) => (cur && cur.id === updated.id ? updated : cur));
+        const bothIn = !leg2 || leg2.status === 'complete';
+        const displayPaid = updated.status === 'complete' && bothIn;
         publishToDisplay({
           kind: 'status',
+          uri: paymentUri('bitcoin', {
+            address: updated.address,
+            amountSats: updated.amountAtoms,
+            label: paymentLabel(updated.walletLabel, settings.signature),
+          }),
+          uri2: leg2
+            ? paymentUri('bitcoin', {
+                address: leg2.address,
+                amountSats: leg2.amountAtoms,
+                label: leg2.walletLabel,
+              })
+            : undefined,
           sats: updated.amountAtoms.toString(),
+          sats2: leg2 ? leg2.amountAtoms.toString() : undefined,
           label: updated.walletLabel,
-          status: updated.status === 'complete' ? 'paid' : updated.status === 'seen' ? 'seen' : 'awaiting',
+          status: displayPaid ? 'paid' : updated.status === 'seen' ? 'seen' : 'awaiting',
           shop: settings.businessName,
         });
         if (updated.status === 'complete' && leg2 && leg2.status !== 'complete') {
@@ -811,6 +837,28 @@ export default function Till() {
     // A rehearsal never touches the books, even when the merchant confirms it.
     if (invoice.note !== 'rehearsal') ledger.putInvoice(updated);
     setInvoice(updated);
+    if (leg2 && leg2.status !== 'complete') {
+      setStatus('this wallet is marked by you — the sale is not paid until the other wallet is in');
+      publishToDisplay({
+        kind: 'status',
+        uri: paymentUri('bitcoin', {
+          address: updated.address,
+          amountSats: updated.amountAtoms,
+          label: paymentLabel(updated.walletLabel, settings.signature),
+        }),
+        sats: updated.amountAtoms.toString(),
+        label: updated.walletLabel,
+        status: 'awaiting',
+        shop: settings.businessName,
+        uri2: paymentUri('bitcoin', {
+          address: leg2.address,
+          amountSats: leg2.amountAtoms,
+          label: leg2.walletLabel,
+        }),
+        sats2: leg2.amountAtoms.toString(),
+      });
+      return;
+    }
     announceOnce(updated.id, 'paid', { enabled: settings.assist.soundOnPayment });
     const anchor = ledger.load().anchors.find((a) => a.date === updated.createdAt.slice(0, 10));
     setProof({
@@ -821,7 +869,26 @@ export default function Till() {
       dayDigestHex: anchor?.status === 'submitted' ? anchor.digestHex : null,
     });
     setReceipt(updated);
-    publishToDisplay({ kind: 'status', sats: updated.amountAtoms.toString(), label: updated.walletLabel, status: 'paid', shop: settings.businessName });
+    publishToDisplay({
+      kind: 'status',
+      uri: paymentUri('bitcoin', {
+        address: updated.address,
+        amountSats: updated.amountAtoms,
+        label: paymentLabel(updated.walletLabel, settings.signature),
+      }),
+      sats: updated.amountAtoms.toString(),
+      label: updated.walletLabel,
+      status: leg2 && leg2.status !== 'complete' ? 'awaiting' : 'paid',
+      shop: settings.businessName,
+      uri2: leg2
+        ? paymentUri('bitcoin', {
+            address: leg2.address,
+            amountSats: leg2.amountAtoms,
+            label: leg2.walletLabel,
+          })
+        : undefined,
+      sats2: leg2 ? leg2.amountAtoms.toString() : undefined,
+    });
     await callAgent('slip:paid', { invoice: updated, manual: true });
   }
 
@@ -890,6 +957,48 @@ export default function Till() {
             : `checked ${Math.max(0, Math.round((Date.now() - checkedAt) / 1000))}s ago · it keeps looking`}
         </p>
 
+        {isSkinV2() && leg2 ? (
+          <div className="v2-split-codes">
+            <article>
+              <p className="text-sm text-ink">This wallet · {formatSats(invoice.amountAtoms)}</p>
+              <div className="v2-qr">
+                <div className="v2-qr-box" dangerouslySetInnerHTML={{ __html: qrSvg(uri, 8) }} />
+              </div>
+              <p>waiting — not paid</p>
+              <p className="text-xs text-ink">
+                {invoice.index === null
+                  ? 'This wallet has ONE fixed address; it is reused for every sale.'
+                  : `Address #${invoice.index} for this sale. Do not pay it twice.`}
+              </p>
+            </article>
+            <article data-split-leg="2">
+              <p className="text-sm text-ink">{leg2.walletLabel} · {formatSats(leg2.amountAtoms)}</p>
+              <div className="v2-qr">
+                <div
+                  className="v2-qr-box"
+                  dangerouslySetInnerHTML={{
+                    __html: qrSvg(
+                      paymentUri('bitcoin', {
+                        address: leg2.address,
+                        amountSats: leg2.amountAtoms,
+                        label: leg2.walletLabel,
+                      }),
+                      8,
+                    ),
+                  }}
+                />
+              </div>
+              <p>
+                {leg2.status === 'complete'
+                  ? 'this leg is in — the sale is not paid yet'
+                  : leg2.status === 'seen'
+                    ? 'seen on its way — not confirmed yet'
+                    : 'waiting — not paid'}
+              </p>
+              <p className="text-xs text-ink">Neither is paid until both are in.</p>
+            </article>
+          </div>
+        ) : (
         <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:items-start">
           <div className={`relative shrink-0 rounded-2xl bg-white p-4${isSkinV2() ? ' v2-qr' : ' border-2 border-accent/40'}`}>
             <div
@@ -941,11 +1050,13 @@ export default function Till() {
             </p>
           </div>
         </div>
+        )}
 
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => void check(invoice)}
+            id="tl-check"
             className="btn btn-secondary"
           >
             Check now
@@ -966,7 +1077,7 @@ export default function Till() {
           </button>
         </div>
 
-        {leg2 && (
+        {leg2 && !isSkinV2() && (
           <div className="mt-4 rounded-xl border border-line p-3" data-split-leg="2">
             <p className="eyebrow">Second leg · {leg2.walletLabel}</p>
             <div className="mt-2 flex flex-wrap items-start gap-3">
@@ -1064,6 +1175,11 @@ export default function Till() {
               Invoice {receipt.id} · wallet {receipt.walletLabel}
               {receipt.index !== null ? ` · index #${receipt.index}` : ' · fixed address'}
             </p>
+            {receipt.index !== null && (
+              <p className="mt-1 text-sm text-ink">
+                This sale was address #{receipt.index}. Next sale uses address #{ledger.book(receipt.walletId).next}.
+              </p>
+            )}
           </div>
         </div>
 
@@ -1114,6 +1230,8 @@ export default function Till() {
         <p className="eyebrow">Till</p>
         <span className={`badge ${online ? 'badge-pending' : 'badge-bad'}${isSkinV2() ? ' v2-watch' : ''}`}>
           {online ? 'Watching for payments' : 'Offline — not watching'}
+          {(wallet?.source === 'xpub' || wallet?.source === 'descriptor') &&
+            ` · next address #${ledger.book(wallet.id).next}`}
         </span>
       </div>
       <div className="mt-1 flex items-center gap-2">
@@ -1267,6 +1385,17 @@ export default function Till() {
                   tabIndex={isSkinV2() ? 1 : undefined}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key !== 'Enter' || !isSkinV2()) return;
+                    e.preventDefault();
+                    const first = visible[0];
+                    if (first) addLine(first);
+                    window.setTimeout(() => {
+                      const charge = document.getElementById('tl-charge') as HTMLButtonElement | null;
+                      if (charge && !charge.disabled) charge.focus();
+                      else document.getElementById('tl-rate')?.focus();
+                    }, 0);
+                  }}
                   placeholder="search items"
                   aria-label="Search items"
                   className="min-w-0 flex-1 rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
@@ -1564,6 +1693,12 @@ export default function Till() {
                   tabIndex={isSkinV2() ? 4 : undefined}
                   value={rate}
                   onChange={(e) => setRate(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key !== 'Enter' || !isSkinV2()) return;
+                    e.preventDefault();
+                    const charge = document.getElementById('tl-charge') as HTMLButtonElement | null;
+                    if (charge && !charge.disabled) charge.focus();
+                  }}
                   inputMode="decimal"
                   placeholder="60000.00"
                   aria-label={`What one ${wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth (${settings.currency})`}
@@ -1572,6 +1707,7 @@ export default function Till() {
             )}
             <button
               type="button"
+              id="tl-charge"
               onClick={charge}
               disabled={!wallet || !totals || chargeSats === null || compareStopped}
               tabIndex={isSkinV2() ? 5 : undefined}

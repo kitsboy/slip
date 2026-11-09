@@ -117,23 +117,19 @@ export default function History() {
     a.download = `slip-sales-${date}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    const report = closeReport(close, settings.businessName, settings.currency);
-    const rows = report.lines
-      .map((line) => {
-        const cut = line.indexOf(': ');
-        if (cut > 0 && cut < 28) {
-          return `<div class="row"><span>${escapeHtml(line.slice(0, cut))}</span><span>${escapeHtml(line.slice(cut + 2))}</span></div>`;
-        }
-        return `<p>${escapeHtml(line)}</p>`;
-      })
-      .join('');
+    const textOf = (selector: string) => (document.querySelector(selector) as HTMLElement | null)?.innerText;
+    const bits = [
+      textOf('[data-today-line]'),
+      textOf('[data-books-totals]'),
+      textOf('[data-books-rails]'),
+      textOf('[data-books-observed]'),
+      ...[...document.querySelectorAll('[data-sale-row]')].map((row) => (row as HTMLElement).innerText),
+    ].filter((bit): bit is string => Boolean(bit && bit.trim()));
+    const words = bits.join('\n\n').replace(/[ \t]+\n/g, '\n').trim();
     const html =
-      `<!doctype html><title>${escapeHtml(report.title)}</title>` +
-      '<style>@page{size:80mm auto;margin:4mm}body{width:72mm;font:16px/1.45 ui-monospace,monospace;color:#000;background:#fff;margin:0}' +
-      '.row{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dotted #000;padding:4px 0}' +
-      '.row span:last-child{font-weight:700}p{margin:6px 0}</style>' +
-      `<h1>${escapeHtml(report.title)}</h1>` +
-      rows;
+      `<!doctype html><title>Books</title>` +
+      '<style>body{background:#fff;color:#000;font:16px/1.45 ui-monospace,monospace;margin:16px}pre{white-space:pre-wrap;margin:0}</style>' +
+      `<pre>${escapeHtml(words)}</pre>`;
     openPrintable(html, 'slip-books');
   }
 
@@ -189,7 +185,7 @@ export default function History() {
       </p>
 
       {/* The day's line before its detail: the number a shopkeeper came for, and what it is made of. */}
-      <div className={`mt-3 rounded-xl border border-line bg-surface p-3 ${isSkinV2() ? 'v2-slip' : ''}`} data-today-line>
+      <div className={`mt-3 rounded-xl border border-line bg-surface p-3 ${isSkinV2() ? 'v2-slip' : ''}`} data-today-line data-books-sheet>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="eyebrow">{date === todayIso ? 'Today' : 'That day'}</p>
           <p className="text-[11px] text-muted">
@@ -215,7 +211,7 @@ export default function History() {
         )}
       </div>
 
-      <div className={`mt-3 grid gap-2 sm:grid-cols-4 ${isSkinV2() ? 'v2-leaders' : ''}`}>
+      <div className={`mt-3 grid gap-2 sm:grid-cols-4 ${isSkinV2() ? 'v2-leaders' : ''}`} data-books-totals>
         <label className="block" htmlFor="hs-date">
           <span className="eyebrow">Day</span>
           <select
@@ -243,7 +239,7 @@ export default function History() {
         ))}
       </div>
 
-      <div className={`mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4 ${isSkinV2() ? 'v2-leaders' : ''}`}>
+      <div className={`mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4 ${isSkinV2() ? 'v2-leaders' : ''}`} data-books-rails>
         {(
           [
             ['on-chain', close.byRail.onchain],
@@ -259,7 +255,7 @@ export default function History() {
         ))}
       </div>
 
-      <p className="mt-2 text-[11px] text-muted">
+      <p className="mt-2 text-[11px] text-muted" data-books-observed>
         Observed by slip: <span className="figure">{formatSats(close.observedAtoms)}</span> · confirmed
         by a human: <span className="figure">{formatSats(close.manualAtoms)}</span>
       </p>
@@ -315,7 +311,7 @@ export default function History() {
         <>
         <ul className="mt-3 space-y-1">
           {visibleRows.map((row) => (
-            <li key={row.id} className="rounded-lg border border-line p-2">
+            <li key={row.id} className="rounded-lg border border-line p-2" data-sale-row>
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <span className="text-xs">
                   {row.at.slice(11, 16)} · {row.walletLabel}

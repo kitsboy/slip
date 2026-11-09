@@ -1923,11 +1923,64 @@ html[data-skin='v2'] .v2-display-idle-line {
   color: #f7f2ea;
   max-width: 18ch;
 }
+html[data-skin='v2'] .v2-display {
+  background: #1a1613;
+  color: #f7f2ea;
+  gap: 28px;
+  padding: 48px 24px 64px;
+}
 html[data-skin='v2'] .v2-display-shop {
   margin: 0;
   font-family: Palatino, 'Palatino Linotype', Georgia, serif;
-  font-size: 28px;
-  color: var(--v2-ink);
+  font-size: clamp(32px, 6vw, 56px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: #f7f2ea;
+}
+html[data-skin='v2'] .v2-display .figure {
+  font-size: clamp(64px, 16vw, 128px);
+  border-bottom: 0;
+}
+html[data-skin='v2'] .v2-display-code {
+  width: min(78vw, 520px);
+  margin-inline: auto;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-sizing: border-box;
+}
+html[data-skin='v2'] .v2-display-qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+html[data-skin='v2'] .v2-display-status {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+}
+html[data-skin='v2'] .v2-display-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: min(96vw, 880px);
+  align-items: start;
+}
+html[data-skin='v2'] .v2-display-pair .v2-display-code {
+  width: 100%;
+}
+html[data-skin='v2'] .v2-split-codes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  margin-top: 16px;
+  align-items: start;
+}
+html[data-skin='v2'] .v2-split-codes .v2-qr {
+  width: 100%;
+  padding: 12px;
 }
 html[data-skin='v2'] .v2-stages {
   display: flex;
