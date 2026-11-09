@@ -1618,16 +1618,23 @@ html[data-skin='v2'] .v2-price-in {
   position: relative;
   display: inline-flex;
   align-items: center;
+  gap: 6px;
+}
+html[data-skin='v2'] .v2-price-in .v2-unit {
+  position: static;
+  right: auto;
+  opacity: 1;
+  font-size: 13px;
 }
 html[data-skin='v2'] .v2-price-in input {
-  width: 12ch;
+  width: 9ch;
   min-height: 32px;
-  padding: 0 2.6rem 2px 6px;
+  padding: 0 0 2px;
   border: 0;
-  background: transparent;
+  background: var(--v2-card);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
-  color: var(--v2-ink-2);
+  color: var(--v2-ink);
 }
 html[data-skin='v2'] .v2-unit {
   position: absolute;

@@ -218,8 +218,9 @@ export default function History() {
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="eyebrow">{date === todayIso ? 'Today' : 'That day'}</p>
           <p className="text-[11px] text-muted">
-            {close.count} {close.count === 1 ? 'sale' : 'sales'}
-            {close.manualAtoms > 0n ? ` · ${formatSats(close.manualAtoms)} confirmed by you` : ' · all seen by slip'}
+            {close.count === 0
+              ? 'Nothing taken'
+              : `${close.count} ${close.count === 1 ? 'sale' : 'sales'}${close.manualAtoms > 0n ? ` · ${formatSats(close.manualAtoms)} confirmed by you` : ' · all seen by slip'}`}
           </p>
         </div>
         <p className="figure mt-1 text-[2rem] font-bold leading-none tabular-nums">
@@ -231,12 +232,19 @@ export default function History() {
             {formatSats(close.cancelledAtoms)} was never taken
           </p>
         )}
-        <p className="mt-1 text-xs text-muted">
-          {formatSats(close.byRail.onchain)} on-chain · {formatSats(close.byRail.lightning)} Lightning ·{' '}
-          {formatSats(close.byRail.manual)} marked by hand
-          {close.refundedAtoms > 0n ? ` · ${formatSats(close.refundedAtoms)} refunded` : ''}
-        </p>
-        {close.count === 0 && (
+        {close.count > 0 && (
+          <p className="mt-1 text-xs text-muted">
+            {formatSats(close.byRail.onchain)} on-chain · {formatSats(close.byRail.lightning)} Lightning ·{' '}
+            {formatSats(close.byRail.manual)} marked by hand
+            {close.refundedAtoms > 0n ? ` · ${formatSats(close.refundedAtoms)} refunded` : ''}
+          </p>
+        )}
+        {close.count === 0 && close.cancelledCount > 0 && (
+          <p className="mt-3 text-sm text-ink" data-empty-drawer>
+            Nothing was taken. The drawer is empty. Cancelled lines are listed below, and they are not in this total.
+          </p>
+        )}
+        {close.count === 0 && close.cancelledCount === 0 && (
           <p className="mt-3 text-sm text-ink">No sales on this day yet. Ring one up on Sell, and it lands here.</p>
         )}
         {date !== todayIso && (

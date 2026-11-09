@@ -24,6 +24,28 @@ export interface DisplayMessage {
 }
 
 const CHANNEL = 'slip-display';
+const LAST_KEY = 'slip.display.last';
+
+export function rememberDisplay(message: DisplayMessage): void {
+  try {
+    if (message.kind === 'clear' || !message.uri) sessionStorage.removeItem(LAST_KEY);
+    else sessionStorage.setItem(LAST_KEY, JSON.stringify(message));
+  } catch {
+    /* private mode: the screen still shows what just arrived */
+  }
+}
+
+export function recallDisplay(): DisplayMessage | null {
+  try {
+    const raw = sessionStorage.getItem(LAST_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as DisplayMessage;
+    if (!parsed?.uri || parsed.kind === 'clear') return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
 
 export function openCustomerDisplay(): boolean {
   const url = new URL(window.location.href);
@@ -60,17 +82,20 @@ function Code({ uri, sats }: { readonly uri: string; readonly sats?: string }) {
 }
 
 export default function CustomerDisplay() {
-  const [message, setMessage] = useState<DisplayMessage | null>(null);
+  const [message, setMessage] = useState<DisplayMessage | null>(() => recallDisplay());
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     let channel: BroadcastChannel | null = null;
     try {
       channel = new BroadcastChannel(CHANNEL);
-      channel.onmessage = (e: MessageEvent<DisplayMessage>) => {
+      channel.onmessage = (e: MessageEvent<{ kind?: string; uri?: string }>) => {
+        if (!e.data?.uri || e.data.kind === 'hello') return;
         setConnected(true);
-        setMessage(e.data);
+        setMessage(e.data as DisplayMessage);
+        rememberDisplay(e.data as DisplayMessage);
       };
+      channel.postMessage({ kind: 'hello' });
     } catch {
       setConnected(false);
     }

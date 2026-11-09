@@ -256,6 +256,42 @@ export default function Till() {
     });
   }, [ledger]);
 
+  useEffect(() => {
+    let channel: BroadcastChannel | null = null;
+    try {
+      channel = new BroadcastChannel('slip-display');
+    } catch {
+      return;
+    }
+    channel.onmessage = (e: MessageEvent<{ kind?: string }>) => {
+      if (e.data?.kind !== 'hello') return;
+      const found = resumeOpenSale(ledger.load().invoices);
+      if (!found) return;
+      const shop = loadSettings(appStore()).settings;
+      publishToDisplay({
+        kind: 'pay',
+        uri: paymentUri('bitcoin', {
+          address: found.primary.address,
+          amountSats: found.primary.amountAtoms,
+          label: paymentLabel(found.primary.walletLabel, shop.signature),
+        }),
+        uri2: found.second
+          ? paymentUri('bitcoin', {
+              address: found.second.address,
+              amountSats: found.second.amountAtoms,
+              label: found.second.walletLabel,
+            })
+          : undefined,
+        sats: found.primary.amountAtoms.toString(),
+        sats2: found.second ? found.second.amountAtoms.toString() : undefined,
+        label: found.primary.walletLabel,
+        status: 'awaiting',
+        shop: shop.businessName,
+      });
+    };
+    return () => channel?.close();
+  }, [ledger]);
+
   /**
    * Offline reconciliation lives in the app shell now (src/ui/Watcher.tsx): it sweeps on load, on
    * reconnect, on tab focus and on a timer, so a sale is spotted from any panel. The till only
@@ -1306,6 +1342,13 @@ export default function Till() {
           >
             Print receipt
           </button>
+          <button
+            type="button"
+            onClick={() => printReceipt(receipt, proof, settings.businessName, settings.receiptFooter, 'a4')}
+            className="btn btn-secondary"
+          >
+            Print on A4
+          </button>
           <span className="text-[11px] text-muted">
             Saved in Books{receipt.confirmedAt ? ` — ${receipt.confirmedAt.slice(0, 10)}` : ''}
           </span>
@@ -1888,6 +1931,7 @@ function printReceipt(
   proof: ReceiptProof | null,
   shopName: string,
   footer: string,
+  page: 'roll' | 'a4' = 'roll',
 ): void {
   const esc = (s: string) => s.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]!);
   const at = (invoice.confirmedAt ?? invoice.createdAt).slice(0, 16).replace('T', ' ');
@@ -1896,42 +1940,68 @@ function printReceipt(
     : invoice.manual
       ? 'Marked paid by you'
       : 'Paid — seen on chain';
-  const html = `<!doctype html><title>receipt ${esc(invoice.id)}</title>
-<style>
-  @page { size: 80mm auto; margin: 4mm }
-  body { width: 72mm; font: 16px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; color: #000; background: #fff; margin: 0 }
-  .tear { height: 10px; margin: 0 0 8px; background: radial-gradient(circle at 8px 0, #fff 7px, #000 7.5px) 0 0 / 16px 10px repeat-x }
-  h1 { font: 22px/1.2 Palatino, Georgia, serif; margin: 0 0 4px }
-  .muted { color: #000 }
-  hr { border: 0; border-top: 1px dotted #000; margin: 8px 0 }
-  .big { font-size: 28px; font-weight: 700; margin: 6px 0 }
-  code { font-size: 14px; word-break: break-all }
-  table { width: 100%; border-collapse: collapse }
-  td { padding: 4px 0; vertical-align: baseline; border-bottom: 1px dotted #000 }
-  td:last-child { text-align: right }
-  .status { display: inline-block; margin-top: 8px; border: 2px solid #000; padding: 4px 8px; font-weight: 700; font-size: 16px }
-  .status-manual { border-style: dashed }
-</style>
-<div class="tear" aria-hidden="true"></div>
-<h1>${esc(shopName || 'slip')}</h1>
-<div>${esc(at)} UTC</div>
-<hr>
+  const observed = invoice.manual
+    ? 'slip did not observe a payment. This is a record of what you marked.'
+    : invoice.note === 'rehearsal'
+      ? 'This is a rehearsal. Nothing was charged.'
+      : 'slip observed this payment at the address above.';
+  const body = `<h1>${esc(shopName || 'slip')}</h1>
+<div class="when">${esc(at)} UTC</div>
 <div class="big">${formatSats(invoice.amountAtoms)}</div>
-<div>${esc(formatFiat({ minor: invoice.amountMinor, currency: invoice.currency }))}</div>
+<div class="fiat">${esc(formatFiat({ minor: invoice.amountMinor, currency: invoice.currency }))}</div>
 <div class="status ${invoice.manual || invoice.note === 'rehearsal' ? 'status-manual' : ''}">${esc(status)}</div>
-<hr>
 <table>
   <tr><td>Invoice</td><td>${esc(invoice.id)}</td></tr>
   <tr><td>Wallet</td><td>${esc(invoice.walletLabel)}</td></tr>
   <tr><td>Address</td><td><code>${esc(invoice.address)}</code></td></tr>
   <tr><td>Index</td><td>${invoice.index === null ? 'fixed address' : `#${invoice.index}`}</td></tr>
 </table>
-${invoice.manual ? '<p>slip did not observe a payment. This is a record of what you marked.</p>' : '<p>slip observed this payment at the address above.</p>'}
-${proof ? `<hr><div>Proof</div><code>${esc(formatProof(proof))}</code>` : ''}
-<hr>
-<div>${esc(footer || 'Thank you')}</div>
-<div>slip · watch-only · no keys, no server</div>`;
-  openPrintable(html, 'slip-receipt', 'width=380,height=620');
+<p class="note">${observed}</p>
+${proof ? `<p class="note">Proof</p><code>${esc(formatProof(proof))}</code>` : ''}
+<div class="foot">${esc(footer || 'Thank you')}<br>slip · watch-only · no keys, no server</div>`;
+  const html = page === 'a4'
+    ? `<!doctype html><title>receipt ${esc(invoice.id)}</title>
+<style>
+  @page { size: A4; margin: 18mm }
+  html, body { margin: 0; background: #fff; color: #000 }
+  body { font: 16px/1.45 Palatino, Georgia, serif }
+  .page { width: 174mm; margin: 0 auto; padding-top: 8mm }
+  .rule { border-top: 3px solid #000; border-bottom: 1px solid #000; height: 4px; margin: 0 0 14px }
+  h1 { font-size: 36px; font-weight: 500; line-height: 1.1; margin: 0 }
+  .when { margin-top: 6px; font: 14px/1.4 ui-monospace, Menlo, monospace }
+  .big { margin: 22px 0 0; font-size: 52px; font-weight: 700; letter-spacing: -0.03em; line-height: 1 }
+  .fiat { margin: 6px 0 14px; font-size: 20px }
+  .status { display: inline-block; border: 2px solid #000; padding: 6px 10px; font: 700 16px/1.2 ui-monospace, Menlo, monospace }
+  .status-manual { border-style: dashed }
+  table { width: 100%; margin-top: 22px; border-collapse: collapse; font: 15px/1.45 ui-monospace, Menlo, monospace }
+  td { padding: 8px 0; border-bottom: 1px solid #000; vertical-align: top }
+  td:first-child { width: 32mm }
+  code { font-size: 14px; word-break: break-all }
+  .note { margin: 16px 0 0 }
+  .foot { margin-top: 28px; padding-top: 10px; border-top: 1px solid #000; font: 13px/1.45 ui-monospace, Menlo, monospace }
+</style>
+<div class="page"><div class="rule"></div>${body}</div>`
+    : `<!doctype html><title>receipt ${esc(invoice.id)}</title>
+<style>
+  @page { size: 80mm auto; margin: 4mm }
+  body { width: 72mm; font: 16px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; color: #000; background: #fff; margin: 0 }
+  .tear { height: 10px; margin: 0 0 8px; background: radial-gradient(circle at 8px 0, #fff 7px, #000 7.5px) 0 0 / 16px 10px repeat-x }
+  h1 { font: 22px/1.2 Palatino, Georgia, serif; margin: 0 0 4px }
+  .when { }
+  .big { font-size: 28px; font-weight: 700; margin: 6px 0 }
+  .fiat { }
+  hr, .rule { border: 0 }
+  table { width: 100%; border-collapse: collapse }
+  td { padding: 4px 0; vertical-align: baseline; border-bottom: 1px dotted #000 }
+  td:last-child { text-align: right }
+  code { font-size: 14px; word-break: break-all }
+  .status { display: inline-block; margin-top: 8px; border: 2px solid #000; padding: 4px 8px; font-weight: 700; font-size: 16px }
+  .status-manual { border-style: dashed }
+  .note { }
+  .foot { margin-top: 8px; border-top: 1px dotted #000; padding-top: 8px }
+</style>
+<div class="tear" aria-hidden="true"></div>${body}`;
+  openPrintable(html, page === 'a4' ? 'slip-receipt-a4' : 'slip-receipt', page === 'a4' ? 'width=840,height=1120' : 'width=380,height=620');
 }
 
 function parseFiatSafe(text: string, currency: string): bigint | null {
