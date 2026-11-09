@@ -41,6 +41,7 @@ import { applyTheme, loadTheme, saveTheme, systemTheme, type Theme } from './cor
 import Readiness from './ui/Readiness';
 import Wizard from './ui/Wizard';
 import DemoBanner from './ui/DemoBanner';
+import Footer from './ui/Footer';
 import Watcher from './ui/Watcher';
 import { buildLabel } from './core/buildinfo';
 import { formatSats } from './core/money';
@@ -665,37 +666,41 @@ export default function App() {
         ))}
       </nav>
 
-      <footer className="border-t border-line px-5 pb-24 pt-6 sm:pb-6">
-        <div className="mx-auto flex max-w-3xl flex-col items-center gap-2 text-center">
-          <span className="chip figure">{buildLabel()}</span>
-          <BookSeal />
-          {loadSettings(appStore()).settings.signature.trim() && (
-            <span className="inline-flex items-center gap-1 text-[11px] text-muted" data-brand="giveabit">
-              <span aria-hidden>₿</span>
-              <a
-                href="https://giveabit.io"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="underline decoration-dotted hover:text-ink"
-              >
-                {loadSettings(appStore()).settings.signature.trim()}
-              </a>
+      {isSkinV2() ? (
+        <Footer />
+      ) : (
+        <footer className="border-t border-line px-5 pb-24 pt-6 sm:pb-6">
+          <div className="mx-auto flex max-w-3xl flex-col items-center gap-2 text-center">
+            <span className="chip figure">{buildLabel()}</span>
+            <BookSeal />
+            {loadSettings(appStore()).settings.signature.trim() && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-muted" data-brand="giveabit">
+                <span aria-hidden>₿</span>
+                <a
+                  href="https://giveabit.io"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="underline decoration-dotted hover:text-ink"
+                >
+                  {loadSettings(appStore()).settings.signature.trim()}
+                </a>
+              </span>
+            )}
+            <Status />
+            <InfoVideo
+              src="videos/03-status-strip.mp4"
+              poster="videos/03-status-strip.jpg"
+              title="Status, rails, networks, backend"
+              seconds={17}
+            />
+            <Install />
+            <RequestCounter />
+            <span className="text-[11px] text-muted">
+              no accounts · no analytics · no telemetry · MIT licensed
             </span>
-          )}
-          <Status />
-          <InfoVideo
-            src="videos/03-status-strip.mp4"
-            poster="videos/03-status-strip.jpg"
-            title="Status, rails, networks, backend"
-            seconds={17}
-          />
-          <Install />
-          <RequestCounter />
-          <span className="text-[11px] text-muted">
-            no accounts · no analytics · no telemetry · MIT licensed
-          </span>
-        </div>
-      </footer>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }

@@ -54,6 +54,20 @@ const PAIRS = [
   ['light: warn on page', '#93560a', '#f6f4ee', 4.5],
   ['light: pending on page', '#3b6fa5', '#f6f4ee', 4.5],
   ['light: bad on page', '#c2262a', '#f6f4ee', 4.5],
+  // v2 — the page that actually ships. These were never audited: the table above is the old
+  // palette, so a green run said nothing about the till people use. Values are the tokens in
+  // src/index.css under html[data-skin='v2'].
+  ['v2: ink on page', '#f7f2ea', '#24201c', 4.5],
+  ['v2: ink 2 on page', '#e4d9cc', '#24201c', 4.5],
+  ['v2: ink on card', '#f7f2ea', '#322c26', 4.5],
+  ['v2: ink 2 on card', '#e4d9cc', '#322c26', 4.5],
+  ['v2: brass on page', '#f0a32a', '#24201c', 4.5],
+  ['v2: good on page', '#76cf8a', '#24201c', 4.5],
+  ['v2: warn on page', '#e8d34f', '#24201c', 4.5],
+  ['v2: bad on page', '#fb8276', '#24201c', 4.5],
+  ['v2: rose on page', '#e8a0b4', '#24201c', 4.5],
+  ['v2: button ink on brass', '#1a1612', '#f0a32a', 4.5],
+  ['v2: edge on page (borders and small print)', '#9a9084', '#24201c', 4.5],
 ];
 
 let failures = 0;
@@ -66,4 +80,4 @@ for (const [label, fg, bg, min] of PAIRS) {
 
 console.log(`\n${PAIRS.length - failures}/${PAIRS.length} pairs clear AA.`);
 if (failures > 0 && STRICT) process.exit(1);
-process.exit(failures > 0 ? 0 : 0);
+process.exit(0);

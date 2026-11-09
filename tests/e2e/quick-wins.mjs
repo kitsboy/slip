@@ -29,6 +29,18 @@ const check = (name, ok, detail = '') => {
 };
 
 const errs = [];
+/**
+ * The shell is one page per section: a panel in Setup is `hidden` until the hash opens its
+ * section. A direct `fill` on it therefore times out on a page that is working correctly, so
+ * every step below opens the section it is about first. (This suite was written before the
+ * five-tab shell existed and had been red ever since.)
+ */
+const go = async (hash) => {
+  const url = new URL(BASE);
+  url.hash = hash;
+  await page.goto(url.href, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('h1');
+};
 page.on('pageerror', (e) => errs.push(String(e)));
 page.on('console', (m) => {
   // Cloudflare's injected challenge script is refused on the proxied domain by design.
@@ -43,12 +55,16 @@ const counter = await page.locator('[data-testid="request-counter"]').innerText(
 check('network-request counter reads 0 to other servers', /: 0\b/.test(counter), counter);
 
 // 2. Address validation: right chain accepted, wrong chain refused.
+await go('#setup');
+await page.waitForSelector('#ac-address', { state: 'visible' });
+// The nearest section holding the field, not an outer wrapper that also holds other statuses.
+const acSection = page.locator('section:has(#ac-address)').last();
 await page.fill('#ac-address', FIRST);
-const okMsg = await page.locator('#ac-address ~ * [role="status"], [role="status"]').first().innerText();
+const okMsg = await acSection.locator('[role="status"]').first().innerText();
 check('mainnet address accepted on Bitcoin', /valid for Bitcoin/.test(okMsg), okMsg);
 await page.selectOption('#ac-network', 'ltc-mainnet');
 await page.waitForTimeout(150);
-const badMsg = await page.locator('[role="status"]').first().innerText();
+const badMsg = await acSection.locator('[role="status"]').first().innerText();
 check('same address refused on Litecoin', /belongs to Bitcoin, not Litecoin/.test(badMsg), badMsg);
 await page.selectOption('#ac-network', 'btc-mainnet');
 
@@ -86,13 +102,13 @@ const banner = await page.locator('p:has-text("Held by")').first().innerText();
 check('till shows who is holding it', /Held by\s+Ana/.test(banner), banner);
 
 // 5. Reload keeps the hand-off (persisted, not just in memory).
-await page.reload({ waitUntil: 'domcontentloaded' });
-await page.waitForSelector('h1');
+await go('#sell');
 const afterReload = await page.locator('p:has-text("Held by")').first().innerText().catch(() => '');
 check('hand-off survives a reload', /Ana/.test(afterReload), afterReload);
 
 
 // 7. Descriptors are accepted, not just bare xpubs.
+await go('#setup');
 await page.fill('#ct-label', 'Truck');
 await page.fill('#ct-xpub', `wpkh(${ZPUB}/0/*)`);
 await page.waitForTimeout(300);
@@ -127,7 +143,13 @@ if (download) {
 }
 
 // 11. The version on the page matches the package version the deploy stamped.
-const versionChip = await page.locator('header .chip').first().innerText();
+// In v2 the stamp lives in the footer; the header chip is the older skin's home for it.
+// In v2 the stamp lives in the footer; `header .chip.figure` is the older skin's home for it.
+const footStamp = page.locator('.v2-foot-ver');
+const versionChip =
+  (await footStamp.count()) > 0
+    ? await footStamp.first().innerText()
+    : await page.locator('header .chip.figure').first().innerText();
 check('header shows a version stamp', /^v\d+\.\d+\.\d+ · /.test(versionChip), versionChip);
 
 // 12. Owning it out loud: no runtime errors from our code.

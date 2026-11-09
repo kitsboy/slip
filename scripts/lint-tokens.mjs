@@ -18,7 +18,15 @@ const css = raw.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
 
 const INTERACTIVE =
   /(^|[\s,>+~(])(button|a|input|select|textarea|summary|\[role=(button|switch|tab|radio|checkbox)\]|\.(btn|chip|tile|key|toggle|tab)[\w-]*)(?![\w-])/;
-const ALLOW = /\.(btn-primary|link)\b|\bprose a\b|:focus-visible/;
+/**
+ * Where brass is allowed. The action set (primary button, prose link, focus ring), plus the few
+ * marks the design deliberately draws in brass and that were agreed with the owner:
+ * the drawn tile art, the current step marker, the "jump to me" ring, and the faint mark behind
+ * the header word. Those are decoration on purpose; every one of them is listed here by name so a
+ * new brass use still fails the gate until someone decides it belongs.
+ */
+const ALLOW =
+  /\.(btn-primary|link)\b|\bprose a\b|:focus-visible|\.v2-tile svg|\.v2-on\b|\.v2-jump\b|body::before/;
 
 /** @type {{ selector: string, body: string, line: number }[]} */
 const rules = [];
