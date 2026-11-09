@@ -1890,6 +1890,35 @@ html[data-skin='v2'] .v2-tile span.font-semibold {
   font-weight: 600;
   color: #f7f2ea;
 }
+html[data-skin='v2'] .v2-books [data-sale-row] {
+  border: 0;
+  border-bottom: 2px dotted var(--v2-line);
+  border-radius: 0;
+  background: transparent;
+  padding: 10px 0;
+}
+html[data-skin='v2'] .v2-books [data-cancelled-list] {
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px solid var(--v2-edge);
+}
+html[data-skin='v2'] .v2-books [data-cancelled-list] [data-sale-row] {
+  border-bottom-style: dashed;
+  opacity: 0.72;
+}
+html[data-skin='v2'] .v2-books [data-cancelled] .figure {
+  text-decoration: line-through;
+}
+html[data-skin='v2'] nav[aria-label='Primary sections (phone)'] {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+html[data-skin='v2'] nav[aria-label='Primary sections (phone)'] a {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
 html[data-skin='v2'] .v2-slip .figure {
   font-size: 48px;
   line-height: 1;

@@ -78,7 +78,8 @@ const body = () => page.locator('body').innerText();
 const nav = page.locator('nav[aria-label="Primary sections (phone)"]');
 check('the page has a phone tab bar', (await nav.count()) === 1);
 const chips = await nav.locator('a').allInnerTexts();
-check('the tab bar names the journey', ['Sell', 'Money in', 'Books', 'Setup', 'More'].every((c) => chips.includes(c)), chips.join(','));
+check('the tab bar names the journey', ['Sell', 'Money', 'Books', 'Setup', 'More'].every((c) => chips.includes(c)), chips.join(','));
+check('Money keeps its full name for a screen reader', (await nav.getByRole('link', { name: 'Money in' }).count()) === 1);
 check('Learn is behind the help chip, not a tab', !chips.includes('Learn'), chips.join(','));
 check('the demo is reachable from the manual', (await page.locator('[data-panel="demo-link"]').count()) === 1);
 

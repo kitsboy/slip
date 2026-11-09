@@ -634,6 +634,7 @@ export default function App() {
             href={`#${t}`}
             data-tab={t}
             aria-current={activeSection === t ? 'location' : undefined}
+            aria-label={TAB_LABELS[t]}
             className={`relative flex min-h-[52px] flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${
               document.documentElement.dataset.skin === 'v2'
                 ? activeSection === t
@@ -645,7 +646,7 @@ export default function App() {
             }`}
           >
             <TabIcon tab={t} />
-            {TAB_LABELS[t]}
+            {t === 'money' ? 'Money' : TAB_LABELS[t]}
             <TabBadge tab={t} counts={shellCounts} floating />
           </a>
         ))}

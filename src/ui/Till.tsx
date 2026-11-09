@@ -43,6 +43,7 @@ import { registerDemoSale } from '../demo/fakeExplorer';
 import { isDemo } from '../core/storage';
 import { isSkinV2 } from './skin';
 import { isCompareStopped } from '../core/compare-stop';
+import { resumeOpenSale } from '../core/resume-sale';
 import { shortcutAllowed } from '../core/digit-guard';
 import AddressText from './AddressText';
 import { store as appStore } from '../core/storage';
@@ -222,6 +223,40 @@ export default function Till() {
       if (poller.current) window.clearInterval(poller.current);
     };
   }, [reload]);
+
+  // A reload used to forget the sale on screen even though the books still held it.
+  // Open it again, once, and put the same code back on the customer screen.
+  const resumed = useRef(false);
+  useEffect(() => {
+    if (resumed.current) return;
+    resumed.current = true;
+    const found = resumeOpenSale(ledger.load().invoices);
+    if (!found) return;
+    setInvoice(found.primary);
+    setLeg2(found.second);
+    setStatus('waiting');
+    const shop = loadSettings(appStore()).settings;
+    publishToDisplay({
+      kind: 'pay',
+      uri: paymentUri('bitcoin', {
+        address: found.primary.address,
+        amountSats: found.primary.amountAtoms,
+        label: paymentLabel(found.primary.walletLabel, shop.signature),
+      }),
+      uri2: found.second
+        ? paymentUri('bitcoin', {
+            address: found.second.address,
+            amountSats: found.second.amountAtoms,
+            label: found.second.walletLabel,
+          })
+        : undefined,
+      sats: found.primary.amountAtoms.toString(),
+      sats2: found.second ? found.second.amountAtoms.toString() : undefined,
+      label: found.primary.walletLabel,
+      status: 'awaiting',
+      shop: shop.businessName,
+    });
+  }, [ledger]);
 
   /**
    * Offline reconciliation lives in the app shell now (src/ui/Watcher.tsx): it sweeps on load, on

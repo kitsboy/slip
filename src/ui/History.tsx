@@ -214,7 +214,7 @@ export default function History() {
       </p>
 
       {/* The day's line before its detail: the number a shopkeeper came for, and what it is made of. */}
-      <div className={`mt-3 rounded-xl border border-line bg-surface p-3 ${isSkinV2() ? 'v2-slip' : ''}`} data-today-line data-books-sheet data-cancelled-count={close.cancelledCount} data-cancelled-atoms={close.cancelledAtoms.toString()}>
+      <div className={`mt-3 rounded-xl border border-line bg-surface p-3 ${isSkinV2() ? 'v2-slip v2-slip-tear' : ''}`} data-today-line data-books-sheet data-cancelled-count={close.cancelledCount} data-cancelled-atoms={close.cancelledAtoms.toString()}>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="eyebrow">{date === todayIso ? 'Today' : 'That day'}</p>
           <p className="text-[11px] text-muted">
