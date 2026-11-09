@@ -1218,7 +1218,8 @@ export default function Till() {
               {formatSats(receipt.amountAtoms)}
             </p>
             <p className="mt-1 text-xs text-muted">
-              {settings.businessName || 'Your shop'} ·{' '}
+              <span className={isSkinV2() ? 'v2-yours' : ''}>{settings.businessName || 'Your shop'}</span>
+              {' · '}
               {formatFiat({ minor: receipt.amountMinor, currency: receipt.currency })} ·{' '}
               {receipt.confirmedAt?.slice(0, 16).replace('T', ' ')}
             </p>
@@ -1235,7 +1236,11 @@ export default function Till() {
                 : 'seen on chain'}
           </span>
         </div>
-        <h2 className={`mt-2 text-sm font-semibold${isSkinV2() ? ' v2-paid' : ''}`}>
+        <h2
+          className={`mt-2 text-sm font-semibold${isSkinV2() ? ' v2-paid' : ''}${
+            isSkinV2() && receipt.note !== 'rehearsal' && !receipt.manual ? ' v2-yours' : ''
+          }`}
+        >
           {receipt.note === 'rehearsal'
             ? 'REHEARSAL — nothing was charged'
             : receipt.manual

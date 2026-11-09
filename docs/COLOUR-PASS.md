@@ -1,27 +1,19 @@
-# Colour pass — prepared, not switched on
+# Colour pass — on
 
-The page stays the dim warm night it is now. This note is the plan for the colour pass. It does not change a colour.
+The page is still the dim warm night. Two named colours were added. Nothing else moved.
 
-## What stays
+## What changed
+
+- `--v2-yours` is `#e8a0b4`, a warm rose. It is used only on the shop name and on a sale that slip itself saw get paid. Not on buttons. A rehearsal and a sale you marked by hand stay on the warning colour, because those are not the same thing.
+- `--v2-chip` is the same brass as the action button, `#f0a32a`. The open phone tab is a filled chip. The other four tabs stay ink on the dark bar. The button accent token is still action-only; the chip has its own name so a tab is not pretending to be a button.
+- A cancelled line stays ink, struck through. It is not red.
+- High contrast drops the rose to white and keeps brass as `#ffb340`. No light page. No blue labels.
+
+## What stayed
 
 - Ground `#24201c`, cards a step lighter, light ink on dark.
-- Brass `#f0a32a` remains the only strong colour until the pass is asked for.
-- High contrast stays black and white with `#ffb340`.
-- Red stays danger. Green stays "seen by slip". Yellow stays "waiting".
-- Demo money stays labelled simulated. A colour must not be the only sign of paid, manual, or pretend.
+- Red is still danger. Green is still "seen by slip". Yellow is still "waiting".
+- Demo money is still labelled simulated. The words still say paid. The colour is not the only sign.
+- `?skin=v1` is unchanged.
 
-## What the pass would add, when asked
-
-1. One second hue, used only for "this is yours" — the shop name and the paid line. Not on buttons.
-2. The phone tab that is open gets a filled brass chip. The others stay ink on the dark bar.
-3. A cancelled line stays ink, struck through. It does not turn red. Red would say the books are wrong.
-4. No new theme, no light mode, no blue labels. The owner held those.
-
-## How it would ship
-
-- Tokens only, under `html[data-skin='v2']`, named before they are used.
-- Contrast audit still 18/18.
-- `?skin=v1` unchanged.
-- A phone frame and a desktop frame photographed before and after, and looked at.
-
-Do not start this pass until the owner says the colour item is in.
+The rose clears 5.9:1 on the lightest card (`#3a342e`). The chip uses the existing brass-on-dark-ink pair.

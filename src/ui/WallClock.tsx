@@ -36,7 +36,7 @@ export default function WallClock() {
 
   return (
     <section className="mt-6 panel text-center" data-panel="wallclock">
-      <p className="eyebrow">{settings.businessName || 'Slip'}</p>
+      <p className="eyebrow v2-yours">{settings.businessName || 'Slip'}</p>
       <p className="figure mt-2 text-6xl tracking-tight" aria-live="off">
         {now.toISOString().slice(11, 16)}
       </p>

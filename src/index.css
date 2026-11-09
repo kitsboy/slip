@@ -648,6 +648,8 @@ html[data-skin='v2'] {
   --v2-line: #5c534a;
   --v2-acc: #f0a32a;
   --v2-on-acc: #1a1612;
+  --v2-chip: #f0a32a;
+  --v2-yours: #e8a0b4;
   --v2-good: #76cf8a;
   --v2-warn: #e8d34f;
   --v2-bad: #fb8276;
@@ -706,6 +708,8 @@ html[data-skin='v2'][data-theme='dark'] {
   --v2-line: #3b3732;
   --v2-acc: #f0a32a;
   --v2-on-acc: #100d09;
+  --v2-chip: #f0a32a;
+  --v2-yours: #e8a0b4;
   --v2-good: #76cf8a;
   --v2-warn: #e8d34f;
   --v2-bad: #fb8276;
@@ -1297,6 +1301,10 @@ html[data-skin='v2'] .v2-tab-on {
   font-weight: 700;
   box-shadow: none;
   border-radius: 12px;
+}
+html[data-skin='v2'] nav[aria-label='Primary sections (phone)'] a.v2-tab-on {
+  color: var(--v2-on-acc);
+  background: var(--v2-chip);
 }
 html[data-skin='v2'] nav[aria-label='Primary sections (phone)'] a {
   font-size: 13px;
@@ -2012,7 +2020,10 @@ html[data-skin='v2'] .v2-display-shop {
   font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.05;
-  color: #f7f2ea;
+  color: var(--v2-yours);
+}
+html[data-skin='v2'] .v2-yours {
+  color: var(--v2-yours);
 }
 html[data-skin='v2'] .v2-display .figure {
   font-size: clamp(40px, 14vw, 128px);
@@ -2254,6 +2265,8 @@ html[data-skin='v2'] .v2-paid {
     --v2-line: #ffffff;
     --v2-acc: #ffb340;
     --v2-on-acc: #000000;
+    --v2-chip: #ffb340;
+    --v2-yours: #ffffff;
     --slip-bg: #000000;
     --slip-surface: #000000;
     --slip-ink: #ffffff;
@@ -2281,6 +2294,8 @@ html[data-skin='v2'][data-theme='contrast'] {
   --v2-edge: #ffffff;
   --v2-acc: #ffb340;
   --v2-on-acc: #000000;
+  --v2-chip: #ffb340;
+  --v2-yours: #ffffff;
   --slip-bg: #000000;
   --slip-surface: #000000;
   --slip-ink: #ffffff;

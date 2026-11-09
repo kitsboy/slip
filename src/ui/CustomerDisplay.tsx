@@ -97,7 +97,7 @@ export default function CustomerDisplay() {
   return (
     <main className="v2-display flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
       <p className="v2-pay-word">Pay exactly</p>
-      <p className="v2-display-shop">{message.shop?.trim() || 'slip'}</p>
+      <p className="v2-display-shop v2-yours">{message.shop?.trim() || 'slip'}</p>
       {!split && <p className="figure">{message.sats ? formatSats(BigInt(message.sats)) : ''}</p>}
       {split && message.uri && message.uri2 ? (
         <div className="v2-display-pair">
@@ -114,7 +114,7 @@ export default function CustomerDisplay() {
           </div>
         )
       )}
-      <p className={`v2-display-status ${paid ? 'text-ok' : 'text-warn'}`}>
+      <p className={`v2-display-status ${paid ? 'v2-yours' : seen ? 'text-ok' : 'text-warn'}`}>
         {paid
           ? 'Paid — thank you'
           : seen
