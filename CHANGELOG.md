@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.19** — 2026-11-09T19:49:35Z — `0247013713b5` — A cancelled sale shows in the books as cancelled and stays out of the day's total. The faint mark behind the word drifts slowly.
+
 - **v0.31.18** — 2026-11-09T16:49:05Z — `15aead1a2821` — A split pay screen says which counter is in and which is still waiting; tap either code to fill the screen; each still decodes to the right bitcoin link.
 
 - **v0.31.17** — 2026-11-08T23:05:02Z — `69f0260b46b7` — the customer screen shows the shop and one number, and the eight counter passes land with it
