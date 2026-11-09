@@ -6,7 +6,7 @@
  * request is covered unless an invoice for it was actually completed.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createRepository, deriveForAccount, statusOf, type CounterAccount } from '../core/accounts';
 import { createLedger } from '../core/ledger';
 import { burnInvoiceIndex, createInvoice } from '../core/orders';
@@ -42,8 +42,14 @@ export default function Requests() {
   const [showing, setShowing] = useState<{ request: StandingRequest; address: string; sats: bigint } | null>(null);
   const [note, setNote] = useState<string | null>(null);
   const [refundsOpen, setRefundsOpen] = useState(false);
+  const [booksRev, setBooksRev] = useState(0);
+  useEffect(() => {
+    const on = () => setBooksRev((n) => n + 1);
+    window.addEventListener('slip:books', on);
+    return () => window.removeEventListener('slip:books', on);
+  }, []);
 
-  const data = ledger.load();
+  const data = useMemo(() => ledger.load(), [ledger, booksRev]);
   const clock = budgetClock(data.invoices, data.requests);
 
   function add() {

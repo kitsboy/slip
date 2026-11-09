@@ -280,7 +280,11 @@ export default function App() {
               </button>
             </div>
             <div className="v2-head-title">
-              <span className="v2-head-word">slip</span>
+              {onboarded && shellCounts.sold ? (
+                <h1 className="v2-head-word">slip</h1>
+              ) : (
+                <span className="v2-head-word">slip</span>
+              )}
               <span className="v2-head-sub">point of sale</span>
             </div>
             <img className="v2-head-logo" src="./slip-mark.png" alt="" />
@@ -295,7 +299,11 @@ export default function App() {
               s
             </span>
             <span className="flex items-baseline gap-2">
-              <span className="text-lg font-semibold tracking-tight">slip</span>
+              {onboarded && shellCounts.sold ? (
+                <h1 className="m-0 text-lg font-semibold tracking-tight">slip</h1>
+              ) : (
+                <span className="text-lg font-semibold tracking-tight">slip</span>
+              )}
               <span className="hidden text-xs text-muted sm:inline">point of sale</span>
             </span>
           </div>

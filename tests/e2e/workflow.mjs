@@ -140,7 +140,7 @@ await page.goto(`${BASE}#till`, { waitUntil: 'domcontentloaded' });
 await showPanel(page, 'till');
 
 // --- the waiting strip -------------------------------------------------------
-const strip = page.locator('[data-awaiting]');
+const strip = page.locator('#sell [data-awaiting]');
 await strip.waitFor({ state: 'visible', timeout: 15_000 }).catch(() => undefined);
 check('an open sale shows in the waiting strip', (await strip.count()) > 0);
 
@@ -150,7 +150,7 @@ check('the strip says what it is', /waiting to be paid/i.test(stripText), stripT
 
 // Money waiting outranks admin: the strip must sit above the till card, not below it.
 const order = await page.evaluate(() => {
-  const strip = document.querySelector('[data-awaiting]');
+  const strip = document.querySelector('#sell [data-awaiting]');
   const shift = document.querySelector('[data-shift]');
   if (!strip || !shift) return null;
   return Math.sign(strip.getBoundingClientRect().top - shift.getBoundingClientRect().top);

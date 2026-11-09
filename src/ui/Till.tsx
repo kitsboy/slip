@@ -224,17 +224,15 @@ export default function Till() {
     };
   }, [reload]);
 
-  // A reload used to forget the sale on screen even though the books still held it.
-  // Open it again, once, and put the same code back on the customer screen.
+  // A reload used to forget the sale. The books still hold it, and the strip above the
+  // till is how it is reopened. Opening the pay screen here hid the till, so the page
+  // had no counter. The customer screen still gets the same code back.
   const resumed = useRef(false);
   useEffect(() => {
     if (resumed.current) return;
     resumed.current = true;
     const found = resumeOpenSale(ledger.load().invoices);
     if (!found) return;
-    setInvoice(found.primary);
-    setLeg2(found.second);
-    setStatus('waiting');
     const shop = loadSettings(appStore()).settings;
     publishToDisplay({
       kind: 'pay',
@@ -491,6 +489,10 @@ export default function Till() {
     // their wallet and not the shop's. It is the same watch-only rule either way.
     const payee = tipJar && staffId ? (wallets.find((w) => w.id === staffId) ?? wallet) : wallet;
     if (!payee || !totals || chargeSats === null) return;
+    if (compareStopped) {
+      setStatus('The addresses did not match. Open Setup and check address 0/0. slip will not take a sale until they match.');
+      return;
+    }
 
     // Nobody should have to open the till before their first customer. Not awaited: the sale is the
     // important thing, and the log line is written beside it.
@@ -887,6 +889,7 @@ export default function Till() {
     setNotice('Sale cancelled. Nothing was paid.');
     // A cancelled sale leaves the strip at once; a "waiting" line for a dead invoice is a lie.
     setInvoices(ledger.load().invoices);
+    window.dispatchEvent(new CustomEvent('slip:books'));
   }
 
   async function markPaid() {
@@ -1030,7 +1033,7 @@ export default function Till() {
         )}
         {leg2 && (
           <p className="v2-wait-line mt-1 text-base text-ink" data-split-wait>
-            {waitingLine}
+            {waitingLine} The second leg is {leg2.walletLabel}. A split sale is one sale: the receipt appears when both legs are paid.
           </p>
         )}
         <p className="mt-1 text-sm text-secondary">
@@ -1779,14 +1782,17 @@ export default function Till() {
           <div className={`charge-bar mt-3 flex flex-wrap items-center gap-2${isSkinV2() ? ' v2-rail' : ''}`}>
             {isSkinV2() && (
               <p className="v2-figure">
-                {totals && chargeSats !== null
-                  ? (
-                    <>
-                      <span className="v2-sats" aria-hidden>≈ {formatSats(chargeSats)}</span>
-                      <span className="v2-fiat">{formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })}</span>
-                    </>
-                  )
-                  : `0.00 ${settings.currency}`}
+                {totals && chargeSats !== null ? (
+                  <>
+                    <span className="v2-sats" aria-hidden>≈ {formatSats(chargeSats)}</span>
+                    <span className="v2-fiat">{formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="v2-sats">0 sats</span>
+                    <span className="v2-fiat">0.00 {settings.currency}</span>
+                  </>
+                )}
               </p>
             )}
             {isSkinV2() && (

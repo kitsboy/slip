@@ -1471,6 +1471,8 @@ html[data-skin='v2'] body {
     padding: 8px 12px;
     background: var(--v2-card);
     border-top: 1px solid var(--v2-edge);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
 html[data-skin='v2'] button.border-accent:not(.btn-primary) {
@@ -1618,9 +1620,9 @@ html[data-skin='v2'] .v2-price-in {
   align-items: center;
 }
 html[data-skin='v2'] .v2-price-in input {
-  width: 10ch;
+  width: 12ch;
   min-height: 32px;
-  padding: 0 12px 2px 6px;
+  padding: 0 2.6rem 2px 6px;
   border: 0;
   background: transparent;
   font-size: 13px;
@@ -1797,11 +1799,26 @@ html[data-skin='v2'] .v2-close {
   html[data-skin='v2'] .v2-rail .v2-figure {
     grid-column: 1;
     grid-row: 1;
-    font-size: 22px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    border-bottom: 0;
+    gap: 2px;
+  }
+  html[data-skin='v2'] .v2-rail .v2-figure .v2-sats {
+    font-size: 28px;
+    line-height: 1.05;
+    border-bottom: 2px solid #f0a32a;
+    max-width: 100%;
   }
   html[data-skin='v2'] .v2-rail .v2-price {
     grid-column: 1;
     grid-row: 2;
+    min-width: 0;
   }
   html[data-skin='v2'] .charge-bar .btn-primary {
     grid-column: 2;
@@ -2384,12 +2401,14 @@ html[data-skin='v2'] .bg-white {
   html[data-skin='v2'] .charge-bar.v2-rail {
     grid-template-columns: minmax(0, 1fr) auto;
   }
-  html[data-skin='v2'] .v2-rail .v2-figure,
-  html[data-skin='v2'] .v2-rail .v2-price {
+  html[data-skin='v2'] .v2-rail .v2-figure {
     grid-row: 1;
   }
+  html[data-skin='v2'] .v2-rail .v2-price {
+    grid-row: 2;
+  }
   html[data-skin='v2'] .charge-bar .btn-primary {
-    grid-row: 1;
+    grid-row: 1 / span 2;
     min-height: 56px;
   }
 }
@@ -2469,6 +2488,7 @@ html[data-skin='v2'] .v2-head-tools {
 }
 html[data-skin='v2'] .v2-head-word {
   display: block;
+  margin: 0;
   font-family: Palatino, 'Palatino Linotype', 'Iowan Old Style', Georgia, serif;
   font-size: 32px;
   font-weight: 500;
