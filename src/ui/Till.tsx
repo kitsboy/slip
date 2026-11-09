@@ -126,6 +126,7 @@ export default function Till() {
   const [proof, setProof] = useState<ReceiptProof | null>(null);
   /** A split sale's second leg: its own address, its own QR, its own status. */
   const [leg2, setLeg2] = useState<Invoice | null>(null);
+  const [bigLeg, setBigLeg] = useState<1 | 2 | null>(null);
   const [split, setSplit] = useState(false);
   const [splitWalletId, setSplitWalletId] = useState('');
   const [splitPercent, setSplitPercent] = useState('50');
@@ -658,12 +659,12 @@ export default function Till() {
               ledger.putInvoice(secondUpdated);
               setLeg2(secondUpdated);
               if (secondUpdated.status !== 'complete') {
-                setStatus('first wallet is in — the sale is not paid until both are');
+                setStatus(`${updated.walletLabel} is in. ${secondUpdated.walletLabel} is still waiting. The sale is not paid.`);
                 return;
               }
             }
           } catch {
-            setStatus('first wallet is in — could not check the second leg, so this sale is not paid');
+            setStatus(`${updated.walletLabel} is in. ${leg2.walletLabel} could not be checked, so this sale is not paid.`);
             return;
           }
         }
@@ -781,6 +782,11 @@ export default function Till() {
         if (document.querySelector('[role="dialog"], [role="menu"]')) return;
         if (!invoice || receipt) return;
         event.preventDefault();
+        if (bigLeg) {
+          setBigLeg(null);
+          setNotice('Showing both codes.');
+          return;
+        }
         abandon();
         return;
       }
@@ -805,7 +811,7 @@ export default function Till() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [receipt, proof, settings.businessName, settings.receiptFooter, invoice]);
+  }, [receipt, proof, settings.businessName, settings.receiptFooter, invoice, bigLeg]);
 
   // Poll only while a payment screen is open. Never in the background: a till that chatters
   // to an explorer while idle is a privacy leak with no benefit.
@@ -840,6 +846,8 @@ export default function Till() {
       ledger.touchInvoice(invoice.id, { status: 'cancelled' });
     }
     setInvoice(null);
+    setLeg2(null);
+    setBigLeg(null);
     setStatus('');
     setNotice('Sale cancelled. Nothing was paid.');
     // A cancelled sale leaves the strip at once; a "waiting" line for a dead invoice is a lie.
@@ -853,7 +861,7 @@ export default function Till() {
     if (invoice.note !== 'rehearsal') ledger.putInvoice(updated);
     setInvoice(updated);
     if (leg2 && leg2.status !== 'complete') {
-      setStatus('this wallet is marked by you — the sale is not paid until the other wallet is in');
+      setStatus(`${updated.walletLabel} is marked by you. ${leg2.walletLabel} is still waiting. The sale is not paid.`);
       publishToDisplay({
         kind: 'status',
         uri: paymentUri('bitcoin', {
@@ -926,6 +934,8 @@ export default function Till() {
     setProof(null);
     setReceipt(null);
     setInvoice(null);
+    setLeg2(null);
+    setBigLeg(null);
     setCart([]);
     setCustom('');
     setTipJar(false);
@@ -946,6 +956,26 @@ export default function Till() {
       label: paymentLabel(invoice.walletLabel, settings.signature),
     });
     const pending = invoice.status === 'awaiting' || invoice.status === 'seen';
+    const shown = bigLeg === 2 && leg2 ? leg2 : invoice;
+    const waitingLine = !leg2
+      ? ''
+      : invoice.status === 'complete' && leg2.status !== 'complete'
+        ? `${invoice.walletLabel} is in. ${leg2.walletLabel} is still waiting. The sale is not paid.`
+        : leg2.status === 'complete' && invoice.status !== 'complete'
+          ? `${leg2.walletLabel} is in. ${invoice.walletLabel} is still waiting. The sale is not paid.`
+          : `${invoice.walletLabel} is waiting. ${leg2.walletLabel} is waiting. The sale is not paid until both are in.`;
+    const legWords = (item: Invoice) =>
+      item.status === 'complete'
+        ? 'this wallet is in — the sale is not paid yet'
+        : item.status === 'seen'
+          ? 'seen on its way — not confirmed yet'
+          : 'waiting — not paid';
+    const legUri = (item: Invoice) =>
+      paymentUri('bitcoin', {
+        address: item.address,
+        amountSats: item.amountAtoms,
+        label: item.walletLabel,
+      });
     return (
       <section className={`mt-6 panel${isSkinV2() ? ' v2-pay' : ''}`} id="tl-pay" tabIndex={-1}>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -956,7 +986,7 @@ export default function Till() {
         </div>
         <h2 className="panel-title mt-1">Pay exactly</h2>
         <p className="figure mt-1 text-[2.5rem] font-bold leading-none tabular-nums">
-          {formatSats(invoice.amountAtoms)}
+          {formatSats(shown.amountAtoms)}
         </p>
         {(wallet?.source === 'xpub' || wallet?.source === 'descriptor') && (
           <p className="mt-1 text-sm text-ink">
@@ -964,8 +994,8 @@ export default function Till() {
           </p>
         )}
         {leg2 && (
-          <p className="mt-1 text-sm text-ink">
-            This wallet: {formatSats(invoice.amountAtoms)}. The other wallet: {formatSats(leg2.amountAtoms)}. Neither is paid until both are in.
+          <p className="v2-wait-line mt-1 text-base text-ink" data-split-wait>
+            {waitingLine}
           </p>
         )}
         <p className="mt-1 text-sm text-secondary">
@@ -974,47 +1004,51 @@ export default function Till() {
             : `checked ${Math.max(0, Math.round((Date.now() - checkedAt) / 1000))}s ago · it keeps looking`}
         </p>
 
+        {notice && (
+          <p className="v2-notice" data-cancelled>
+            {notice}
+          </p>
+        )}
         {isSkinV2() && leg2 ? (
+          bigLeg ? (
+            <div className="v2-split-big" data-split-big={bigLeg}>
+              <p className="v2-split-who">{shown.walletLabel}</p>
+              <div className="v2-qr">
+                <div className="v2-qr-box" dangerouslySetInnerHTML={{ __html: qrSvg(legUri(shown), 8) }} />
+              </div>
+              <p className="v2-split-wait">{legWords(shown)}</p>
+              <p className="text-base text-ink">
+                {shown.index === null
+                  ? 'This wallet has ONE fixed address; it is reused for every sale.'
+                  : `Address #${shown.index} for this sale. Do not pay it twice.`}
+              </p>
+              <button type="button" className="btn btn-secondary" onClick={() => setBigLeg(null)}>
+                Show both codes
+              </button>
+            </div>
+          ) : (
           <div className="v2-split-codes">
             <article>
-              <p className="text-sm text-ink">This wallet · {formatSats(invoice.amountAtoms)}</p>
-              <div className="v2-qr">
-                <div className="v2-qr-box" dangerouslySetInnerHTML={{ __html: qrSvg(uri, 8) }} />
-              </div>
-              <p>waiting — not paid</p>
-              <p className="text-xs text-ink">
-                {invoice.index === null
-                  ? 'This wallet has ONE fixed address; it is reused for every sale.'
-                  : `Address #${invoice.index} for this sale. Do not pay it twice.`}
-              </p>
+              <button type="button" className="v2-code-btn" onClick={() => setBigLeg(1)} aria-label={`Show ${invoice.walletLabel} large`}>
+                <p className="text-sm text-ink">{invoice.walletLabel} · {formatSats(invoice.amountAtoms)}</p>
+                <div className="v2-qr">
+                  <div className="v2-qr-box" dangerouslySetInnerHTML={{ __html: qrSvg(uri, 8) }} />
+                </div>
+                <p>{legWords(invoice)}</p>
+              </button>
             </article>
             <article data-split-leg="2">
-              <p className="text-sm text-ink">{leg2.walletLabel} · {formatSats(leg2.amountAtoms)}</p>
-              <div className="v2-qr">
-                <div
-                  className="v2-qr-box"
-                  dangerouslySetInnerHTML={{
-                    __html: qrSvg(
-                      paymentUri('bitcoin', {
-                        address: leg2.address,
-                        amountSats: leg2.amountAtoms,
-                        label: leg2.walletLabel,
-                      }),
-                      8,
-                    ),
-                  }}
-                />
-              </div>
-              <p>
-                {leg2.status === 'complete'
-                  ? 'this leg is in — the sale is not paid yet'
-                  : leg2.status === 'seen'
-                    ? 'seen on its way — not confirmed yet'
-                    : 'waiting — not paid'}
-              </p>
-              <p className="text-xs text-ink">Neither is paid until both are in.</p>
+              <button type="button" className="v2-code-btn" onClick={() => setBigLeg(2)} aria-label={`Show ${leg2.walletLabel} large`}>
+                <p className="text-sm text-ink">{leg2.walletLabel} · {formatSats(leg2.amountAtoms)}</p>
+                <div className="v2-qr">
+                  <div className="v2-qr-box" dangerouslySetInnerHTML={{ __html: qrSvg(legUri(leg2), 8) }} />
+                </div>
+                <p>{legWords(leg2)}</p>
+              </button>
             </article>
+            <p className="v2-split-hint">Tap a code to fill the screen.</p>
           </div>
+          )
         ) : (
         <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:items-start">
           <div className={`relative shrink-0 rounded-2xl bg-white p-4${isSkinV2() ? ' v2-qr' : ' border-2 border-accent/40'}`}>
