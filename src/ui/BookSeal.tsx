@@ -52,7 +52,9 @@ export default function BookSeal() {
       title={`Today's book: ${digest} (${count} completed sale${count === 1 ? '' : 's'})`}
       data-book-seal={digest.slice(0, 8)}
     >
-      <span aria-hidden>◈</span>
+      <svg aria-hidden viewBox="0 0 8 8" className="h-2 w-2 shrink-0">
+        <path d="M4 0 8 4 4 8 0 4Z" fill="currentColor" />
+      </svg>
       <span>{shortDigest(digest, 2)}</span>
       <span className="text-muted/70">today&apos;s book</span>
     </span>

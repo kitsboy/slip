@@ -67,7 +67,7 @@ export default function Footer() {
               rel="noreferrer noopener"
               data-brand="giveabit"
             >
-              <span aria-hidden>₿</span> {signature}
+              {signature}
             </a>
           )}
           <p className="v2-foot-note">
