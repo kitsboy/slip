@@ -1,0 +1,64 @@
+session_id: session-2026-11-09-001
+date: "2026-11-09"
+status: draft
+summary:
+  purpose: "Answer the camera refusal, the zpub scan, the stuck setup, and the four listed till ideas, then leave a note the next pull can follow."
+  outcomes:
+    - "The camera refusal was our own Permissions-Policy line camera=(), changed to camera=(self). This is not live."
+    - "A public wallet code can be lifted out of a labelled QR and written into the public-code field, after a secret is refused and wiped."
+    - "Setup can be left with a button or by tapping a tab. That path was checked in a phone-width browser."
+    - "The Bitcoin price field moved into Tools. The charge bar shows the number only. Tools starts open so the suites can still fill #tl-rate."
+    - "The demo ribbon sits above the shop name. Setup counts three rows and marks the backup optional."
+    - "Navigation speed and the setup style were not finished and must not be reported as fixed."
+architectural_decisions:
+  - id: AD-001
+    decision: "public/_headers allows the camera on this origin only, camera=(self). Microphone, location, payment and usb stay refused."
+    rationale: "camera=() made the browser refuse the camera before the page asked, which is the Permission denied the owner saw."
+    status: provisional
+  - id: AD-002
+    decision: "A wallet QR is reduced to its public code, and a secret is wiped before the field is written."
+    rationale: "The owner asked to scan a zpub into the public-code field. A payment-link parser cannot read that QR, and the one rule still forbids a private key."
+    status: agreed
+  - id: AD-003
+    decision: "Setup replaces the page, so a tab tap closes it, and a Leave setup button is on every step."
+    rationale: "The owner could not leave setup. The tabs changed the hash and the wizard stayed on screen, so the navigation looked broken."
+    status: agreed
+  - id: AD-004
+    decision: "The Bitcoin price is edited in Tools. The charge bar shows the number, not a second field."
+    rationale: "The owner asked for the price out of the sale path. The field id stays #tl-rate and Tools starts open, because the browser suites fill that field."
+    status: agreed
+open_questions:
+  - id: OQ-001
+    question: "Does a phone camera open after this _headers change is deployed?"
+    context: "Vite preview does not serve public/_headers. The fix is unproven until the live origin allows the camera and a scan fills the public-code field."
+    priority: high
+    status: open
+  - id: OQ-002
+    question: "Is the navigation still slow after the blur and the two motions were removed?"
+    context: "The owner said the tabs move slowly. No tap was timed. Do not call it fixed."
+    priority: high
+    status: open
+  - id: OQ-003
+    question: "What should the setup screen look like once the five steps are a path rather than a form?"
+    context: "The owner said the flow is confusing and the style is poor. Only the step names and the leave button were added."
+    priority: high
+    status: open
+  - id: OQ-004
+    question: "Should every greyed button get a reason, or only the ones a shopkeeper hits?"
+    context: "Restore and the till open and close now say why they are grey. The design brief asks for the same on every screen."
+    priority: medium
+    status: open
+  - id: OQ-005
+    question: "Ship addresses in groups of four?"
+    context: "It was idea 5 and was not in the top 4. Gaps must be margins, not space characters, or the browser suites fail."
+    priority: low
+    status: open
+session_notes:
+  deprecated_items:
+    - "The button text 'I know what I'm doing — skip to the workbench' is gone from the wizard. Docs that still quote it are history, not the current label."
+  corrections_to_prior_sessions:
+    - "An earlier note said the camera refusal was a browser permission memory. It was public/_headers camera=()."
+  other:
+    - "No prior debrief files were in the repo, so AD and OQ numbers start at 001."
+    - "Full vitest, contrast, token lint and the 12 browser suites were not run for this commit."
+    - "README.md test counts are older than the live site. Do not quote them."

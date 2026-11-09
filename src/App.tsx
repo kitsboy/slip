@@ -40,11 +40,12 @@ import Status from './ui/Status';
 import { applyTheme, loadTheme, saveTheme, systemTheme, type Theme } from './core/theme';
 import Readiness from './ui/Readiness';
 import Wizard from './ui/Wizard';
+import DemoBanner from './ui/DemoBanner';
 import Watcher from './ui/Watcher';
 import { buildLabel } from './core/buildinfo';
 import { formatSats } from './core/money';
 import { isOnboarded } from './core/settings';
-import { store as appStore } from './core/storage';
+import { isDemo, store as appStore } from './core/storage';
 import { TABS, resolveHash, type Section, type Tab } from './core/tabs.router';
 
 /**
@@ -211,6 +212,7 @@ export default function App() {
     const onHash = () => {
       const { section } = resolveHash(window.location.hash);
       setActiveSection(section);
+      setWizardOpen(false);
       // Bump on every hashchange, even one that lands on the current section, so panel-only
       // changes inside one section (#verify → #pair) still scroll.
       setNavTick((n) => n + 1);
@@ -259,6 +261,7 @@ export default function App() {
     <div className="flex min-h-full flex-col">
       <Watcher />
       <header className={isSkinV2() ? 'v2-head sticky top-0 z-20' : 'sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur'}>
+        {isDemo && <DemoBanner />}
         {isSkinV2() ? (
           <div className="v2-head-row">
             <div className="v2-head-tools">
@@ -387,6 +390,7 @@ export default function App() {
                 key={t}
                 href={`#${t}`}
                 data-tab={t}
+                onClick={() => setWizardOpen(false)}
                 aria-current={activeSection === t ? 'location' : undefined}
                 className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border px-3 text-xs transition-colors ${tabClass(t)}`}
               >
@@ -633,7 +637,7 @@ export default function App() {
 
       <nav
         aria-label="Primary sections (phone)"
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line bg-bg/95 backdrop-blur sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line bg-bg sm:hidden"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         {TABS.map((t) => (
@@ -641,6 +645,7 @@ export default function App() {
             key={t}
             href={`#${t}`}
             data-tab={t}
+            onClick={() => setWizardOpen(false)}
             aria-current={activeSection === t ? 'location' : undefined}
             aria-label={TAB_LABELS[t]}
             className={`relative flex min-h-[52px] flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${

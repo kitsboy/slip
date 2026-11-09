@@ -10,6 +10,8 @@ ability to sign anything.
 
 ## Status: shipping — it takes payments and closes the day.
 
+The next session starts at `docs/RESUME-2026-11-09.md`. Live is v0.31.23. The camera and setup work after that note is committed and not deployed.
+
 On-chain (BTC/LTC, mainnet and testnets), Lightning via LNURL-pay + LNURL-verify, receipts with
 customer-kept proofs, rent requests, a day book you can stamp, wallet pairing by QR, a watchlist and
 a customer screen. Every rail is labelled with what was actually observed — `seen` is never `paid`,

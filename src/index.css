@@ -1727,7 +1727,7 @@ html[data-skin='v2'] .v2-watch {
   border-color: var(--v2-edge);
 }
 
-/* Extra till controls sit in a tools drawer. The Bitcoin price stays in the bar. */
+/* Extra till controls sit in a tools drawer. The Bitcoin price is edited here, and the bar only shows the number. */
 html[data-skin='v2'] .v2-tools {
   display: flex;
   flex-direction: column;
@@ -1821,6 +1821,11 @@ html[data-skin='v2'] .v2-close {
     line-height: 1.05;
     border-bottom: 2px solid #f0a32a;
     max-width: 100%;
+  }
+  html[data-skin='v2'] .v2-rail .v2-rate-line {
+    grid-column: 1;
+    grid-row: 2;
+    margin: 0;
   }
   html[data-skin='v2'] .v2-rail .v2-price {
     grid-column: 1;
@@ -2434,16 +2439,14 @@ html[data-skin='v2'] #root {
   z-index: 1;
 }
 html[data-skin='v2'] body::before {
-  /* A whisper of the slip mark, far back and very faint, that barely drifts. */
   content: '';
   position: fixed;
   inset: auto 0 0;
   height: 100vh;
   background: radial-gradient(closest-side, var(--v2-acc), transparent 72%);
-  opacity: 0.05;
+  opacity: 0.04;
   pointer-events: none;
   z-index: 0;
-  animation: v2-breathe 26s ease-in-out infinite alternate;
 }
 @keyframes v2-breathe {
   from { opacity: 0.035; transform: scale(1) translateY(0); }
@@ -2460,8 +2463,6 @@ html[data-skin='v2'] .v2-head::before {
   background: url('./slip-mark.png') center / contain no-repeat;
   opacity: 0.1;
   pointer-events: none;
-  animation: v2-head-drift 18s ease-in-out infinite alternate;
-  will-change: transform, opacity;
 }
 @keyframes v2-head-drift {
   from { transform: translateX(-50%) scale(1); }

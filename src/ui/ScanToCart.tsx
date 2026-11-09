@@ -9,7 +9,7 @@
  */
 
 import { useState } from 'react';
-import { cameraScannerAvailable, createDetector } from '../core/scanner';
+import { cameraScannerAvailable, cameraRefusal, createDetector } from '../core/scanner';
 import type { CatalogItem } from '../core/catalog';
 import { formatFiat } from '../core/money';
 
@@ -96,9 +96,9 @@ export default function ScanToCart({ items, currency, onPick, onAmount }: Props)
         window.setTimeout(() => void tick(), 400);
       };
       void tick();
-    } catch {
+    } catch (e) {
       setCameras(false);
-      setNote({ kind: 'miss', text: 'no camera — type the code instead' });
+      setNote({ kind: 'miss', text: cameraRefusal(e) });
     }
   }
 

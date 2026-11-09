@@ -37,6 +37,34 @@ export function classifyScan(raw: string): Classified {
   return { kind: 'unknown', text, description: 'not something slip can use' };
 }
 
+const PUBLIC_KEY = /((?:xpub|ypub|zpub|tpub|upub|vpub|Ypub|Zpub|Ltub|Mtub|ttub)[1-9A-HJ-NP-Za-km-z]{20,})/;
+
+/**
+ * A wallet QR is often the bare public code, sometimes with a label around it.
+ * Returns that public code, or null when the scan is not one. Never returns a secret:
+ * the caller still runs the refusal before writing the field.
+ */
+export function publicCodeFromScan(raw: string): string | null {
+  const text = (raw ?? '').trim();
+  if (!text) return null;
+  const hit = text.match(PUBLIC_KEY);
+  if (hit) return hit[1] ?? null;
+  if (/^(wpkh|pkh|sh|tr|wsh)\(/i.test(text)) return text;
+  return null;
+}
+
+/** What to say when the browser will not open the camera. Never echoes a scanned secret. */
+export function cameraRefusal(error: unknown): string {
+  const name = error instanceof DOMException ? error.name : '';
+  if (name === 'NotAllowedError' || name === 'PermissionDeniedError' || name === 'SecurityError') {
+    return 'The browser blocked the camera. Allow the camera for this site in the address bar, then press camera again. Nothing is recorded.';
+  }
+  if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+    return 'No camera was found. Paste the code instead.';
+  }
+  return 'The camera could not start. Paste the code instead.';
+}
+
 export interface ScanBuffer {
   push(char: string): string | null;
   reset(): void;

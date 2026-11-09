@@ -7,7 +7,7 @@
   X-Frame-Options: DENY
   Content-Security-Policy: frame-ancestors 'none'
   Referrer-Policy: no-referrer
-  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Permissions-Policy: camera=(self), microphone=(), geolocation=(), payment=(), usb=()
 
 # The artifact a merchant verifies must never be cached stale.
 /index.html

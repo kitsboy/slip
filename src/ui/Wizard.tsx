@@ -28,6 +28,8 @@ import {
 } from '../core/settings';
 import { createRepository, validateAccountInput } from '../core/accounts';
 import WalletPicker from './WalletPicker';
+import { CameraCapture } from './Scan';
+import { publicCodeFromScan } from '../core/scanner';
 import { assertNotSecret, SecretRefused, type SecretKind } from '../core/keys';
 import { setCompareStopped } from '../core/compare-stop';
 import { hashPin, isValidPin } from '../core/pin';
@@ -66,6 +68,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
   const [confirmedAddress, setConfirmedAddress] = useState('');
   const [verifyChecked, setVerifyChecked] = useState(false);
   const [refusal, setRefusal] = useState<SecretKind | null>(null);
+  const [scanMiss, setScanMiss] = useState<string | null>(null);
   const [tryRefusal, setTryRefusal] = useState<SecretKind | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -196,14 +199,19 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
       </div>
       {isSkinV2() && (
         <p className="v2-stages">
-          <span className={step <= 2 ? 'v2-on' : undefined}>1 Shop</span>
-          <span className={step === 3 ? 'v2-on' : undefined}>2 Wallet</span>
-          <span className={step >= 4 ? 'v2-on' : undefined}>3 Ready</span>
+          {(['Welcome', 'Shop', 'Wallet', 'PIN', 'Ready'] as const).map((name, i) => (
+            <span key={name} className={step === i + 1 ? 'v2-on' : undefined}>{i + 1} {name}</span>
+          ))}
         </p>
       )}
-      <p className="eyebrow mt-4">
-        step {step} of 5 · {stepper?.title}
-      </p>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+        <p className="eyebrow m-0">
+          step {step} of 5 · {stepper?.title}
+        </p>
+        <button type="button" className="btn btn-secondary" onClick={onDone}>
+          Leave setup
+        </button>
+      </div>
       <h1 className="mt-1 text-2xl font-semibold tracking-tight">{stepper?.title}</h1>
       <p className="mt-1 text-sm text-muted">{stepper?.why}</p>
 
@@ -348,6 +356,30 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
               placeholder="zpub6… or wpkh(zpub…/0/*)"
               className="mt-1 w-full resize-y rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
             />
+            <p className="mt-1 text-sm text-ink">Scan the QR from your wallet, or paste the zpub. A private key is refused and wiped.</p>
+            <CameraCapture
+              label="Scan the zpub"
+              onText={(raw) => {
+                try {
+                  assertNotSecret(raw);
+                } catch (err) {
+                  if (err instanceof SecretRefused) {
+                    changeXpub('');
+                    setRefusal(err.kind);
+                    setScanMiss(null);
+                    return;
+                  }
+                }
+                const code = publicCodeFromScan(raw);
+                if (!code) {
+                  setScanMiss('That code is not a public wallet code. Paste the zpub instead.');
+                  return;
+                }
+                changeXpub(code);
+                setScanMiss(null);
+              }}
+            />
+            {scanMiss && <p className="mt-1 text-sm text-warn" role="status">{scanMiss}</p>}
           </label>
 
           {refusal && (
@@ -585,13 +617,13 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
             Finish setup
           </button>
         )}
-        <button type="button" onClick={onDone} disabled={matchStop} className="btn btn-ghost ml-auto">
-          I know what I&rsquo;m doing — skip to the workbench
+        <button type="button" onClick={onDone} className="btn btn-ghost ml-auto">
+          Leave setup
         </button>
       </div>
       {matchStop && (
         <p className="mt-2 text-xs text-bad" role="alert" data-compare-stop>
-          There is no skip. The addresses do not match, so the counter stays closed.
+          There is no way past a mismatch. You can leave this screen. The counter stays closed until address 0/0 matches.
         </p>
       )}
       {step === 5 && (!walletConfirmed || !verifyChecked) && !matchStop && (

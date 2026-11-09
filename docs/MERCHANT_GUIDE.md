@@ -16,8 +16,8 @@ On the first screen press **set up your shop**. Five screens, about a minute:
 4. **Who holds the till** — a 4–8 digit PIN (skippable; the hand-off will ask for one).
 5. **Ready** — a summary you can read before taking money.
 
-You can leave the wizard at any point with **skip to the workbench**, and re-run it later
-with **run setup again** in the header. Nothing in it can take a payment.
+You can leave the wizard at any point with **Leave setup**, and re-run it later
+with **run setup again** in the header. The tabs also leave setup. Nothing in it can take a payment.
 
 ## 1. What you need before you start
 

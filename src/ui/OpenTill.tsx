@@ -93,6 +93,7 @@ export default function OpenTill({ staff, shift, counter = '', currency, busy = 
           <button type="button" onClick={onClose} disabled={busy} className="btn btn-secondary">
             Close the till
           </button>
+          {busy && <p className="w-full text-xs text-warn" role="status" data-blocker>Wait — the till is still closing.</p>}
         </div>
       </div>
     );
@@ -170,6 +171,7 @@ export default function OpenTill({ staff, shift, counter = '', currency, busy = 
         >
           Open the till
         </button>
+        {busy && <p className="text-xs text-warn" role="status" data-blocker>Wait — the till is still opening.</p>}
       </div>
 
       {error && <p className="mt-2 text-[11px] text-bad">{error}</p>}

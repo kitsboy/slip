@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { btcString, closeReport, dayClose, daysWithSales, railOf, salesCsv, toRow } from '../src/core/history';
 import { checkRefund, fullyRefunded, makeRefund, refundedSoFar } from '../src/core/refunds';
 import { describeSweep, openInvoices, sweep } from '../src/core/reconcile';
-import { cameraScannerAvailable, classifyScan, createScanBuffer } from '../src/core/scanner';
+import { cameraScannerAvailable, classifyScan, createScanBuffer, publicCodeFromScan } from '../src/core/scanner';
 import { checkSilentPaymentAddress, silentPaymentCapability, silentPaymentUri } from '../src/core/silentpay';
 import type { Invoice } from '../src/core/orders';
 import type { AddressActivity } from '../src/core/providers/esplora';
@@ -193,6 +193,13 @@ describe('scanner', () => {
     expect(classifyScan('lnbc1xyz').kind).toBe('invoice');
     expect(classifyScan('sp1qqqqqqqqqqqqqqqqqqqqqqqq').kind).toBe('address');
     expect(classifyScan('hello').kind).toBe('unknown');
+  });
+
+  it('pulls a zpub out of a wallet QR, and ignores a code that is not one', () => {
+    const zpub = 'zpub6rFR7y4Q2AijBEqTUquhVz398htDFrtymD9xYYfG1m4wAcvPhXNfE3EfH1r1ADqtfSdVCToUG868RvUUkgDKf31mGDtKsAYz2oz2AGutZYs';
+    expect(publicCodeFromScan(`Wallet\n${zpub}`)).toBe(zpub);
+    expect(publicCodeFromScan('wpkh(zpub6abc/0/*)')).toBe('wpkh(zpub6abc/0/*)');
+    expect(publicCodeFromScan('not a code')).toBeNull();
   });
 
   it('turns a fast burst of keystrokes into one scan', () => {

@@ -12,7 +12,7 @@ import { isSkinV2 } from './skin';
 export default function DemoBanner() {
   return (
     <div
-      className={`flex flex-wrap items-center justify-between gap-2 border-b border-warn px-3 py-1.5 text-[11px] text-warn ${isSkinV2() ? 'v2-demo' : 'sticky top-0 z-30 bg-warn/10'}`}
+      className={`flex flex-wrap items-center justify-between gap-2 border-b border-warn px-3 py-1.5 text-[11px] text-warn ${isSkinV2() ? 'v2-demo' : 'bg-warn/10'}`}
     >
       <span>
         <strong className="text-[11px] uppercase tracking-[0.08em]">Demo</strong> — a pretend shop. Nothing leaves

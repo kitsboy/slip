@@ -89,7 +89,7 @@ export default function Readiness() {
       </div>
 
       <ul className="mt-3 grid gap-1">
-        {rows.map((row) => (
+        {checkable.map((row) => (
           <li key={row.label} className="flex items-center gap-2 text-sm">
             <span
               aria-hidden
@@ -100,11 +100,7 @@ export default function Readiness() {
               {row.done ? '✓' : '·'}
             </span>
             <span className={`flex-1 ${row.done ? 'text-secondary' : 'text-ink'}`}>{row.label}</span>
-            {row.manual ? (
-              <span className="text-[11px] text-muted">
-                {isSkinV2() ? 'Optional — ' : ''}your job — slip cannot see it
-              </span>
-            ) : row.done ? (
+            {row.done ? (
               <span className="text-[11px] text-muted">done</span>
             ) : (
               <a href={row.href} className="text-[11px] text-accent underline underline-offset-2">
@@ -114,6 +110,11 @@ export default function Readiness() {
           </li>
         ))}
       </ul>
+      {rows.filter((row) => row.manual).map((row) => (
+        <p key={row.label} className="mt-2 text-sm text-ink">
+          Optional — {row.label}. slip cannot see whether you kept one.
+        </p>
+      ))}
     </section>
   );
 }

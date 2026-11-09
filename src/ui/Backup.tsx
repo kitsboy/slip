@@ -263,6 +263,11 @@ export default function Backup() {
               disabled={busy || !passphrase}
               className="rounded-lg border border-warn px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-warn disabled:border-line disabled:text-muted"
             />
+            {!passphrase && (
+              <p className="mt-1 w-full text-xs text-warn" role="status" data-blocker>
+                Enter the passphrase first. The restore stays grey until then.
+              </p>
+            )}
             <button
               type="button"
               onClick={() => {

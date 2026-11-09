@@ -2,7 +2,6 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import CustomerDisplay from './ui/CustomerDisplay';
-import DemoBanner from './ui/DemoBanner';
 import Explainer from './ui/Explainer';
 import Parts from './ui/Parts';
 import { installFakeExplorer } from './demo/fakeExplorer';
@@ -158,7 +157,6 @@ if (import.meta.env.DEV && params.get('gallery') === '1') {
         <Parts />
       ) : (
         <>
-          {isDemo && <DemoBanner />}
           <App />
         </>
       )}

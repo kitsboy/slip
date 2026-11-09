@@ -1589,6 +1589,29 @@ export default function Till() {
 
           <details className={isSkinV2() ? 'v2-tools' : undefined} open>
             {isSkinV2() && <summary>Tools</summary>}
+            {isSkinV2() && (
+              <label className="v2-price mt-2 block" htmlFor="tl-rate">
+                <span className="eyebrow">What one {wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth</span>
+                <span className="v2-price-in">
+                  <input
+                    id="tl-rate"
+                    tabIndex={4}
+                    value={rate}
+                    onChange={(e) => setRate(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key !== 'Enter') return;
+                      e.preventDefault();
+                      const charge = document.getElementById('tl-charge') as HTMLButtonElement | null;
+                      if (charge && !charge.disabled) charge.focus();
+                    }}
+                    inputMode="decimal"
+                    placeholder="60000.00"
+                    aria-label={`What one ${wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth (${settings.currency})`}
+                  />
+                  <span className="v2-unit" aria-hidden>{settings.currency}</span>
+                </span>
+              </label>
+            )}
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <label className="block" htmlFor="tl-custom">
               <span className="eyebrow">Custom amount ({settings.currency}) — added to the items</span>
@@ -1839,27 +1862,9 @@ export default function Till() {
               </p>
             )}
             {isSkinV2() && (
-              <label className="v2-price" htmlFor="tl-rate">
-                <span>Bitcoin</span>
-                <span className="v2-price-in">
-                  <input
-                    id="tl-rate"
-                    tabIndex={isSkinV2() ? 4 : undefined}
-                    value={rate}
-                    onChange={(e) => setRate(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key !== 'Enter' || !isSkinV2()) return;
-                      e.preventDefault();
-                      const charge = document.getElementById('tl-charge') as HTMLButtonElement | null;
-                      if (charge && !charge.disabled) charge.focus();
-                    }}
-                    inputMode="decimal"
-                    placeholder="60000.00"
-                    aria-label={`What one ${wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth (${settings.currency})`}
-                  />
-                  <span className="v2-unit" aria-hidden>{settings.currency}</span>
-                </span>
-              </label>
+              <p className="v2-rate-line">
+                {rate.trim() === '' ? 'Bitcoin price not set' : `${rate} ${settings.currency} per Bitcoin`}
+              </p>
             )}
             <button
               type="button"

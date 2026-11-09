@@ -8,7 +8,7 @@ visible progress indicator, back always available, a resumable step, ending on t
 
 A complete, legitimate setup finishes in **< 2 minutes**. The measured gate (Playwright, §8)
 is a **first real sale attempt from cold start in < 60 seconds**. The wizard is a guided
-path, not a gate: a visitor can always skip to the workbench, and the "pretend shop first"
+path, not a gate: a visitor can always leave setup, and the "pretend shop first"
 door is one visible tap on the first screen. Nobody is ever locked behind five screens
 before they can read the page.
 
@@ -45,10 +45,8 @@ Two doors sit on the hero/welcome (before screen 1 of the wizard), one decision 
    storage drawer, a simulated explorer, auto-confirming. Always labelled "pretend". Exiting
    wipes the demo drawer and returns to the real app. This is for anyone not ready to touch
    a real wallet.
-2. **“I know what I'm doing”** — the existing `skip to the workbench` link, promoted to a
-   visible secondary button. Jumps straight to the Sell workbench with onboarding marked
-   deferred, not skipped; the header `[Setup▾]` and the `?` Manual both still offer the
-   wizard.
+2. **Leave setup** — always on the screen, and the tabs leave too. Nobody is locked in.
+   The wizard can be opened again from the header.
 
 After the very first session, the hero no longer shows the two doors; the wizard is reached
 via `[Setup▾]` → "run setup again" (as today).
@@ -58,7 +56,7 @@ via `[Setup▾]` → "run setup again" (as today).
 Current wizard is 5 steps and ends on a **review** step that carries a stale "no till yet"
 claim (see §6 — this is false and must not survive). Restructured beats, one decision each,
 a visible 5-segment progress bar at top, **Back** always present (disabled only on step 1),
-and a live "skip to the workbench" escape every step.
+and a live Leave setup escape every step.
 
 Progress indicator: five equal segments (already exist as `WIZARD_STEPS`); the segment
 counts honestly (a step that was skipped to "workbench" never shows as done).

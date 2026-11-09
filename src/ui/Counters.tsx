@@ -27,6 +27,8 @@ import {
 import { hashPin, isValidPin, validateHandoff, verifyPin } from '../core/pin';
 import { createLedger } from '../core/ledger';
 import WalletPicker from './WalletPicker';
+import { CameraCapture } from './Scan';
+import { publicCodeFromScan } from '../core/scanner';
 import { buildHandover } from '../core/handover';
 import { paymentUri } from '../core/qr';
 import { renderQrSvg } from '../core/qr';
@@ -91,6 +93,7 @@ export default function Counters() {
   const [networkId, setNetworkId] = useState<NetworkId>('btc-mainnet');
   const [scriptType, setScriptType] = useState<ScriptType | 'auto'>('auto');
   const [xpub, setXpub] = useState('');
+  const [scanMiss, setScanMiss] = useState<string | null>(null);
   const [refusal, setRefusal] = useState<SecretKind | null>(null);
   const [checked, setChecked] = useState(false);
   const [matchStop, setMatchStop] = useState(false);
@@ -585,6 +588,31 @@ export default function Counters() {
             placeholder="zpub6rFR7y4Q2AijB…"
             className="mt-1 w-full resize-y rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
           />
+          <p className="mt-1 text-sm text-ink">Scan the QR from your wallet, or paste the zpub. slip only keeps the public code.</p>
+          <CameraCapture
+            label="Scan the zpub"
+            onText={(raw) => {
+              try {
+                assertNotSecret(raw);
+              } catch (err) {
+                if (err instanceof SecretRefused) {
+                  setXpub('');
+                  setRefusal(err.kind);
+                  setScanMiss(null);
+                  return;
+                }
+              }
+              const code = publicCodeFromScan(raw);
+              if (!code) {
+                setScanMiss('That code is not a public wallet code. Paste the zpub instead.');
+                return;
+              }
+              setXpub(code);
+              setRefusal(null);
+              setScanMiss(null);
+            }}
+          />
+          {scanMiss && <p className="mt-1 text-sm text-warn" role="status">{scanMiss}</p>}
         </label>
 
         {refusal && (

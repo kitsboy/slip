@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { cameraScannerAvailable, classifyScan, createDetector } from '../core/scanner';
+import { cameraScannerAvailable, cameraRefusal, classifyScan, createDetector } from '../core/scanner';
 
 export interface ScanFieldProps {
   readonly label: string;
@@ -80,7 +80,7 @@ export function ScanField({ label, onScan, placeholder = 'paste a code, or scan 
         };
         void tick();
       } catch (e) {
-        setStatus(e instanceof Error ? `camera refused: ${e.message}` : 'the camera could not start');
+        setStatus(cameraRefusal(e));
         setCameraOpen(false);
       }
     })();
@@ -148,3 +148,86 @@ export function ScanField({ label, onScan, placeholder = 'paste a code, or scan 
 }
 
 export default ScanField;
+
+/**
+ * A camera button for a field that already exists. The scanned text goes to the caller.
+ * The caller decides whether it is a public code, and wipes a secret before it is shown.
+ */
+export function CameraCapture({ onText, label = 'Scan the code' }: { onText: (raw: string) => void; label?: string }) {
+  const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+  const video = useRef<HTMLVideoElement | null>(null);
+  const stream = useRef<MediaStream | null>(null);
+  const onTextRef = useRef(onText);
+  onTextRef.current = onText;
+  const canScan = cameraScannerAvailable();
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    let timer: number | null = null;
+    void (async () => {
+      const detector = createDetector();
+      if (!detector) {
+        setStatus('This browser has no built-in scanner. Paste the code instead.');
+        setOpen(false);
+        return;
+      }
+      try {
+        const media = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        if (cancelled) {
+          media.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        stream.current = media;
+        if (video.current) {
+          video.current.srcObject = media;
+          await video.current.play();
+        }
+        const tick = async () => {
+          if (cancelled || !video.current) return;
+          try {
+            const found = await detector.detect(video.current);
+            const first = found[0];
+            if (first?.rawValue) {
+              onTextRef.current(first.rawValue);
+              setOpen(false);
+              return;
+            }
+          } catch {
+            /* a dropped frame is normal */
+          }
+          timer = window.setTimeout(() => void tick(), 350);
+        };
+        void tick();
+      } catch (e) {
+        setStatus(cameraRefusal(e));
+        setOpen(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      if (timer) window.clearTimeout(timer);
+      stream.current?.getTracks().forEach((t) => t.stop());
+      stream.current = null;
+    };
+  }, [open]);
+
+  if (!canScan) {
+    return <p className="mt-1 text-sm text-muted">This browser cannot use the camera. Paste the code instead.</p>;
+  }
+  return (
+    <div className="mt-2">
+      <button type="button" className="btn btn-secondary" onClick={() => setOpen((v) => !v)}>
+        {open ? 'Stop camera' : label}
+      </button>
+      {open && (
+        <div className="mt-2 overflow-hidden rounded-lg border border-line">
+          <video ref={video} muted playsInline className="h-56 w-full bg-black object-cover" />
+          <p className="p-2 text-sm text-ink">Point at the QR on your wallet. Nothing is recorded or uploaded.</p>
+        </div>
+      )}
+      {status && <p className="mt-1 text-sm text-warn" role="status">{status}</p>}
+    </div>
+  );
+}
