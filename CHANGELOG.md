@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.21** — 2026-11-09T20:16:50Z — `88fde54ee0ed` — The shop name and a paid line are a quiet rose. The open phone tab is a filled brass chip.
+
 - **v0.31.20** — 2026-11-09T19:58:22Z — `15b11a528cca` — The books read as one slip. A waiting sale comes back after a reload. On a phone the tab says Money so the bar stays in frame.
 
 - **v0.31.19** — 2026-11-09T19:49:35Z — `0247013713b5` — A cancelled sale shows in the books as cancelled and stays out of the day's total. The faint mark behind the word drifts slowly.
