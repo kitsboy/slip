@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>slip — Litecoin trial sheet</title>
+<style>
+  @page { size: A4; margin: 14mm 14mm 12mm; }
+  html, body { background: #fff; color: #111; }
+  body { font-family: Georgia, 'Times New Roman', serif; font-size: 10.5pt; line-height: 1.45; margin: 0; }
+  h1 { font-size: 20pt; margin: 0 0 2mm; letter-spacing: -0.02em; }
+  h2 { font-size: 11pt; margin: 6mm 0 2mm; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid #111; padding-bottom: 1mm; }
+  .lede { font-size: 10pt; color: #333; margin: 0 0 4mm; }
+  ol, ul { margin: 0 0 2mm 5mm; padding: 0; }
+  li { margin-bottom: 1.6mm; }
+  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+  th, td { text-align: left; vertical-align: top; padding: 1.6mm 2mm; border-bottom: 0.5pt solid #bbb; }
+  th { border-bottom: 1pt solid #111; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.06em; }
+  code { font-family: 'Courier New', monospace; font-size: 9pt; background: #f2f2f2; padding: 0.4mm 1mm; }
+  .box { border: 1pt solid #111; padding: 3mm 3.5mm; margin: 3mm 0; }
+  .box p:last-child { margin-bottom: 0; }
+  .foot { margin-top: 5mm; font-size: 8.5pt; color: #444; border-top: 0.5pt solid #bbb; padding-top: 2mm; }
+  .tick { font-family: monospace; }
+</style>
+</head>
+<body>
+  <h1>Litecoin trial — one sitting, about ten minutes</h1>
+  <p class="lede">Three clicks only a human can do, then seven steps with a shopkeeper. Nothing here needs the internet explained, and nothing here involves real money.</p>
+
+  <h2>Three clicks</h2>
+  <ol>
+    <li><strong>Get test coins into slip's own address.</strong> Open <code>cypherfaucet.com/ltc-testnet</code>, paste <code>my6RhGaMEf8v9yyQKqiuUYniJLfyU4gzqe</code>, tick the captcha, claim 0.01&nbsp;tLTC. Then open the till that owns that key and press <strong>check now</strong>. The receipt should go <em>awaiting → seen</em>, then <em>confirmed</em> after a block. If it does not, that is the finding of the year.</li>
+    <li><strong>Scan a receipt with a real camera.</strong> Charge any pretend sale, show the receipt, point a second phone's camera at the QR. It must read the address printed beside it.</li>
+    <li><strong>Open the site on the phone you will use,</strong> not a desktop, and tap every tab once.</li>
+  </ol>
+
+  <h2>Seven steps, no explaining allowed</h2>
+  <table>
+    <thead><tr><th style="width:56%">Ask</th><th>Watch for</th></tr></thead>
+    <tbody>
+      <tr><td>1. “Set up a shop that takes Litecoin testnet.”</td><td>Where they look first. Do they read the note under the network picker?</td></tr>
+      <tr><td>2. “Paste this key. It is public.”</td><td>Does the key go in without a fight?</td></tr>
+      <tr><td>3. “Compare address 0/0 with your wallet.”</td><td>Do they really compare, or tick “They match” to get past it?</td></tr>
+      <tr><td>4. “Sell me a coffee for 0.0005 LTC.”</td><td>The rate line, the amount pad, the Charge button.</td></tr>
+      <tr><td>5. “Now say I paid, but I have not.”</td><td>Does the till refuse to say Paid? Does “check now” explain itself?</td></tr>
+      <tr><td>6. “Print the receipt.”</td><td>Torn edge, QR read by a second phone.</td></tr>
+      <tr><td>7. “Close the day.”</td><td>Do the totals mean anything to them?</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box">
+    <p><strong>Write down every question asked, word for word, and every pause longer than three seconds.</strong> The list of hesitations is the real result of the trial — “it worked” is not.</p>
+  </div>
+
+  <h2>Already proved, so the trial is not starting from zero</h2>
+  <ul>
+    <li>Litecoin addresses and the six official key prefixes, checked against the published spec, including testnet's <code>Q…</code> addresses.</li>
+    <li>The failure screen, seen for real on a Litecoin shop whose price source was dead.</li>
+    <li>The engine fed a real mined Litecoin testnet block: a covered amount reads confirmed, an impossible amount does not.</li>
+    <li>Litecoin amounts printed as LTC, never as “sats” — a satoshi is a Bitcoin word.</li>
+  </ul>
+
+  <p class="foot">slip.giveabit.io · Litecoin and Litecoin testnet only · no accounts, no analytics, no custody. Questions that a desk cannot answer are marked open on purpose.</p>
+</body>
+</html>

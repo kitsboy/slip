@@ -13,6 +13,7 @@ import {
   fiatFromWire,
   fiatToAtoms,
   fiatToWire,
+  formatCoinAmount,
   formatFiat,
   formatSats,
   isPaidEnough,
@@ -329,5 +330,23 @@ describe('wire format', () => {
     expect(atomsFromWire(atomsToWire(2100000000000000n))).toBe(2100000000000000n);
     expect(() => atomsFromWire('1.5')).toThrow(/integer/);
     expect(() => fiatFromWire({ minor: '1.5', currency: 'USD' })).toThrow(/integer/);
+  });
+});
+
+describe('amounts are printed in the coin the shop sells', () => {
+  it('Bitcoin keeps saying sats', () => {
+    expect(formatCoinAmount(12_000n, 'btc')).toBe('12,000 sats');
+  });
+
+  it('Litecoin says LTC, because a satoshi is a Bitcoin word', () => {
+    expect(formatCoinAmount(12_000n, 'ltc')).toBe('0.00012 LTC');
+    expect(formatCoinAmount(100_000_000n, 'ltc')).toBe('1 LTC');
+    expect(formatCoinAmount(0n, 'ltc')).toBe('0 LTC');
+    expect(formatCoinAmount(1n, 'ltc')).toBe('0.00000001 LTC');
+  });
+
+  it('never prints a Litecoin amount with trailing zeros or a stray point', () => {
+    expect(formatCoinAmount(50_000_000n, 'ltc')).toBe('0.5 LTC');
+    expect(formatCoinAmount(150_000_000n, 'ltc')).toBe('1.5 LTC');
   });
 });

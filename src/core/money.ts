@@ -96,6 +96,26 @@ export function formatSats(sats: bigint): string {
   return `${new Intl.NumberFormat('en').format(sats)} sats`;
 }
 
+/**
+ * An amount in the coin the shop is actually selling.
+ *
+ * A satoshi is a Bitcoin word. Litecoin's smallest unit is the litoshi, and no Litecoin merchant or
+ * customer says "sats" — a Litecoin till that printed `12,000 sats` would be describing the right
+ * number in a currency the person reading it does not have. Litecoin amounts are therefore printed as
+ * LTC with up to eight decimals and no trailing zeros, which is exactly what a Litecoin wallet shows.
+ *
+ * Both chains share the 1e8 unit, so the arithmetic is the same; only the words differ.
+ */
+export function formatCoinAmount(atoms: bigint, coin: 'btc' | 'ltc' = 'btc'): string {
+  if (coin === 'btc') return formatSats(atoms);
+  const negative = atoms < 0n;
+  const abs = negative ? -atoms : atoms;
+  const whole = abs / 100_000_000n;
+  const frac = (abs % 100_000_000n).toString().padStart(8, '0').replace(/0+$/, '');
+  const body = frac ? `${whole}.${frac}` : whole.toString();
+  return `${negative ? '-' : ''}${body} LTC`;
+}
+
 // ---------------------------------------------------------------------------
 // Rate conversion
 // ---------------------------------------------------------------------------

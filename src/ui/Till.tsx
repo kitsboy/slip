@@ -26,7 +26,7 @@ import {
   type Invoice,
 } from '../core/orders';
 import { TEMPLATES, categories, searchItems, templateItems, type CatalogItem } from '../core/catalog';
-import { computeTotals, fiatToAtoms, formatFiat, formatSats, parseFiat, parseRate } from '../core/money';
+import { computeTotals, fiatToAtoms, formatCoinAmount, formatFiat, formatSats, parseFiat, parseRate } from '../core/money';
 import { loadSettings } from '../core/settings';
 import { fetchAddressActivity, targetFor } from '../core/providers/esplora';
 import { paymentUri, renderQrSvg } from '../core/qr';
@@ -164,6 +164,9 @@ export default function Till() {
 
   const ledger = useMemo<LedgerRepository>(() => createLedger(appStore()), []);
   const wallet = wallets.find((w) => w.id === walletId) ?? null;
+
+  /** The coin a given wallet takes, falling back to the counter's own wallet. */
+  const coinOf = (id?: string) => wallets.find((w) => w.id === id)?.coin ?? wallet?.coin ?? 'btc';
 
   const reload = useCallback(() => {
     const accounts = createRepository(appStore()).load().accounts;
@@ -1070,7 +1073,7 @@ export default function Till() {
             .filter(Boolean)
             .join(' ')}
         >
-          {formatSats(shown.amountAtoms)}
+          {formatCoinAmount(shown.amountAtoms, coinOf(shown.walletId))}
         </p>
         {<span className="v2-rule" aria-hidden />}
         {(wallet?.source === 'xpub' || wallet?.source === 'descriptor') && (
@@ -1115,7 +1118,7 @@ export default function Till() {
           <div className="v2-split-codes">
             <article>
               <button type="button" className="v2-code-btn" onClick={() => setBigLeg(1)} aria-label={`Show ${invoice.walletLabel} large`}>
-                <p className="text-sm text-ink">{invoice.walletLabel} · {formatSats(invoice.amountAtoms)}</p>
+                <p className="text-sm text-ink">{invoice.walletLabel} · {formatCoinAmount(invoice.amountAtoms, coinOf(invoice.walletId))}</p>
                 <div className="v2-qr">
                   <div className="v2-qr-box" dangerouslySetInnerHTML={{ __html: qrSvg(uri, 8) }} />
                 </div>
@@ -1124,7 +1127,7 @@ export default function Till() {
             </article>
             <article data-split-leg="2">
               <button type="button" className="v2-code-btn" onClick={() => setBigLeg(2)} aria-label={`Show ${leg2.walletLabel} large`}>
-                <p className="text-sm text-ink">{leg2.walletLabel} · {formatSats(leg2.amountAtoms)}</p>
+                <p className="text-sm text-ink">{leg2.walletLabel} · {formatCoinAmount(leg2.amountAtoms, coinOf(leg2.walletId))}</p>
                 <div className="v2-qr">
                   <div className="v2-qr-box" dangerouslySetInnerHTML={{ __html: qrSvg(legUri(leg2), 8) }} />
                 </div>
@@ -1231,8 +1234,8 @@ export default function Till() {
                 }}
               />
               <div className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
-                <p className="figure text-sm text-ink">{formatSats(leg2.amountAtoms)}</p>
-                <p>This leg: {formatSats(leg2.amountAtoms)}. The first wallet: {formatSats(invoice.amountAtoms)}.</p>
+                <p className="figure text-sm text-ink">{formatCoinAmount(leg2.amountAtoms, coinOf(leg2.walletId))}</p>
+                <p>This leg: {formatCoinAmount(leg2.amountAtoms, coinOf(leg2.walletId))}. The first wallet: {formatCoinAmount(invoice.amountAtoms, coinOf(invoice.walletId))}.</p>
                 <p>
                   {leg2.status === 'complete'
                     ? 'this leg is in — the sale is not paid yet'
