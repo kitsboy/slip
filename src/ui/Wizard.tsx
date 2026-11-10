@@ -13,7 +13,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import AddressText from './AddressText';
-import { isSkinV2 } from './skin';
 import { CURRENCIES } from '../core/currencies';
 import {
   WIZARD_STEPS,
@@ -197,7 +196,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
           />
         ))}
       </div>
-      {isSkinV2() && (
+      {(
         <p className="v2-stages">
           {(['Welcome', 'Shop', 'Wallet', 'PIN', 'Ready'] as const).map((name, i) => (
             <span key={name} className={step === i + 1 ? 'v2-on' : undefined}>{i + 1} {name}</span>

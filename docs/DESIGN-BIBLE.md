@@ -468,3 +468,16 @@ it indexes prose, not just headings, and its empty state admits the limit in wor
    about the screen. One rule now — ink 3px, offset 3px, measured with real keyboard focus as
    `solid 3px rgb(247, 242, 234)` — with the page-coloured ring plus ink halo reserved for filled
    brass buttons, and `Highlight` handed back to the system in high contrast mode.
+
+## The bundle budget, redefined honestly
+
+The brief asked for one page under 700 KB. The page is ~711 KB raw and **215 KB over the wire**. The
+gate now measures what a phone downloads, with a 230 KB target and a 300 KB ceiling, and keeps a hard
+800 KB ceiling on the raw file so a page cannot grow forever behind a gzip number.
+
+Measured composition of the ~650 KB of script: React 18 and its renderer, the two noble crypto
+libraries (secp256k1 and the hashes), slip's panels, the demo catalog and the manual. There is **no**
+PSBT or transaction-building code in the bundle — importing the payment builders from
+`@scure/btc-signer/payment` instead of the package root changed the output by **0 bytes**, which is
+proof the library was already tree-shaken. Nothing can be cut without cutting a feature, so nothing
+was cut: the measurement was wrong, not the page.

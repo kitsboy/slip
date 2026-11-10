@@ -11,7 +11,6 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { isSkinV2 } from './skin';
 import {
   ACCOUNT_PURPOSES,
   WALLET_COLOURS,
@@ -312,7 +311,7 @@ export default function Counters() {
         Tell slip where your money should land. Your wallet app can give you a public code for
         that — copy it here and slip will watch it. It can see money arrive; it can never move it.
       </p>
-      {isSkinV2() && (
+      {(
         <ol className="v2-stages">
           <li>1. Name the shop</li>
           <li>2. Add a wallet</li>

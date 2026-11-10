@@ -9,7 +9,7 @@
  * never *choose* between them — it reports the family and says so.
  */
 
-import { Address } from '@scure/btc-signer';
+import { Address } from '@scure/btc-signer/payment';
 import { ALL_NETWORK_IDS, networkById, type NetworkId } from './network';
 import { slipNetwork } from './derive';
 import type { ScriptType } from './keys';

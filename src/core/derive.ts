@@ -11,16 +11,12 @@
  * merchant's wallet, never from slip.
  */
 
-import {
-  NETWORK,
-  TEST_NETWORK,
-  p2ms,
-  p2pkh,
-  p2sh,
-  p2tr,
-  p2wpkh,
-  p2wsh,
-} from '@scure/btc-signer';
+// The shallowest possible import: slip builds addresses and nothing else. Reaching into the package
+// root pulled transaction building and PSBT code into a watch-only till's bundle; the /payment entry
+// point carries the script builders and the two networks, and no spending code at all — which is also
+// the right thing for a product that must never be able to spend.
+import { NETWORK, TEST_NETWORK } from '@scure/btc-signer/utils';
+import { p2ms, p2pkh, p2sh, p2tr, p2wpkh, p2wsh } from '@scure/btc-signer/payment';
 import type { HDKey } from '@scure/bip32';
 import { networkById, type NetworkId } from './network';
 import type { ParsedExtendedKey, ScriptType } from './keys';

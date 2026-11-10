@@ -1072,7 +1072,7 @@ export default function Till() {
         >
           {formatSats(shown.amountAtoms)}
         </p>
-        {isSkinV2() && <span className="v2-rule" aria-hidden />}
+        {<span className="v2-rule" aria-hidden />}
         {(wallet?.source === 'xpub' || wallet?.source === 'descriptor') && (
           <p className="mt-1 text-sm text-ink">
             HD wallet. Address #{invoice.index ?? 0} comes from your public code. Each sale gets the next one. slip cannot spend it.
@@ -1094,7 +1094,7 @@ export default function Till() {
             {notice}
           </p>
         )}
-        {isSkinV2() && leg2 ? (
+        {leg2 ? (
           bigLeg ? (
             <div className="v2-split-big" data-split-big={bigLeg}>
               <p className="v2-split-who">{shown.walletLabel}</p>
@@ -1279,7 +1279,7 @@ export default function Till() {
             >
               {formatSats(receipt.amountAtoms)}
             </p>
-            {isSkinV2() && <span className="v2-rule v2-rule-tight" aria-hidden />}
+            {<span className="v2-rule v2-rule-tight" aria-hidden />}
             <p className="mt-1 text-xs text-muted">
               <span className={isSkinV2() ? 'v2-yours' : ''}>{settings.businessName || 'Your shop'}</span>
               {' · '}
@@ -1316,7 +1316,7 @@ export default function Till() {
         </div>
         <h2
           className={`mt-2 text-sm font-semibold${isSkinV2() ? ' v2-paid' : ''}${
-            isSkinV2() && receipt.note !== 'rehearsal' && !receipt.manual ? ' v2-yours' : ''
+            receipt.note !== 'rehearsal' && !receipt.manual ? ' v2-yours' : ''
           }`}
         >
           {receipt.note === 'rehearsal'
@@ -1406,7 +1406,7 @@ export default function Till() {
 
   return (
     <section className="mt-6 panel" data-panel="till">
-      <div className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1${isSkinV2() && wallets.length === 0 ? ' v2-open-status' : ''}`}>
+      <div className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1${wallets.length === 0 ? ' v2-open-status' : ''}`}>
         <p className="eyebrow">Till</p>
         <span className={`badge ${online ? 'badge-pending' : 'badge-bad'}${isSkinV2() ? ' v2-watch' : ''}`}>
           {online ? 'Watching for payments' : 'Offline — not watching'}
@@ -1631,8 +1631,8 @@ export default function Till() {
           )}
 
           <details className={isSkinV2() ? 'v2-tools' : undefined} open>
-            {isSkinV2() && <summary>Tools</summary>}
-            {isSkinV2() && (
+            {<summary>Tools</summary>}
+            {(
               <label className="v2-price mt-2 block" htmlFor="tl-rate">
                 <span className="eyebrow">What one {wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth</span>
                 <span className="v2-price-in">
@@ -1667,7 +1667,7 @@ export default function Till() {
                   placeholder="12.50"
                   className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
                 />
-                {isSkinV2() && <span className="v2-unit" aria-hidden>{settings.currency}</span>}
+                {<span className="v2-unit" aria-hidden>{settings.currency}</span>}
               </span>
               <button
                 type="button"
@@ -1887,7 +1887,7 @@ export default function Till() {
                   ? ` · ${splitPercent}% to ${wallets.find((w) => w.id === splitWalletId)?.label ?? '—'}`
                   : ''}
               </p>
-              {isSkinV2() && (
+              {(
                 <p className="v2-rate-line">
                   Price used: {rate.trim() === '' ? 'not set' : `${rate} ${settings.currency}`}
                 </p>
@@ -1898,7 +1898,7 @@ export default function Till() {
           {/* The bar stays at thumb height on a phone: the shopkeeper never scrolls to find the
               button that takes the money. */}
           <div className={`charge-bar mt-3 flex flex-wrap items-center gap-2${isSkinV2() ? ' v2-rail' : ''}`}>
-            {isSkinV2() && (
+            {(
               <p className="v2-figure">
                 {totals && chargeSats !== null ? (
                   <>
@@ -1913,7 +1913,7 @@ export default function Till() {
                 )}
               </p>
             )}
-            {isSkinV2() && (
+            {(
               <p className="v2-rate-line">
                 {rate.trim() === '' ? 'Bitcoin price not set' : `${rate} ${settings.currency} per Bitcoin`}
               </p>

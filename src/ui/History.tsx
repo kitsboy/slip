@@ -233,7 +233,7 @@ export default function History() {
         >
           {formatSats(close.netAtoms)}
         </p>
-        {isSkinV2() && <span className="v2-rule v2-rule-tight" aria-hidden />}
+        {<span className="v2-rule v2-rule-tight" aria-hidden />}
         {close.cancelledCount > 0 && (
           <p className="mt-1 text-xs text-muted" data-cancelled>
             {close.cancelledCount} {close.cancelledCount === 1 ? 'sale was' : 'sales were'} started and cancelled —{' '}
