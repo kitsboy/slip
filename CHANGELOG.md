@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.42** — 2026-11-10T23:12:26Z — `c0988a3a122b` — Litecoin amounts print as LTC, never sats, plus the one-page trial sheet
+
 - **v0.31.41** — 2026-11-10T22:54:38Z — `eac4f7663726` — Litecoin limits in the manual, Fedimint pinned off, and the engine fed a real Litecoin block
 
 - **v0.31.40** — 2026-11-10T22:37:25Z — `72f2006c7740` — Litecoin end to end: the SLIP-132 bytes tested, the failure seen on a real Litecoin shop, and the chain named correctly
