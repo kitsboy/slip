@@ -88,9 +88,11 @@ export default function AmountPad({ currency, open, quick = [5, 10, 20, 50], onC
 
         <button
           type="button"
-          className="btn btn-primary mt-3 w-full"
-          disabled={!value || Number(value) <= 0}
+          className={`btn btn-primary mt-3 w-full${!value || Number(value) <= 0 ? ' v2-blocked' : ''}`}
+          aria-disabled={!value || Number(value) <= 0 || undefined}
           onClick={() => {
+            // Focusable while blocked, so the reason under it can be read (D-83).
+            if (!value || Number(value) <= 0) return;
             onAmount(value);
             setValue('');
             onClose();

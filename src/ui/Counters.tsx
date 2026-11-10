@@ -691,9 +691,14 @@ export default function Counters() {
             )}
             <button
               type="button"
-              onClick={addAccount}
-              disabled={!checked}
-              className="mt-2 rounded-lg border border-accent px-3 py-2 text-xs font-semibold text-accent disabled:border-line disabled:text-muted"
+              onClick={() => {
+                if (!checked) return;
+                addAccount();
+              }}
+              aria-disabled={!checked || undefined}
+              className={`mt-2 rounded-lg border px-3 py-2 text-xs font-semibold ${
+                checked ? 'border-accent text-accent' : 'v2-blocked border-line text-muted'
+              }`}
             >
               Save counter
             </button>

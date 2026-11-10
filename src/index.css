@@ -3019,6 +3019,27 @@ html[data-skin='v2'] a[href='#settings'].underline {
   align-items: center;
 }
 
+/* The 44/48 split, decided once and written down: 44 is the floor for anything a finger may hit
+   (chips, inline links, close marks); 48 is the floor for the things that move money or open the
+   till — the primary, the charge bar, the amount keys. A keypad designed for a thumb at 44 is a
+   coin toss at speed. */
+/* A blocked control is dimmer and keeps its focus ring. `disabled` would have done the dimming and
+   taken away the reason; this class is the dimming without the silence. */
+html[data-skin='v2'] .v2-blocked,
+html[data-skin='v2'] button[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+html[data-skin='v2'] .btn-primary,
+html[data-skin='v2'] .v2-charge,
+html[data-skin='v2'] .v2-key {
+  min-height: 48px;
+}
+html[data-skin='v2'] .v2-key {
+  min-width: 48px;
+}
+
 html[data-skin='v2'] .v2-foot-link {
   color: var(--v2-ink);
   text-decoration: underline;

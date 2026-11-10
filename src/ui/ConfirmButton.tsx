@@ -23,6 +23,7 @@ export default function ConfirmButton({
   confirmLabel: string;
   onConfirm: () => void;
   className?: string;
+  /** Cannot be used yet. The button stays focusable so the line under it can be read (D-83). */
   disabled?: boolean;
   windowMs?: number;
 }) {
@@ -53,7 +54,16 @@ export default function ConfirmButton({
   };
 
   return (
-    <button type="button" className={className} onClick={press} disabled={disabled} onBlur={disarm}>
+    <button
+      type="button"
+      className={disabled ? `${className} v2-blocked` : className}
+      onClick={() => {
+        if (disabled) return;
+        press();
+      }}
+      aria-disabled={disabled || undefined}
+      onBlur={disarm}
+    >
       {armed ? confirmLabel : label}
     </button>
   );

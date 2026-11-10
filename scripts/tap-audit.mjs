@@ -19,6 +19,8 @@ import { chromePath } from '../tests/e2e/_chrome.mjs';
 const BASE = (process.argv[2] ?? 'http://127.0.0.1:4183/').replace(/\/$/, '');
 const FLOOR = 44;
 const TARGET = 48;
+/** Money-path controls carry the higher floor: the primary, the charge bar, the amount keys. */
+const PRIMARY = /(btn-primary|v2-charge|v2-key)/;
 
 const SECTIONS = ['sell', 'money', 'books', 'setup', 'more', 'learn'];
 
@@ -33,7 +35,8 @@ for (const section of SECTIONS) {
   await page.waitForTimeout(450);
 
   const rows = await page.evaluate(
-    ({ section, floor, target }) => {
+    ({ section, floor, target, primaryRe }) => {
+      const PRIMARY = new RegExp(primaryRe);
       const SEL = 'button, a[href], input, select, textarea, [role="button"], [role="tab"], summary';
       const out = [];
       for (const el of document.querySelectorAll(SEL)) {
@@ -50,29 +53,37 @@ for (const section of SECTIONS) {
         if (el.tagName === 'A' && getComputedStyle(el).display === 'inline') continue;
         const w = Math.round(r.width);
         const h = Math.round(r.height);
-        if (w >= target && h >= target) continue;
+        const cls = box.className?.toString() ?? '';
         const label = (box.getAttribute('aria-label') || box.textContent || '').trim().slice(0, 40);
+        const primary = PRIMARY.test(cls);
+        // Primaries must clear 48; everything else must clear 44. Between 44 and 48 a non-primary
+        // is a warning, and a primary is a failure.
+        const clears = primary ? w >= target && h >= target : w >= floor && h >= floor;
+        const warnOnly = !primary && clears && (w < target || h < target);
+        if (clears && !warnOnly) continue;
         out.push({
           section,
-          tag: el.tagName.toLowerCase(),
+          tag: box.tagName.toLowerCase(),
           w,
           h,
-          floor: w < floor || h < floor,
-          cls: (box.className?.toString() ?? '').slice(0, 34),
+          floor: primary ? !clears : !clears,
+          cls: cls.slice(0, 34),
           label,
+          primary,
+          warnOnly,
         });
       }
       return out;
     },
-    { section, floor: FLOOR, target: TARGET },
+    { section, floor: FLOOR, target: TARGET, primaryRe: PRIMARY.source },
   );
 
   const hard = rows.filter((r) => r.floor);
-  const soft = rows.filter((r) => !r.floor);
+  const soft = rows.filter((r) => r.warnOnly);
   failures += hard.length;
   warned += soft.length;
   console.log(
-    `${section.padEnd(6)} under ${TARGET}px: ${String(rows.length).padStart(3)}  (under ${FLOOR}: ${hard.length})`,
+    `${section.padEnd(6)} under ${TARGET}px: ${String(rows.length).padStart(3)}  (hard: ${hard.length}, primaries under 48 included)`,
   );
   for (const r of [...hard, ...soft].slice(0, 6)) {
     console.log(
