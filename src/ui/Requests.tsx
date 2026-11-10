@@ -248,18 +248,27 @@ export default function Requests() {
             const days = daysFromDue(r);
             const late = days > 0;
             return (
-              <li key={r.id} className="rounded-lg border border-line p-2">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="text-sm">{r.label}</span>
-                  <span className={`chip ${isDue(r) ? 'border-warn text-warn' : ''}`}>
-                    {isDue(r) ? (late ? `${days} days late` : 'due now') : `due ${r.nextDue}`}
-                  </span>
+              <li key={r.id} className="v2-request">
+                {/* Label, leader, amount — the same shape as every other figure in the app. The due
+                    state rides underneath as a word, not a coloured box competing with the number. */}
+                <div className="v2-row">
+                  <dl>
+                    <div className="v2-row-line">
+                      <dt>{r.label}</dt>
+                      <span className="v2-leader" aria-hidden />
+                      <dd>
+                        <span className="figure">{formatFiat({ minor: r.amountMinor, currency: r.currency })}</span>
+                      </dd>
+                    </div>
+                    <p className="v2-row-sub">
+                      {r.cadence} · into {r.walletLabel}
+                      {r.lastPaidAt ? ` · last paid ${r.lastPaidAt.slice(0, 10)}` : ''} ·{' '}
+                      <span className={isDue(r) ? 'text-warn' : undefined} data-request-due>
+                        {isDue(r) ? (late ? `${days} days late` : 'due now') : `due ${r.nextDue}`}
+                      </span>
+                    </p>
+                  </dl>
                 </div>
-                <p className="mt-0.5 text-[11px] text-muted">
-                  {formatFiat({ minor: r.amountMinor, currency: r.currency })} · {r.cadence} · into{' '}
-                  {r.walletLabel}
-                  {r.lastPaidAt ? ` · last paid ${r.lastPaidAt.slice(0, 10)}` : ''}
-                </p>
                 <div className="mt-1 flex flex-wrap gap-2">
                   <button
                     type="button"
@@ -280,7 +289,7 @@ export default function Requests() {
                 {showing?.request.id === r.id && (
                   <div className="mt-2 flex flex-wrap items-start gap-3">
                     <div
-                      className="h-40 w-40 rounded-lg bg-white p-1"
+                      className="v2-qr-box"
                       dangerouslySetInnerHTML={{
                         __html: renderQrSvg(
                           paymentUri('bitcoin', {

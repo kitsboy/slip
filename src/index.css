@@ -3040,6 +3040,29 @@ html[data-skin='v2'] .v2-key {
   min-width: 48px;
 }
 
+/* A standing request is a row, not a card: a card per request turns three rents into three boxes and
+   stops the amounts lining up. The box also clipped its own code — 160px of white around a 180px
+   drawing — so the code is sized by its artwork now, the same fix as the receipt. */
+html[data-skin='v2'] .v2-request {
+  padding: 10px 0;
+  border-top: 1px solid var(--v2-line);
+}
+html[data-skin='v2'] .v2-request:first-child {
+  border-top: 0;
+}
+html[data-skin='v2'] .v2-qr-box {
+  width: 168px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 8px;
+  line-height: 0;
+}
+html[data-skin='v2'] .v2-qr-box svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 html[data-skin='v2'] .v2-foot-link {
   color: var(--v2-ink);
   text-decoration: underline;

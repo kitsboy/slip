@@ -143,12 +143,32 @@ export default function AnchorPanel() {
       <div className="mt-2 flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={() => void stamp()}
-          disabled={busy || !book || book.count === 0 || existing?.status === 'submitted'}
-          className={isSkinV2() ? 'btn btn-primary px-3 py-2 text-xs v2-close' : 'rounded-lg border border-accent px-3 py-2 text-xs text-accent disabled:border-line disabled:text-muted'}
+          onClick={() => {
+            if (busy || !book || book.count === 0 || existing?.status === 'submitted') return;
+            void stamp();
+          }}
+          aria-disabled={busy || !book || book.count === 0 || existing?.status === 'submitted' || undefined}
+          className={`${
+            isSkinV2() ? 'btn btn-primary px-3 py-2 text-xs v2-close' : 'rounded-lg border px-3 py-2 text-xs'
+          } ${
+            busy || !book || book.count === 0 || existing?.status === 'submitted'
+              ? 'v2-blocked'
+              : isSkinV2()
+                ? ''
+                : 'border-accent text-accent'
+          }`}
         >
           {busy ? 'submitting…' : existing?.status === 'submitted' ? 'already stamped' : 'stamp with a calendar'}
         </button>
+        {(busy || !book || book.count === 0 || existing?.status === 'submitted') && (
+          <p className="w-full text-xs text-warn" role="status" data-blocker>
+            {!book || book.count === 0
+              ? 'There is nothing to stamp yet. Close the day in Books so slip has a total to prove.'
+              : existing?.status === 'submitted'
+                ? 'This day is already stamped. There is nothing more to send.'
+                : 'Sending the stamp now. Give it a moment.'}
+          </p>
+        )}
         {existing && (
           <button
             type="button"

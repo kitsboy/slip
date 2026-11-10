@@ -211,12 +211,20 @@ export default function Backup() {
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={() => void exportFile()}
-          disabled={busy}
-          className="rounded-lg border border-accent px-3 py-2 text-xs font-semibold text-accent disabled:border-line disabled:text-muted"
+          onClick={() => {
+            if (busy) return;
+            void exportFile();
+          }}
+          aria-disabled={busy || undefined}
+          className={`rounded-lg border border-accent px-3 py-2 text-xs font-semibold text-accent${busy ? ' v2-blocked' : ''}`}
         >
           Export encrypted backup
         </button>
+        {busy && (
+          <p className="w-full text-xs text-warn" role="status" data-blocker>
+            Working on the file now. The button comes back when it is written.
+          </p>
+        )}
         <button
           type="button"
           onClick={() => window.print()}
@@ -226,9 +234,12 @@ export default function Backup() {
         </button>
         <button
           type="button"
-          onClick={() => fileInput.current?.click()}
-          disabled={busy}
-          className="rounded-lg border border-line px-3 py-2 text-xs font-semibold text-muted hover:text-ink disabled:opacity-50"
+          onClick={() => {
+            if (busy) return;
+            fileInput.current?.click();
+          }}
+          aria-disabled={busy || undefined}
+          className={`rounded-lg border border-line px-3 py-2 text-xs font-semibold text-muted hover:text-ink${busy ? ' v2-blocked' : ''}`}
         >
           Restore from a .slip file
         </button>

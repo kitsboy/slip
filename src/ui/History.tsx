@@ -314,17 +314,23 @@ export default function History() {
       <div className="mt-2 flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={downloadCsv}
-          disabled={close.count === 0}
-          className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink disabled:opacity-50"
+          onClick={() => {
+            if (close.count === 0) return;
+            downloadCsv();
+          }}
+          aria-disabled={close.count === 0 || undefined}
+          className={`rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink${close.count === 0 ? ' v2-blocked' : ''}`}
         >
           download CSV
         </button>
         <button
           type="button"
-          onClick={printClose}
-          disabled={close.count === 0}
-          className={`btn btn-primary px-3 py-2 text-xs${isSkinV2() ? ' v2-close' : ''}`}
+          onClick={() => {
+            if (close.count === 0) return;
+            printClose();
+          }}
+          aria-disabled={close.count === 0 || undefined}
+          className={`btn btn-primary px-3 py-2 text-xs${isSkinV2() ? ' v2-close' : ''}${close.count === 0 ? ' v2-blocked' : ''}`}
         >
           Close the day
         </button>

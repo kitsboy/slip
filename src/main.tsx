@@ -116,11 +116,13 @@ const isExplain = params.get('explain') === '1';
 const isParts = params.get('parts') === '1';
 
 /**
- * Hidden skin switch. The new look is the normal one. `?skin=v1` is the old till,
- * kept so one bad publish can be undone without a redeploy. Nothing is stored.
+ * The new look is the only look.
+ *
+ * `?skin=v1` was the escape hatch for one bad publish. It is gone: the old interface is still in the
+ * tree behind `isSkinV2()` and can be restored by deploying the tagged build `pre-v2-2026-11-10`,
+ * which is proven to pass the browser suites. Nothing is stored and no query string changes the skin.
  */
-const asked = params.get('skin');
-document.documentElement.dataset.skin = asked === 'v1' ? 'v1' : 'v2';
+document.documentElement.dataset.skin = 'v2';
 if (document.documentElement.dataset.skin === 'v2') {
   const themeMeta = document.querySelector('meta[name="theme-color"]');
   const light = document.documentElement.getAttribute('data-theme') === 'light';
