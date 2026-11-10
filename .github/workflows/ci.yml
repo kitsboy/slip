@@ -33,6 +33,9 @@ jobs:
         run: npm run build
 
       - name: Docs gate (every panel documented, every path real)
+        run: node scripts/check-budget.mjs
+
+      - name: Docs audit
         run: node scripts/docs-audit.mjs --strict
 
       - name: Scan the shipped artifact

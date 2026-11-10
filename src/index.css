@@ -2883,6 +2883,36 @@ html[data-skin='v2'] .v2-foot-promise {
 }
 /* A footer link is not an action: it is a way in to a page of limits. Ink, not brass — brass is for
    the one thing a screen wants you to do, and this is not it. */
+/* Thumb targets, measured. `scripts/tap-audit.mjs` walks every destination at 390 and prints what
+   is under 48px. These are the shapes it found: the header's two small chips, the skip link, the
+   round information buttons, and the one-line action link in the readiness list. A 40x40 circle is
+   comfortable with a mouse and a coin toss with a thumb. */
+html[data-skin='v2'] .v2-head .chip,
+html[data-skin='v2'] .skip-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+}
+html[data-skin='v2'] .info-btn {
+  height: auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+/* The shop's colour swatches are 32x32 circles, which is a mouse target. They are taps. */
+html[data-skin='v2'] [aria-label^='Colour'] {
+  min-width: 44px;
+  min-height: 44px;
+}
+html[data-skin='v2'] [data-readiness] a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
 html[data-skin='v2'] .v2-foot-link {
   color: var(--v2-ink);
   text-decoration: underline;

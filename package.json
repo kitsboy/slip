@@ -10,6 +10,8 @@
     "build": "tsc --noEmit && vite build && bash scripts/scan-bundle.sh dist/index.html",
     "preview": "vite preview",
     "test": "vitest run",
+    "budget": "node scripts/check-budget.mjs",
+    "tap-audit": "node scripts/tap-audit.mjs",
     "test:watch": "vitest",
     "lint": "npx tsc --noEmit && eslint .",
     "test:e2e": "node tests/e2e/run-all.mjs",
