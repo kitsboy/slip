@@ -414,3 +414,10 @@ All with the WCAG 2.1 formula (relative luminance). AA target 4.5:1 body text.
 | `#3b6fa5` on `#f6f4ee` | 4.77 | AA |
 | `#ec6165` on `#11151a` | 5.6 | AA |
 | `#c2262a` on `#f6f4ee` | 5.3 | AA |
+
+## Targets are measured, not asserted
+
+`npm run tap-audit` (390 wide, six destinations) is the only authority on "every target ≥48". It
+counts 22 controls under the 44px floor at the time of writing, down from 61. The four shapes already
+fixed were the header chips, the skip link, the round information buttons, the demo colour swatches,
+and the readiness action link. Do not quote a target figure from memory — run the script.
