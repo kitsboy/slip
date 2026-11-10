@@ -421,3 +421,16 @@ All with the WCAG 2.1 formula (relative luminance). AA target 4.5:1 body text.
 counts 22 controls under the 44px floor at the time of writing, down from 61. The four shapes already
 fixed were the header chips, the skip link, the round information buttons, the demo colour swatches,
 and the readiness action link. Do not quote a target figure from memory — run the script.
+
+## Brass is for the one thing a screen wants
+
+The open tab used to be a filled brass chip. In the first viewport of the till that put **two** brass
+fills beside each other — Charge and Sell — and the brief allows one. The open tab is now ink: a 3px
+ink rule on top (`aria-current` already said which one), weight 700, on the raised surface. Measured
+after the change at 390×844: sell 1 (Charge), money 0, books 0, setup 0, more 0, learn 0.
+
+## The component gallery
+
+`?gallery=1` exists only in the dev server (`import.meta.env.DEV`), so it is audited there and never
+ships. Audited at 320, 390 and 1440 in both themes: gallery renders, horizontal overflow 0, no page
+errors, one control under 44px (an inline link inside prose).

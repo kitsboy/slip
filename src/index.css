@@ -1359,9 +1359,23 @@ html[data-skin='v2'] .v2-tab-on {
   box-shadow: none;
   border-radius: 12px;
 }
+/* The open tab is ink, not brass. Brass is the one thing a screen wants you to do, and on the till
+   that is Charge; a filled brass tab competed with it inside the same viewport. The open tab is a
+   3px ink rule on top, weight 700, and `aria-current` — which it already carries. */
 html[data-skin='v2'] nav[aria-label='Primary sections (phone)'] a.v2-tab-on {
-  color: var(--v2-on-acc);
-  background: var(--v2-chip);
+  color: var(--v2-ink);
+  background: var(--v2-raised);
+  position: relative;
+}
+html[data-skin='v2'] nav[aria-label='Primary sections (phone)'] a.v2-tab-on::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: -1px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--v2-ink);
 }
 html[data-skin='v2'] nav[aria-label='Primary sections (phone)'] a {
   font-size: 13px;
