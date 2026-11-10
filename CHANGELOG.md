@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.30** — 2026-11-10T19:20:18Z — `9590fb7ce213` — Learn now says what slip cannot do, and setup counts down what is left
+
 - **v0.31.29** — 2026-11-10T13:59:13Z — `bf254288fa3a` — The receipt holds its own width on a 320 phone: code and words stack, the badge drops below the amount
 
 - **v0.31.28** — 2026-11-10T13:48:46Z — `4298c3ccb938` — Three money marks: the brass rule under the one number each screen is for, engraved figures, and a receipt whose code actually scans
