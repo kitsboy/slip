@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.33** — 2026-11-10T20:13:04Z — `44c51a02c7b9` — One brass fill per screen: the open tab is ink, and the till's Charge is the only brass
+
 - **v0.31.32** — 2026-11-10T19:55:20Z — `c8718a8f896e` — Every tap target clears 44px, the receipt prints as ink on white, and the till's blocked buttons can be read
 
 - **v0.31.31** — 2026-11-10T19:28:10Z — `428cce856cf7` — The bundle budget and the thumb targets are measured by scripts now, not remembered
