@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react';
  * wrong thing.
  */
 
-export type Hit = { text: string; kind: 'section' | 'term' | 'limit'; id: string };
+export type Hit = { text: string; kind: 'section' | 'term' | 'limit' | 'text'; id: string };
 
 /** Read the page once, after render. Cheap: a few dozen nodes, no reflow of the prose. */
 export function collectHits(root: ParentNode): Hit[] {
@@ -26,6 +26,21 @@ export function collectHits(root: ParentNode): Hit[] {
   root.querySelectorAll('h2, h3').forEach((h) => push(h.textContent ?? '', 'section', h));
   root.querySelectorAll('[data-panel="glossary"] dt').forEach((dt) => push(dt.textContent ?? '', 'term', dt));
   root.querySelectorAll('[data-cannot] dt').forEach((dt) => push(dt.textContent ?? '', 'limit', dt));
+  // The prose itself, as snippets: a manual a shopkeeper cannot find the word "fee" in is a manual
+  // with a search field bolted on. Each paragraph and list item is indexed by its first sentence;
+  // the hit jumps to the paragraph, not to a copy of it.
+  root.querySelectorAll('p, li').forEach((el) => {
+    if (el.closest('[data-learn-search]') || el.closest('[data-panel="glossary"]')) return;
+    const raw = (el.textContent ?? '').replace(/\s+/g, ' ').trim();
+    if (raw.length < 12) return;
+    const cut = raw.slice(0, 70);
+    const snippet = cut.length < raw.length ? `${cut.trimEnd()}…` : cut;
+    const key = el as HTMLElement;
+    if (!key.id) key.id = `learn-text-${out.length}`;
+    if (seen.has(`text:${snippet}`)) return;
+    seen.add(`text:${snippet}`);
+    out.push({ text: snippet, kind: 'text', id: key.id });
+  });
   return out;
 }
 
