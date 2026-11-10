@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.31** — 2026-11-10T19:28:10Z — `428cce856cf7` — The bundle budget and the thumb targets are measured by scripts now, not remembered
+
 - **v0.31.30** — 2026-11-10T19:20:18Z — `9590fb7ce213` — Learn now says what slip cannot do, and setup counts down what is left
 
 - **v0.31.29** — 2026-11-10T13:59:13Z — `bf254288fa3a` — The receipt holds its own width on a 320 phone: code and words stack, the badge drops below the amount
