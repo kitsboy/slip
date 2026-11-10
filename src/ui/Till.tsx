@@ -42,6 +42,7 @@ import { paymentLabel } from '../core/brand';
 import { registerDemoSale } from '../demo/fakeExplorer';
 import { isDemo } from '../core/storage';
 import { isSkinV2 } from './skin';
+import Badge from './Badge';
 import { isCompareStopped } from '../core/compare-stop';
 import { resumeOpenSale } from '../core/resume-sale';
 import { shortcutAllowed } from '../core/digit-guard';
@@ -1059,9 +1060,17 @@ export default function Till() {
           </span>
         </div>
         <h2 className="panel-title mt-1">Pay exactly</h2>
-        <p className="figure mt-1 text-[2.5rem] font-bold leading-none tabular-nums">
+        <p
+          className={[
+            'figure mt-1 text-[2.5rem] font-bold leading-none tabular-nums',
+            isSkinV2() && 'v2-engrave',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+        >
           {formatSats(shown.amountAtoms)}
         </p>
+        {isSkinV2() && <span className="v2-rule" aria-hidden />}
         {(wallet?.source === 'xpub' || wallet?.source === 'descriptor') && (
           <p className="mt-1 text-sm text-ink">
             HD wallet. Address #{invoice.index ?? 0} comes from your public code. Each sale gets the next one. slip cannot spend it.
@@ -1253,9 +1262,18 @@ export default function Till() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="eyebrow">Receipt</p>
-            <p className={`figure mt-1 text-[2rem] font-bold leading-none tabular-nums${isSkinV2() ? ' v2-paid-figure' : ''}`}>
+            <p
+              className={[
+                'figure mt-1 text-[2rem] font-bold leading-none tabular-nums',
+                isSkinV2() && 'v2-paid-figure',
+                isSkinV2() && 'v2-engrave',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+            >
               {formatSats(receipt.amountAtoms)}
             </p>
+            {isSkinV2() && <span className="v2-rule v2-rule-tight" aria-hidden />}
             <p className="mt-1 text-xs text-muted">
               <span className={isSkinV2() ? 'v2-yours' : ''}>{settings.businessName || 'Your shop'}</span>
               {' · '}
@@ -1263,17 +1281,32 @@ export default function Till() {
               {receipt.confirmedAt?.slice(0, 16).replace('T', ' ')}
             </p>
           </div>
-          <span
-            className={`badge shrink-0 ${
-              receipt.note === 'rehearsal' || receipt.manual ? 'border-warn text-warn' : 'chip-good'
-            }`}
-          >
-            {receipt.note === 'rehearsal'
-              ? 'rehearsal'
-              : receipt.manual
-                ? 'marked paid by you'
-                : 'seen on chain'}
-          </span>
+          {isSkinV2() ? (
+            <span className="shrink-0">
+              <Badge
+                kind={receipt.note === 'rehearsal' ? 'simulated' : receipt.manual ? 'manual' : 'good'}
+                word={
+                  receipt.note === 'rehearsal'
+                    ? 'rehearsal'
+                    : receipt.manual
+                      ? 'marked paid by you'
+                      : 'seen on chain'
+                }
+              />
+            </span>
+          ) : (
+            <span
+              className={`badge shrink-0 ${
+                receipt.note === 'rehearsal' || receipt.manual ? 'border-warn text-warn' : 'chip-good'
+              }`}
+            >
+              {receipt.note === 'rehearsal'
+                ? 'rehearsal'
+                : receipt.manual
+                  ? 'marked paid by you'
+                  : 'seen on chain'}
+            </span>
+          )}
         </div>
         <h2
           className={`mt-2 text-sm font-semibold${isSkinV2() ? ' v2-paid' : ''}${
@@ -1294,7 +1327,7 @@ export default function Till() {
 
         <div className="mt-3 flex flex-wrap items-start gap-3">
           <div
-            className="h-32 w-32 rounded-lg bg-white p-1"
+            className={isSkinV2() ? 'v2-receipt-qr' : 'h-32 w-32 rounded-lg bg-white p-1'}
             dangerouslySetInnerHTML={{ __html: qrSvg(proofUri, 5) }}
           />
           <div className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">

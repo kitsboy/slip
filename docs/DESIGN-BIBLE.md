@@ -356,6 +356,37 @@ match.
 
 ---
 
+## The brass rule and the engraved figure
+
+Two marks carry the money, and both are written into `src/index.css`.
+
+**The brass rule** is one 2px line of `--v2-acc`, 56px wide, under the single number a screen exists
+for: the pay amount, the receipt, the day's total on Books, and the customer's screen. It is the
+`.v2-rule` element, drawn with `aria-hidden` so a screen reader is not told about a line.
+
+- One per screen, never two, and never under a status word — a status is not the reason the screen
+  exists.
+- Never in print: a brass line prints as a grey smudge. `@media print` removes it.
+- It was previously a hardcoded `#f0a32a` border on the charge bar only, which is why the till was
+  the one screen that had one, and why the token gate never saw it. Use the token.
+
+**The engraved figure** is `.v2-engrave`: tabular numerals, `letter-spacing: -0.02em`, and in the
+light theme a single `0 1px 0 rgba(0,0,0,.05)` hairline under the glyphs so the money reads as
+printed rather than typed. The dark theme gets no shadow — a shadow on a night page smears the
+digits instead of seating them.
+
+## The receipt is a document
+
+- The amount is set at 40px with the brass rule beneath it.
+- The status is the shared `Badge`: solid for a payment slip observed, **dashed** for a manual
+  confirmation, **hatched** for a rehearsal. The shape survives a black-and-white print.
+- The words are frozen: `seen on chain`, `marked paid by you`, `rehearsal`.
+- The code inside the receipt is sized by its own artwork (`width: 168px; padding: 14px; svg width:
+  100%`), not by a fixed box. A fixed 128px box clipped a 225px code and lost its quiet zone — a
+  code that looks fine and cannot be scanned. Decode it after any change.
+
+---
+
 ## Appendix — verified contrast record
 
 All with the WCAG 2.1 formula (relative luminance). AA target 4.5:1 body text.

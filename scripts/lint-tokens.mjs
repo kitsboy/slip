@@ -21,12 +21,17 @@ const INTERACTIVE =
 /**
  * Where brass is allowed. The action set (primary button, prose link, focus ring), plus the few
  * marks the design deliberately draws in brass and that were agreed with the owner:
- * the drawn tile art, the current step marker, the "jump to me" ring, and the faint mark behind
- * the header word. Those are decoration on purpose; every one of them is listed here by name so a
- * new brass use still fails the gate until someone decides it belongs.
+ * the drawn tile art, the current step marker, the "jump to me" ring, the faint mark behind
+ * the header word, and the brass rule — the 2px line under the one number a screen exists for.
+ * Those are decoration on purpose; every one of them is listed here by name so a new brass use
+ * still fails the gate until someone decides it belongs.
+ *
+ * `v2-figure` is the charge bar's total, which carried the rule as a hardcoded `#f0a32a` and so
+ * passed this gate for months without being seen. When it was moved onto the token the gate caught
+ * it, which is the proof the gate reads tokens rather than colours.
  */
 const ALLOW =
-  /\.(btn-primary|link)\b|\bprose a\b|:focus-visible|\.v2-tile svg|\.v2-on\b|\.v2-jump\b|body::before/;
+  /\.(btn-primary|link)\b|\bprose a\b|:focus-visible|\.v2-tile svg|\.v2-on\b|\.v2-jump\b|body::before|\bv2-rule\b|\bv2-figure\b/;
 
 /** @type {{ selector: string, body: string, line: number }[]} */
 const rules = [];

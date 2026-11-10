@@ -1586,7 +1586,7 @@ html[data-skin='v2'] .v2-figure {
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   color: var(--v2-ink);
-  border-bottom: 2px solid #f0a32a;
+  border-bottom: 2px solid var(--v2-acc);
   width: fit-content;
   display: flex;
   flex-wrap: wrap;
@@ -1597,14 +1597,46 @@ html[data-skin='v2'] .v2-figure {
 html[data-skin='v2'] .v2-figure .v2-sats {
   font-size: 40px;
 }
+/* D5, signature move one: the brass rule. One 2px line, under the single number a screen exists
+   for — the pay amount, the receipt, the day's total, the customer's screen. The charge bar had it
+   hardcoded in hex, which is why it was the only screen allowed to have one. Never under a status,
+   never twice on a screen, and never in print (a brass line prints as a grey smudge). */
+html[data-skin='v2'] .v2-rule {
+  display: block;
+  width: 56px;
+  height: 2px;
+  margin: 12px 0 0;
+  border-radius: 1px;
+  background: var(--v2-acc);
+}
+html[data-skin='v2'] .v2-rule-tight {
+  margin-top: 8px;
+}
+
+/* Engraved figures: tabular, a little tight, and in the light theme a single hairline underneath the
+   glyphs so the money reads as printed rather than typed. The dark theme gets no shadow — a shadow
+   on a night page smears the digits instead of seating them. */
+html[data-skin='v2'] .v2-engrave {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+html[data-skin='v2'][data-theme='light'] .v2-engrave {
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+}
+@media print {
+  html[data-skin='v2'] .v2-rule {
+    display: none;
+  }
+  html[data-skin='v2'] .v2-engrave {
+    text-shadow: none;
+  }
+}
+
 html[data-skin='v2'] .v2-figure .v2-fiat {
   font-size: 14px;
   font-weight: 500;
   letter-spacing: 0;
   color: var(--v2-ink-2);
-}
-html[data-skin='v2'][data-theme='dark'] .v2-figure {
-  border-bottom-color: #f0a32a;
 }
 html[data-skin='v2'] .v2-price {
   display: flex;
@@ -2575,6 +2607,22 @@ html[data-skin='v2'] .v2-receipt {
   border-radius: 12px;
   color: var(--v2-ink);
 }
+/* The receipt's code was drawn into a fixed 128px white box while its own SVG asked for 229px, so
+   the code spilled past the white card and the quiet zone was lost — a code that is looked at but
+   cannot be scanned. The box is sized by the artwork now, with room to breathe on all four sides. */
+html[data-skin='v2'] .v2-receipt-qr {
+  width: 168px;
+  padding: 14px;
+  background: #fff;
+  border-radius: 8px;
+  line-height: 0;
+}
+html[data-skin='v2'] .v2-receipt-qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 html[data-skin='v2'] .v2-receipt .figure {
   font-size: 40px;
 }

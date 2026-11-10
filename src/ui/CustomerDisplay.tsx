@@ -72,7 +72,12 @@ export function publishToDisplay(message: Omit<DisplayMessage, 'at'>): void {
 function Code({ uri, sats }: { readonly uri: string; readonly sats?: string }) {
   return (
     <div className="v2-display-code">
-      {sats ? <p className="figure">{formatSats(BigInt(sats))}</p> : null}
+      {sats ? (
+        <>
+          <p className="figure">{formatSats(BigInt(sats))}</p>
+          <span className="v2-rule" aria-hidden />
+        </>
+      ) : null}
       <div
         className="v2-display-qr"
         dangerouslySetInnerHTML={{ __html: renderQrSvg(uri, { scale: 8, margin: 4 }) }}
@@ -123,7 +128,12 @@ export default function CustomerDisplay() {
     <main className="v2-display flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
       <p className="v2-pay-word">Pay exactly</p>
       <p className="v2-display-shop v2-yours">{message.shop?.trim() || 'slip'}</p>
-      {!split && <p className="figure">{message.sats ? formatSats(BigInt(message.sats)) : ''}</p>}
+      {!split && (
+        <>
+          <p className="figure">{message.sats ? formatSats(BigInt(message.sats)) : ''}</p>
+          {message.sats ? <span className="v2-rule" aria-hidden /> : null}
+        </>
+      )}
       {split && message.uri && message.uri2 ? (
         <div className="v2-display-pair">
           <Code uri={message.uri} sats={message.sats} />
