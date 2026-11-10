@@ -263,6 +263,7 @@ export default function Requests() {
                     <p className="v2-row-sub">
                       {r.cadence} · into {r.walletLabel}
                       {r.lastPaidAt ? ` · last paid ${r.lastPaidAt.slice(0, 10)}` : ''} ·{' '}
+                      {isDue(r) && <span className="v2-beat" aria-hidden />}{' '}
                       <span className={isDue(r) ? 'text-warn' : undefined} data-request-due>
                         {isDue(r) ? (late ? `${days} days late` : 'due now') : `due ${r.nextDue}`}
                       </span>

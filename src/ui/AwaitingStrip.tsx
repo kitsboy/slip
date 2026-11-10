@@ -32,6 +32,7 @@ export default function AwaitingStrip({ invoices, onOpen }: Props) {
       aria-label="Sales still waiting for payment"
       data-awaiting={total}
     >
+      {isSkinV2() && <span className="v2-beat" aria-hidden />}
       <span className="eyebrow">Waiting to be paid</span>
 
       {shown.map(({ invoice, ageMs, stale }) => (

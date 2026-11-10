@@ -448,3 +448,23 @@ never the headline. `role="status"`, never `alert`: mid-sale you are told, not s
 It offers jumps into text that is already on the page. A search field that returns nothing for a word
 the manual uses is worse than no search field: it teaches the reader that the answer is not there. So
 it indexes prose, not just headings, and its empty state admits the limit in words.
+
+## The five signature moves, measured
+
+1. **The receipt is torn off, not cut.** Half-circles of the page's own colour eat the card's bottom
+   edge (`::after`, 12px, repeat-x, inset by the corner radius so the first and last punch are not
+   clipped), and the card's bottom border is transparent so there is no straight line above the tear.
+   Dropped in print — a printer cuts its own edge. Measured: `::after` content `""`, height 11–12px,
+   `radial-gradient`, `padding-bottom: 26px`.
+2. **Item tiles carry a thumb.** Measured 103px tall at 390 wide, above the brief's 96px.
+3. **Empty panels teach.** Audited all five sections: **0** visible lists render empty and silent, and
+   every section has its teaching copy or its limit list.
+4. **A heartbeat, where something is live.** A 7px dot that breathes over 2.2s, not a strobe: on the
+   waiting strip while a sale is being watched, and beside a standing request that is due. Green, part
+   of the ink never the accent, and reduced to one 80ms beat under reduced motion; hidden in print.
+   Measured: `animation-name: v2-beat` on money in.
+5. **The focus ring is ink, and it is ours.** Two rules were fighting: a brass 2px ring declared early
+   and an ink 3px ring declared late, so the brass one was dead in the cascade and the source lied
+   about the screen. One rule now — ink 3px, offset 3px, measured with real keyboard focus as
+   `solid 3px rgb(247, 242, 234)` — with the page-coloured ring plus ink halo reserved for filled
+   brass buttons, and `Highlight` handed back to the system in high contrast mode.
