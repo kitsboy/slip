@@ -10,7 +10,7 @@ ability to sign anything.
 
 ## Status: shipping — it takes payments and closes the day.
 
-The next session starts at `docs/RESUME-2026-11-10.md`. Live is v0.31.25; the ordered repair list is `docs/NEXT-TEN.md`.
+The next session starts at `docs/RESUME-2026-11-10.md`. Live is v0.31.26; the ordered repair list is `docs/NEXT-TEN.md`.
 
 On-chain (BTC/LTC, mainnet and testnets), Lightning via LNURL-pay + LNURL-verify, receipts with
 customer-kept proofs, rent requests, a day book you can stamp, wallet pairing by QR, a watchlist and
