@@ -53,6 +53,7 @@ import OpenTill, { type OpenShift } from './OpenTill';
 import ScanToCart from './ScanToCart';
 import InfoVideo from './InfoVideo';
 import AmountPad from './AmountPad';
+import Failure from './Failure';
 import ItemMark from './Mark';
 import { announceOnce, cueForTransition, primeAudio } from '../core/sound';
 
@@ -113,6 +114,7 @@ export default function Till() {
   const [online, setOnline] = useState(navigator.onLine);
   const [staffId, setStaffId] = useState<string>('');
   const [quote, setQuote] = useState<RateQuote | null>(null);
+  const [rateFailed, setRateFailed] = useState<string | null>(null);
   const [rateNote, setRateNote] = useState<string>(() => {
     try {
       const saved = appStore().getItem('rate:last');
@@ -344,6 +346,7 @@ export default function Till() {
         if (cancelled) return;
         setQuote(q);
         setRate((prev) => prev.trim() || (Number(q.minorPerCoin) / 100).toFixed(2));
+        setRateFailed(null);
         setRateNote(`fetched ${q.fetchedAt.slice(11, 16)} UTC from ${q.source}`);
       })
       .catch((e: unknown) => {
@@ -351,9 +354,8 @@ export default function Till() {
         // A failed fetch must not stay cached as a failure: the next attempt deserves a try.
         RATE_CACHE.delete(key);
         setQuote(null);
-        setRateNote(
-          `${e instanceof Error ? e.message : 'the rate service did not answer'} — type the rate yourself`,
-        );
+        setRateFailed(e instanceof Error ? e.message : 'the rate service did not answer');
+        setRateNote('');
       });
 
     return () => {
@@ -1787,6 +1789,15 @@ export default function Till() {
               <span>{rateNote}</span>
             </p>
           )}
+          {rateFailed && (
+            <Failure
+              kind={rateFailed === 'offline' || /network|fetch|offline/i.test(rateFailed) ? 'network' : 'rate'}
+              what="The price service did not answer, so slip has no rate to price this sale with."
+              safe="Nothing was taken. A rate is only a number for the receipt — no money moves on it."
+              next="Type the rate yourself in Tools, or open Setup and point slip at a different price source."
+              detail={rateFailed}
+            />
+          )}
           {sweepNote && sweepNote !== 'nothing was open to check' && (
             <p className="mt-1 text-[11px] text-muted">Open sales: {sweepNote}</p>
           )}
@@ -1937,15 +1948,29 @@ export default function Till() {
             </span>
             {/* A greyed button with no reason is a dead end. Say what is missing, and where. */}
             {(!wallet || !totals || chargeSats === null || compareStopped) && (
-              <p className="w-full text-xs text-warn" data-charge-blocker>
-                {compareStopped
-                  ? 'The addresses did not match. Open Setup and check address 0/0. slip will not take a sale until they match.'
-                  : !wallet
-                  ? 'Add a wallet first — Setup, then Wallets.'
-                  : !totals
-                    ? 'Add an item or type an amount first.'
-                    : 'Set what one Bitcoin is worth first.'}
-              </p>
+              <div className="w-full" data-charge-blocker>
+                {compareStopped ? (
+                  <Failure
+                    kind="chain"
+                    what="The first address slip builds from this wallet does not match the one your wallet shows for address 0/0."
+                    safe="Nothing was taken and nothing was sent. slip is watch-only, so a wrong match cannot move money — it can only mislabel a payment."
+                    next="Open Setup, Wallets, and check that the wallet you added is the one you meant. There is no skip."
+                  />
+                ) : !wallet ? (
+                  <Failure
+                    kind="wallet"
+                    what="No wallet is attached to this till, so slip has no address to show a customer."
+                    safe="Nothing was taken. With no wallet there is nothing to pay and nothing to lose."
+                    next="Open Setup, then Wallets, and paste a public wallet code — an xpub, a descriptor or a Lightning address."
+                  />
+                ) : (
+                  <p className="text-xs text-warn">
+                    {!totals
+                      ? 'Add an item or type an amount first.'
+                      : 'Set what one Bitcoin is worth first.'}
+                  </p>
+                )}
+              </div>
             )}
           </div>
           {status && <p className="mt-2 text-[11px] text-bad">{status}</p>}

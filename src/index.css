@@ -3043,6 +3043,104 @@ html[data-skin='v2'] .v2-key {
 /* A standing request is a row, not a card: a card per request turns three rents into three boxes and
    stops the amounts lining up. The box also clipped its own code — 160px of white around a 180px
    drawing — so the code is sized by its artwork now, the same fix as the receipt. */
+/* A failure answers three questions in the same order every time: what happened, what is safe,
+   what to do. Amber for "you can carry on", red for "stop and look". The raw message stays, small,
+   at the bottom — visible to whoever is helping, never the headline. */
+/* A way into the manual. It offers jumps and never hides a paragraph: an empty result on a page
+   that does contain the word would be the manual lying about itself. */
+html[data-skin='v2'] .v2-learn-search {
+  margin: 0 0 28px;
+  max-width: 640px;
+}
+html[data-skin='v2'] .v2-learn-search-label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--v2-ink-2);
+  margin-bottom: 6px;
+}
+html[data-skin='v2'] .v2-learn-search-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  background: var(--v2-card);
+  border: 1px solid var(--v2-line);
+  border-radius: 8px;
+  color: var(--v2-ink);
+  font-size: 14px;
+}
+html[data-skin='v2'] .v2-learn-search-hits {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+html[data-skin='v2'] .v2-learn-search-hit {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  min-height: 44px;
+  padding: 8px 0;
+  border-top: 1px solid var(--v2-line);
+  color: var(--v2-ink);
+  text-decoration: none;
+  font-size: 13px;
+}
+html[data-skin='v2'] .v2-learn-search-kind {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--v2-edge);
+  min-width: 48px;
+}
+html[data-skin='v2'] .v2-learn-search-none {
+  font-size: 12px;
+  color: var(--v2-ink-2);
+  padding: 8px 0;
+}
+
+html[data-skin='v2'] .v2-failure {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--v2-line);
+  border-left: 3px solid var(--v2-warn);
+  border-radius: 8px;
+  background: var(--v2-sunk);
+}
+html[data-skin='v2'] .v2-failure-bad {
+  border-left-color: var(--v2-bad);
+}
+html[data-skin='v2'] .v2-failure-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--v2-ink);
+  margin: 0;
+}
+html[data-skin='v2'] .v2-failure-body {
+  margin: 8px 0 0;
+}
+html[data-skin='v2'] .v2-failure-body > div {
+  margin-top: 6px;
+}
+html[data-skin='v2'] .v2-failure-body dt {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--v2-ink-2);
+}
+html[data-skin='v2'] .v2-failure-body dd {
+  margin: 1px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--v2-ink-2);
+}
+html[data-skin='v2'] .v2-failure-detail {
+  margin: 8px 0 0;
+  font-size: 10px;
+  color: var(--v2-edge);
+  overflow-wrap: anywhere;
+}
+
 html[data-skin='v2'] .v2-request {
   padding: 10px 0;
   border-top: 1px solid var(--v2-line);
