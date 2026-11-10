@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.36** — 2026-11-10T21:21:14Z — `38d394cb6488` — A failure screen that answers three questions, and a search that never hides the manual
+
 - **v0.31.35** — 2026-11-10T20:49:43Z — `9ffef44b08e8` — Money in reads as a ledger, the last blocked buttons explain themselves, and the old skin switch is gone
 
 - **v0.31.34** — 2026-11-10T20:31:34Z — `a0573a394c9f` — Two thumb floors, and blocked buttons that keep their reason readable
