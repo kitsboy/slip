@@ -2622,6 +2622,39 @@ html[data-skin='v2'] .v2-receipt-qr svg {
   width: 100%;
   height: auto;
 }
+/* A receipt holds long unbreakable things — an address, an invoice id, a proof string — and a second
+   code. Nothing in it may push the card wider than the card: art scales to its box and text wraps. */
+html[data-skin='v2'] .v2-receipt svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+/* Only the machine strings may break mid-word; prose keeps its word boundaries. A blanket
+   anywhere rule hyphen-less-broke every sentence in a narrow column and turned the receipt into
+   single letters. */
+html[data-skin='v2'] .v2-receipt .break-all,
+html[data-skin='v2'] .v2-receipt .font-mono {
+  overflow-wrap: anywhere;
+}
+/* Under a phone's width the code and the words cannot share a row: the text column shrinks until
+   every sentence breaks mid-word. They stack instead, the code first, and the prose gets the width
+   it needs. */
+/* The status badge is a word in a box: on the narrowest phone it cannot sit beside the amount, so
+   it drops under it rather than pushing the card 17px wider than the screen. */
+@media (max-width: 420px) {
+  html[data-skin='v2'] .v2-receipt-head {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 520px) {
+  html[data-skin='v2'] .v2-receipt-body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  html[data-skin='v2'] .v2-receipt-qr {
+    align-self: flex-start;
+  }
+}
 
 html[data-skin='v2'] .v2-receipt .figure {
   font-size: 40px;

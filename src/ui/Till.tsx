@@ -1259,7 +1259,11 @@ export default function Till() {
     const proofUri = paymentUri('bitcoin', { address: receipt.address, amountSats: receipt.amountAtoms });
     return (
               <section className={isSkinV2() ? 'v2-receipt' : 'mt-6 panel'}>
-        <div className="flex items-start justify-between gap-3">
+        <div
+          className={['flex items-start justify-between gap-3', isSkinV2() && 'v2-receipt-head']
+            .filter(Boolean)
+            .join(' ')}
+        >
           <div>
             <p className="eyebrow">Receipt</p>
             <p
@@ -1325,7 +1329,11 @@ export default function Till() {
           </p>
         )}
 
-        <div className="mt-3 flex flex-wrap items-start gap-3">
+        <div
+          className={['mt-3 flex flex-wrap items-start gap-3', isSkinV2() && 'v2-receipt-body']
+            .filter(Boolean)
+            .join(' ')}
+        >
           <div
             className={isSkinV2() ? 'v2-receipt-qr' : 'h-32 w-32 rounded-lg bg-white p-1'}
             dangerouslySetInnerHTML={{ __html: qrSvg(proofUri, 5) }}
