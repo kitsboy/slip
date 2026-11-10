@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.26** — 2026-11-10T02:05:24Z — `cb9c8ab7de8e` — The footer fits the page, and the header has its brass stencil back
+
 - **v0.31.25** — 2026-11-09T23:17:15Z — `d9edef108fb9` — The seal's diamond is drawn rather than typed, so it cannot show as a box on a phone that lacks the glyph
 
 - **v0.31.24** — 2026-11-09T23:12:15Z — `81f05117fc16` — A footer that says the thing out loud: the measured zero is the headline, and the camera rule ships
