@@ -22,6 +22,7 @@ import SilentPay from './ui/SilentPay';
 import Install from './ui/Install';
 import InfoVideo from './ui/InfoVideo';
 import HowItWorks from './ui/HowItWorks';
+import Cannot from './ui/Cannot';
 import { isSkinV2 } from './ui/skin';
 import NextStep from './ui/NextStep';
 import Tech, { Advanced } from './ui/Tech';
@@ -578,6 +579,7 @@ export default function App() {
               why="The manual, what slip will offer, and why it is built this way"
               active={activeSection === 'learn'}
             >
+              <Cannot />
               <Tech>
                 <p className="mt-6 max-w-2xl text-xs leading-relaxed text-muted">
                   slip never holds money, never asks for a seed phrase, and has no server, account or

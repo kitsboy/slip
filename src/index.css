@@ -2881,6 +2881,19 @@ html[data-skin='v2'] .v2-foot-promise {
   line-height: 1.5;
   color: var(--v2-edge);
 }
+/* A footer link is not an action: it is a way in to a page of limits. Ink, not brass — brass is for
+   the one thing a screen wants you to do, and this is not it. */
+html[data-skin='v2'] .v2-foot-link {
+  color: var(--v2-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--v2-line);
+  text-decoration-thickness: 1px;
+}
+html[data-skin='v2'] .v2-foot-link:hover {
+  text-decoration-color: var(--v2-ink);
+}
+
 html[data-skin='v2'] .v2-foot-brand {
   color: var(--v2-ink-2);
   text-decoration: underline;

@@ -207,6 +207,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
         <p className="eyebrow m-0">
           step {step} of 5 · {stepper?.title}
+          {step < 5 ? ` · ${5 - step} to go` : ' · the last step'}
         </p>
         <button type="button" className="btn btn-secondary" onClick={onDone}>
           Leave setup

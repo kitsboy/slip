@@ -42,6 +42,7 @@ export const PANEL_IDS: readonly string[] = [
   'settings',
   'backup',
   'verify',
+  'cannot',
   'selftest',
   'silentpay',
   'pair',
@@ -91,6 +92,8 @@ export const LEGACY_ALIASES: Readonly<Record<string, Section>> = {
   manual: 'learn',
   'demo-link': 'learn',
   explainer: 'learn',
+  // The limits page lives in Learn and is linked from the footer.
+  cannot: 'learn',
 };
 
 export interface HashResolution {
