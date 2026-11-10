@@ -2371,7 +2371,6 @@ html[data-skin='v2'] .bg-white {
   }
   html[data-skin='v2'] .v2-head::before {
     animation: none;
-    transform: translateX(-50%);
   }
 }
 
@@ -2381,10 +2380,6 @@ html[data-skin='v2'] .bg-white {
   }
   html[data-skin='v2'] .v2-head-sub {
     margin-top: 2px;
-  }
-  html[data-skin='v2'] .v2-head::before {
-    top: 6px;
-    height: 44px;
   }
   /* The first tile sits higher on a short phone: less air at the top of the till. */
   html[data-skin='v2'] .v2-two > .v2-sale {
@@ -2431,6 +2426,7 @@ html[data-skin='v2'] .v2-head {
   position: sticky;
   top: 0;
   max-width: 100%;
+  overflow: hidden;
   background: var(--v2-bg);
   border-bottom: 1px solid var(--v2-line);
 }
@@ -2452,21 +2448,33 @@ html[data-skin='v2'] body::before {
   from { opacity: 0.035; transform: scale(1) translateY(0); }
   to { opacity: 0.07; transform: scale(1.06) translateY(-12px); }
 }
+/* The header's backdrop: a brass stencil, a fifth of the way up, drifting one tile every two
+   minutes. Composited (transform only) so the motion costs no repaint, and one exact tile wide so
+   the loop has no seam. The mark itself is the tiled SVG, not a typed character. */
 html[data-skin='v2'] .v2-head::before {
   content: '';
   position: absolute;
-  left: 50%;
-  top: 8px;
-  width: min(180px, 52%);
-  height: 56px;
-  transform: translateX(-50%);
-  background: url('./slip-mark.png') center / contain no-repeat;
-  opacity: 0.1;
+  left: 0;
+  top: 0;
+  width: calc(100% + 1600px);
+  height: 100%;
+  background: url('./header-tex.svg') left center / 1600px 96px repeat-x;
+  opacity: 0.2;
   pointer-events: none;
+  will-change: transform;
+  animation: v2-head-drift 120s linear infinite;
+  /* Fades anchored to the element's own edges in pixels: the element is a whole tile wider than
+     the screen, so a percentage fade would eat most of a phone's header. */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 120px, #000 calc(100% - 120px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 120px, #000 calc(100% - 120px), transparent 100%);
 }
 @keyframes v2-head-drift {
-  from { transform: translateX(-50%) scale(1); }
-  to { transform: translateX(-50%) scale(1.04); }
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-1600px, 0, 0);
+  }
 }
 html[data-skin='v2'] .v2-head-row {
   position: relative;
@@ -2526,12 +2534,6 @@ html[data-skin='v2'] .v2-head-logo {
   }
   html[data-skin='v2'] .v2-head-word {
     font-size: 40px;
-  }
-  html[data-skin='v2'] .v2-head::before {
-    top: 12px;
-    width: min(220px, 28%);
-    height: 64px;
-    opacity: 0.1;
   }
   html[data-skin='v2'] .v2-head-logo {
     height: 40px;
@@ -2608,14 +2610,16 @@ html[data-skin='v2'] .v2-receipt p + p {
 }
 
 /* ── The bottom of the page ──────────────────────────────────────────────
-   Not a junk drawer. Three blocks a doubtful shopkeeper would ask for:
-   the measured proof, this build, and who made it. The hairline at the top
-   fades in from the edges so the page closes rather than stops. Everything
-   here is at reading size — the old footer was 11px grey, which is how a
-   real claim gets ignored. */
+   Every measurement here is taken from the page's own column (main is 1152px wide with 20px of
+   inner padding), never from the viewport. The first version of this footer ran edge to edge on a
+   wide screen while the till above it was centred, and read as if it belonged to another site.
+   Two columns, then one closing line: a footer that fits is worth more than a footer that impresses. */
 html[data-skin='v2'] .v2-foot {
-  position: relative;
-  margin-top: 56px;
+  /* The shell is a flex column, so a max-width alone lets this shrink to its content. */
+  width: 100%;
+  max-width: 1152px;
+  margin: 48px auto 0;
+  box-sizing: border-box;
   padding: 0 20px 104px;
   color: var(--v2-ink-2);
 }
@@ -2623,9 +2627,7 @@ html[data-skin='v2'] .v2-foot-wrap {
   position: relative;
   display: grid;
   gap: 32px;
-  max-width: 1080px;
-  margin: 0 auto;
-  padding-top: 30px;
+  padding-top: 28px;
 }
 html[data-skin='v2'] .v2-foot-wrap::before {
   content: '';
@@ -2635,90 +2637,88 @@ html[data-skin='v2'] .v2-foot-wrap::before {
   background: linear-gradient(
     90deg,
     transparent,
-    var(--v2-line) 14%,
+    var(--v2-line) 10%,
     var(--v2-edge) 50%,
-    var(--v2-line) 86%,
+    var(--v2-line) 90%,
     transparent
   );
 }
-html[data-skin='v2'] .v2-foot-block {
+html[data-skin='v2'] .v2-foot-proof,
+html[data-skin='v2'] .v2-foot-build {
   min-width: 0;
 }
 html[data-skin='v2'] .v2-foot-kicker {
   margin: 0 0 10px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   line-height: 1.3;
   color: var(--v2-ink);
 }
 
-/* The claim, with its own number drawn large. The number is measured by the
-   reader's browser, so it is allowed to be big — it is the only figure here
-   that is not marketing. */
+/* The claim, with its number drawn large. The count is measured by the reader's browser, so it is
+   the one figure on this page allowed to be big. */
 html[data-skin='v2'] .v2-foot-zero {
   margin: 0;
+  max-width: 34ch;
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--v2-ink-2);
 }
 html[data-skin='v2'] .v2-foot-zero-n {
   display: inline-block;
-  font-size: 42px;
+  font-size: 32px;
   font-weight: 600;
-  line-height: 0.9;
+  line-height: 0.85;
   font-variant-numeric: tabular-nums;
   color: var(--v2-ink);
   padding: 0 3px;
-  vertical-align: -7px;
+  vertical-align: -5px;
 }
 html[data-skin='v2'] .v2-foot-zero-sub {
   display: block;
   margin-top: 8px;
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.45;
   color: var(--v2-edge);
 }
 html[data-skin='v2'] .v2-foot-note {
-  margin: 10px 0 0;
-  max-width: 38ch;
-  font-size: 16px;
-  line-height: 1.5;
+  margin: 12px 0 0;
+  max-width: 40ch;
+  font-size: 15px;
+  line-height: 1.55;
   color: var(--v2-ink-2);
 }
 
-/* This build: the stamp, then the book seal on its own line, then the live chips.
-   The seal was inline beside the pill and read as an orphan; a column gives it a home. */
-html[data-skin='v2'] .v2-foot-build {
+/* This build: one stamped line, the seal under it, the chips, the clip, the way onto the phone. */
+html[data-skin='v2'] .v2-foot-stamp {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  margin: 0 0 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin: 0 0 10px;
 }
 html[data-skin='v2'] .v2-foot-ver {
-  padding: 5px 11px;
+  padding: 4px 10px;
   border: 1px solid var(--v2-line);
   border-radius: 999px;
   font-family: var(--v2-font-mono);
-  font-size: 14px;
-  line-height: 1.2;
-  color: var(--v2-ink);
-}
-/* The seal sits under the stamp on the same left axis as the pill's border, so the column has
-   one edge rather than three. */
-html[data-skin='v2'] .v2-foot-build [data-book-seal] {
   font-size: 13px;
-  color: var(--v2-ink-2);
+  line-height: 1.3;
+  color: var(--v2-ink);
+  white-space: nowrap;
+}
+html[data-skin='v2'] .v2-foot-stamp [data-book-seal] {
+  font-size: 12px;
+  color: var(--v2-edge);
+}
+html[data-skin='v2'] .v2-foot [class*='justify-center'] {
+  justify-content: flex-start;
 }
 html[data-skin='v2'] .v2-foot .chip {
-  font-size: 13px;
-  padding: 4px 10px;
+  font-size: 12px;
+  padding: 3px 9px;
   color: var(--v2-ink-2);
   border-color: var(--v2-edge);
-}
-/* The status chips centre themselves on the page; in a column they read from the left edge. */
-html[data-skin='v2'] .v2-foot-block .flex-wrap {
-  justify-content: flex-start;
 }
 html[data-skin='v2'] .v2-foot-film {
   margin-top: 14px;
@@ -2727,86 +2727,88 @@ html[data-skin='v2'] .v2-foot-film button {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
-  padding: 0 14px;
+  min-height: 40px;
+  padding: 0 13px;
   border: 1px solid var(--v2-edge);
   border-radius: 10px;
-  background: var(--v2-card);
-  font-size: 15px;
+  background: transparent;
+  font-size: 14px;
   color: var(--v2-ink);
 }
 html[data-skin='v2'] .v2-foot-film button:hover {
-  border-color: var(--v2-ink-2);
-}
-
-/* Who made it, and the way onto the home screen. */
-html[data-skin='v2'] .v2-foot-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--v2-ink);
-  text-decoration: underline;
-  text-decoration-color: var(--v2-edge);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-}
-html[data-skin='v2'] .v2-foot-brand:hover,
-html[data-skin='v2'] .v2-foot-brand:focus-visible {
-  text-decoration-color: var(--v2-ink);
+  background: var(--v2-card);
 }
 html[data-skin='v2'] .v2-foot [data-install='available'] button {
-  min-height: 44px;
-  padding: 0 14px;
+  min-height: 40px;
+  padding: 0 13px;
   border: 1px solid var(--v2-edge);
   border-radius: 10px;
-  background: var(--v2-card);
-  font-size: 15px;
+  background: transparent;
+  font-size: 14px;
   color: var(--v2-ink);
+}
+html[data-skin='v2'] .v2-foot [data-install='available'] button:hover {
+  background: var(--v2-card);
 }
 html[data-skin='v2'] .v2-foot [data-install='available'] p,
 html[data-skin='v2'] .v2-foot [data-install='installed'] {
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.45;
-  color: var(--v2-ink-2);
+  color: var(--v2-edge);
 }
 
-/* The last line: the word again, and the promise in words. */
+/* The closing line: the word, the credit, the promise — one sentence that wraps rather than breaks. */
 html[data-skin='v2'] .v2-foot-base {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 10px 16px;
-  max-width: 1080px;
-  margin: 32px auto 0;
+  gap: 6px 16px;
+  margin-top: 28px;
   padding-top: 16px;
   border-top: 1px solid var(--v2-line);
 }
 html[data-skin='v2'] .v2-foot-word {
   font-family: Palatino, 'Palatino Linotype', 'Iowan Old Style', Georgia, serif;
-  font-size: 30px;
+  font-size: 26px;
   line-height: 1;
   color: var(--v2-ink);
   letter-spacing: 0.01em;
 }
 html[data-skin='v2'] .v2-foot-promise {
+  flex: 1 1 24ch;
   margin: 0;
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.5;
   color: var(--v2-edge);
 }
+html[data-skin='v2'] .v2-foot-brand {
+  color: var(--v2-ink-2);
+  text-decoration: underline;
+  text-decoration-color: var(--v2-edge);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+html[data-skin='v2'] .v2-foot-brand:hover,
+html[data-skin='v2'] .v2-foot-brand:focus-visible {
+  color: var(--v2-ink);
+  text-decoration-color: var(--v2-ink);
+}
 
+@media (min-width: 820px) {
+  html[data-skin='v2'] .v2-foot-wrap {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 48px;
+  }
+}
+/* On the till the phone keeps a fixed charge bar (126px) above the tab bar (65px). The closing
+   line sat underneath them both, which is why the footer looked cut off at the bottom. */
+@media (max-width: 639px) {
+  html[data-skin='v2'] [data-section='sell'] .v2-foot {
+    padding-bottom: 216px;
+  }
+}
 @media (min-width: 640px) {
   html[data-skin='v2'] .v2-foot {
     padding-bottom: 56px;
-  }
-}
-@media (min-width: 900px) {
-  html[data-skin='v2'] .v2-foot-wrap {
-    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 0.95fr);
-    gap: 40px;
   }
 }

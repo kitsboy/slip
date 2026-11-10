@@ -1,18 +1,20 @@
 /**
- * The bottom of the page: the proof, the build, and who made it.
+ * The bottom of the page.
  *
- * A footer is where a till tells the truth about itself one last time, so it is not a pile of
- * small grey links. Three blocks, in the order a doubtful shopkeeper would ask:
+ * Two columns inside the same 1152px column the rest of the page sits in, then one closing line.
+ * The first version of this footer ran the full width of a wide screen while the till above it was
+ * centred, which made it look like it belonged to a different site — so every measurement here
+ * comes from the page's own container rather than from the viewport.
  *
- *  - **Nothing phones home** — the live count of requests to other servers, counted by the
- *    reader's own browser. It is the strongest claim slip makes, and it was previously an 11px
- *    sentence at the very bottom. Here it is the headline, and the number is drawn large.
- *  - **This build** — the version, today's book seal, and whether this copy is online and current.
- *    A merchant who is reading a stale shell needs to see that here, not in a menu.
- *  - **Made by** — who to thank, that it is free and MIT, and how to put it on the home screen.
+ *  - **Nothing phones home** — the live count of requests to other servers, counted by the reader's
+ *    own browser. It is the strongest claim slip makes, and it used to be an 11px grey sentence at
+ *    the very bottom of the page.
+ *  - **This build** — the version, today's book seal, whether this copy is online, the clip that
+ *    explains the strip, and the way onto the home screen.
+ *  - **The closing line** — the word, the credit, and the promise.
  *
- * The words stay exactly as honest as the rest of the page: the zero is measured, not asserted,
- * and it changes the moment the count is not zero.
+ * The words stay as honest as the rest of the page: the zero is measured, not asserted, and it
+ * changes the moment the count is not zero.
  */
 
 import BookSeal from './BookSeal';
@@ -30,7 +32,7 @@ export default function Footer() {
   return (
     <footer className="v2-foot" role="contentinfo">
       <div className="v2-foot-wrap">
-        <section className="v2-foot-block v2-foot-proof" aria-label="Nothing phones home">
+        <section className="v2-foot-proof" aria-label="Nothing phones home">
           <p className="v2-foot-kicker">Nothing phones home</p>
           <RequestCounter hero />
           <p className="v2-foot-note">
@@ -39,9 +41,9 @@ export default function Footer() {
           </p>
         </section>
 
-        <section className="v2-foot-block" aria-label="This build">
+        <section className="v2-foot-build" aria-label="This build">
           <p className="v2-foot-kicker">This build</p>
-          <p className="v2-foot-build">
+          <p className="v2-foot-stamp">
             <span className="v2-foot-ver">{buildLabel()}</span>
             <BookSeal />
           </p>
@@ -55,25 +57,6 @@ export default function Footer() {
               label="What the strip means"
             />
           </div>
-        </section>
-
-        <section className="v2-foot-block v2-foot-sign" aria-label="Who made it">
-          <p className="v2-foot-kicker">Made by</p>
-          {signature && (
-            <a
-              className="v2-foot-brand"
-              href="https://giveabit.io"
-              target="_blank"
-              rel="noreferrer noopener"
-              data-brand="giveabit"
-            >
-              {signature}
-            </a>
-          )}
-          <p className="v2-foot-note">
-            Free and open source under MIT. It is one file: save the page and it still opens with
-            the network off.
-          </p>
           <Install />
         </section>
       </div>
@@ -83,7 +66,22 @@ export default function Footer() {
           slip
         </span>
         <p className="v2-foot-promise">
-          no accounts · no analytics · no telemetry · MIT licensed
+          Free and open source under MIT
+          {signature && (
+            <>
+              {' · made by '}
+              <a
+                className="v2-foot-brand"
+                href="https://giveabit.io"
+                target="_blank"
+                rel="noreferrer noopener"
+                data-brand="giveabit"
+              >
+                {signature}
+              </a>
+            </>
+          )}
+          {' · no accounts · no analytics · no telemetry'}
         </p>
       </div>
     </footer>

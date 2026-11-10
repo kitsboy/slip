@@ -259,7 +259,7 @@ export default function App() {
         : 'border-line text-muted hover:border-accent hover:text-accent';
 
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="flex min-h-full flex-col" data-section={activeSection}>
       <Watcher />
       <header className={isSkinV2() ? 'v2-head sticky top-0 z-20' : 'sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur'}>
         {isDemo && <DemoBanner />}
