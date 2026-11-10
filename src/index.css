@@ -2663,6 +2663,9 @@ html[data-skin='v2'] .v2-foot-zero {
   font-size: 16px;
   line-height: 1.55;
   color: var(--v2-ink-2);
+  /* A stranger's URL must never be able to widen this column: it wraps instead. */
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 html[data-skin='v2'] .v2-foot-zero-n {
   display: inline-block;
@@ -2673,6 +2676,22 @@ html[data-skin='v2'] .v2-foot-zero-n {
   color: var(--v2-ink);
   padding: 0 3px;
   vertical-align: -5px;
+}
+/* When the count is not zero, the hosts are listed one per line, in mono, and they wrap rather
+   than run into the next column. Never the full URL: a beacon path is 120 characters of noise. */
+html[data-skin='v2'] .v2-foot-hosts {
+  display: block;
+  margin-top: 10px;
+  padding-left: 10px;
+  border-left: 2px solid var(--v2-line);
+}
+html[data-skin='v2'] .v2-foot-host {
+  display: block;
+  font-family: var(--v2-font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--v2-ink-2);
+  overflow-wrap: anywhere;
 }
 html[data-skin='v2'] .v2-foot-zero-sub {
   display: block;

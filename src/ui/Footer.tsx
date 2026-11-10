@@ -36,8 +36,8 @@ export default function Footer() {
           <p className="v2-foot-kicker">Nothing phones home</p>
           <RequestCounter hero />
           <p className="v2-foot-note">
-            Your own browser counted that number, not us. No analytics, no fonts from anywhere else,
-            no CDN, no cookies, no account.
+            slip ships no analytics, no fonts from anywhere else, no CDN, no cookies and no account.
+            That count is your own browser&apos;s log, not our word for it.
           </p>
         </section>
 
