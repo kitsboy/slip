@@ -7,3 +7,6 @@ coverage/
 
 # screenshot matrix output (large; regenerate with scripts/shots-matrix.mjs)
 docs/shots/
+
+# The 39 MB screenshot matrix is generated, not source (scripts/shots-matrix.mjs).
+docs/matrix-shots/
