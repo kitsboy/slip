@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.41** — 2026-11-10T22:54:38Z — `eac4f7663726` — Litecoin limits in the manual, Fedimint pinned off, and the engine fed a real Litecoin block
+
 - **v0.31.40** — 2026-11-10T22:37:25Z — `72f2006c7740` — Litecoin end to end: the SLIP-132 bytes tested, the failure seen on a real Litecoin shop, and the chain named correctly
 
 - **v0.31.39** — 2026-11-10T22:10:24Z — `355e8aa7dc79` — The budget measures what a phone downloads, and the skin can no longer be changed by a URL
