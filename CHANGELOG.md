@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.29** — 2026-11-10T13:59:13Z — `bf254288fa3a` — The receipt holds its own width on a 320 phone: code and words stack, the badge drops below the amount
+
 - **v0.31.28** — 2026-11-10T13:48:46Z — `4298c3ccb938` — Three money marks: the brass rule under the one number each screen is for, engraved figures, and a receipt whose code actually scans
 
 - **v0.31.27** — 2026-11-10T02:24:53Z — `07dbe9b86fbd` — The footer counter names the host, not a 120-character URL
