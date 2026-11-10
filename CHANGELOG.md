@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.38** — 2026-11-10T21:53:12Z — `e6b50dddd65a` — Five signature moves: a torn receipt edge, a live heartbeat, and one honest focus ring
+
 - **v0.31.37** — 2026-11-10T21:26:56Z — `a094f4da6c86` — The manual's search reads the prose, not just the headings
 
 - **v0.31.36** — 2026-11-10T21:21:14Z — `38d394cb6488` — A failure screen that answers three questions, and a search that never hides the manual
