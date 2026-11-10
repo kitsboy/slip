@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.40** — 2026-11-10T22:37:25Z — `72f2006c7740` — Litecoin end to end: the SLIP-132 bytes tested, the failure seen on a real Litecoin shop, and the chain named correctly
+
 - **v0.31.39** — 2026-11-10T22:10:24Z — `355e8aa7dc79` — The budget measures what a phone downloads, and the skin can no longer be changed by a URL
 
 - **v0.31.38** — 2026-11-10T21:53:12Z — `e6b50dddd65a` — Five signature moves: a torn receipt edge, a live heartbeat, and one honest focus ring
