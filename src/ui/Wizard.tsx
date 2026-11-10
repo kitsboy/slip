@@ -344,6 +344,23 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
                 </option>
               ))}
             </select>
+            {/* What this chain can and cannot do, before a merchant picks it. A shopkeeper who
+                assumes Litecoin works exactly like Bitcoin finds out at the till otherwise. */}
+            <p className="mt-1 text-xs leading-relaxed text-muted" data-coin-note>
+              {networkId.startsWith('ltc') ? (
+                <>
+                  Litecoin: addresses, segwit, taproot and the day stamp all work. Litecoin has{' '}
+                  <strong>no Lightning</strong> in slip — a Litecoin sale is always on chain — and no
+                  Silent Payments, which are a Bitcoin idea.
+                  {networkId === 'ltc-testnet' ? ' Test coins are worth nothing.' : ''}
+                </>
+              ) : (
+                <>
+                  Bitcoin, all of its address kinds, Lightning and Silent Payments.
+                  {networkId !== 'btc-mainnet' ? ' Test coins are worth nothing.' : ''}
+                </>
+              )}
+            </p>
           </label>
           <label className="mt-3 block" htmlFor="wz-xpub">
             <span className="eyebrow">Your wallet&apos;s public code</span>
@@ -608,14 +625,30 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
             Continue
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={finish}
-            disabled={!walletConfirmed || !verifyChecked || matchStop}
-            className="btn btn-primary"
-          >
-            Finish setup
-          </button>
+          <>
+            {/* D-83: a blocked primary stays focusable, so the line under it can be read. A disabled
+                button drops focus and hides the only explanation of why setup cannot finish. */}
+            <button
+              type="button"
+              onClick={() => {
+                if (!walletConfirmed || !verifyChecked || matchStop) return;
+                finish();
+              }}
+              aria-disabled={!walletConfirmed || !verifyChecked || matchStop}
+              className={`btn btn-primary${!walletConfirmed || !verifyChecked || matchStop ? ' v2-blocked' : ''}`}
+            >
+              Finish setup
+            </button>
+            {(!walletConfirmed || !verifyChecked || matchStop) && (
+              <p className="mt-2 text-sm" data-finish-blocker>
+                {matchStop
+                  ? 'The addresses did not match. Go back to the wallet step and paste the key again — slip will not open a till on an address you could not confirm.'
+                  : !walletConfirmed
+                    ? 'Tick “I opened my wallet” first: slip needs to know the key is really yours.'
+                    : 'Compare address 0/0 with your own wallet, then tick ‘They match’.'}
+              </p>
+            )}
+          </>
         )}
         <button type="button" onClick={onDone} className="btn btn-ghost ml-auto">
           Leave setup

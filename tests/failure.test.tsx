@@ -44,4 +44,18 @@ describe('a failure says three things, in the same order', () => {
     expect(out).toContain('v2-failure-bad');
     expect(out).toContain('cannot move money');
   });
+
+  it('names the chain the shop is actually on', () => {
+    const ltc = renderToStaticMarkup(
+      <Failure
+        kind="rate"
+        coin="Litecoin"
+        what="The price service did not answer."
+        safe="Nothing was taken."
+        next="Type the rate yourself."
+      />,
+    );
+    expect(ltc).toContain('slip does not know what a Litecoin is worth');
+    expect(ltc).not.toContain('Bitcoin');
+  });
 });

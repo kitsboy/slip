@@ -16,11 +16,11 @@
  */
 export type FailureKind = 'rate' | 'network' | 'chain' | 'wallet';
 
-const KINDS: Record<FailureKind, { title: string; tone: string }> = {
-  rate: { title: 'slip does not know what a Bitcoin is worth', tone: 'warn' },
-  network: { title: 'slip cannot reach the network', tone: 'warn' },
-  chain: { title: 'This wallet is on a different chain', tone: 'bad' },
-  wallet: { title: 'slip cannot read this wallet', tone: 'bad' },
+const KINDS: Record<FailureKind, { title: (coin: string) => string; tone: string }> = {
+  rate: { title: (coin) => `slip does not know what a ${coin} is worth`, tone: 'warn' },
+  network: { title: () => 'slip cannot reach the network', tone: 'warn' },
+  chain: { title: () => 'This wallet is on a different chain', tone: 'bad' },
+  wallet: { title: () => 'slip cannot read this wallet', tone: 'bad' },
 };
 
 export default function Failure({
@@ -29,8 +29,11 @@ export default function Failure({
   safe,
   next,
   detail,
+  coin = 'Bitcoin',
 }: {
   kind: FailureKind;
+  /** The chain in the shop's own words. A Litecoin till must not be told about Bitcoin. */
+  coin?: string;
   /** One plain sentence about what happened. */
   what: string;
   /** One plain sentence about the money. Never softened, never guessed. */
@@ -43,7 +46,7 @@ export default function Failure({
   const meta = KINDS[kind];
   return (
     <div className={`v2-failure v2-failure-${meta.tone}`} data-failure={kind} role="status">
-      <p className="v2-failure-title">{meta.title}</p>
+      <p className="v2-failure-title">{meta.title(coin)}</p>
       <dl className="v2-failure-body">
         <div>
           <dt>What happened</dt>

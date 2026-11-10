@@ -1791,6 +1791,7 @@ export default function Till() {
           )}
           {rateFailed && (
             <Failure
+              coin={wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'}
               kind={rateFailed === 'offline' || /network|fetch|offline/i.test(rateFailed) ? 'network' : 'rate'}
               what="The price service did not answer, so slip has no rate to price this sale with."
               safe="Nothing was taken. A rate is only a number for the receipt — no money moves on it."
