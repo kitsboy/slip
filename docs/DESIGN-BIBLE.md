@@ -434,3 +434,17 @@ after the change at 390×844: sell 1 (Charge), money 0, books 0, setup 0, more 0
 `?gallery=1` exists only in the dev server (`import.meta.env.DEV`), so it is audited there and never
 ships. Audited at 320, 390 and 1440 in both themes: gallery renders, horizontal overflow 0, no page
 errors, one control under 44px (an inline link inside prose).
+
+## The failure block
+
+Every failure a shopkeeper can meet answers the same three questions in the same order: **what
+happened** (plain words, no error code), **what is safe** (the honest state of the money, even when
+that is "unknown"), **what to do** (one action a person can take in a shop). Amber for "carry on", red
+for "stop and look". The raw message stays at 10px underneath — it helps whoever is helping, and it is
+never the headline. `role="status"`, never `alert`: mid-sale you are told, not shouted at.
+
+## The manual's search never hides a paragraph
+
+It offers jumps into text that is already on the page. A search field that returns nothing for a word
+the manual uses is worse than no search field: it teaches the reader that the answer is not there. So
+it indexes prose, not just headings, and its empty state admits the limit in words.
