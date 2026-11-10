@@ -24,7 +24,7 @@ const LIMITS: readonly Limit[] = [
   },
   {
     what: 'It cannot take a card',
-    why: 'There is no card reader, no bank and no processor. Bitcoin and Lightning are the only rails here.',
+    why: 'There is no card reader, no bank and no processor. Bitcoin, Lightning and Litecoin are the only rails here.',
   },
   {
     what: 'It cannot give a refund by itself',
@@ -41,6 +41,18 @@ const LIMITS: readonly Limit[] = [
   {
     what: 'It cannot see money arrive with no internet',
     why: 'Ringing up a sale works offline. Watching for the payment needs your own node or a service you chose, so the receipt waits until it can look.',
+  },
+  {
+    what: 'It cannot take Litecoin over Lightning',
+    why: 'Litecoin has no Lightning in slip. A Litecoin sale is an on-chain payment, so it waits for a confirmation like any other on-chain payment — slower than Bitcoin over Lightning, and that is the trade.',
+  },
+  {
+    what: 'It cannot use Silent Payments on Litecoin',
+    why: 'Silent Payments are a Bitcoin idea and slip only offers them there. A Litecoin sale pays an ordinary address derived from the public key you pasted, and the receipt shows exactly which one.',
+  },
+  {
+    what: 'It cannot tell a Litecoin key from a Bitcoin key by itself',
+    why: 'The same zpub is legitimate on both chains, so slip asks which shop you are opening instead of guessing. Guessing wrong would show a customer an address their wallet does not recognise.',
   },
   {
     what: 'It cannot hold ecash for you',

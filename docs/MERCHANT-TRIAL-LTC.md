@@ -51,3 +51,23 @@ pointed at a dead address:
 
 Write the hesitation list into `docs/RESUME-*.md` under the date, ranked by how much it cost the
 person. Fix the top three before the next trial; do not fix the bottom ten by guessing.
+
+## Three clicks only a human can do (one sitting, about ten minutes)
+
+Everything else in this list is done or done by a script. These three need fingers because they meet a
+captcha, a camera, or a stranger.
+
+1. **Claim test coins into a real slip address.** Open <https://cypherfaucet.com/ltc-testnet>, paste
+   `my6RhGaMEf8v9yyQKqiuUYniJLfyU4gzqe` (a Litecoin testnet address derived by slip from a throwaway
+   test key — no money, no secret), tick the captcha, claim 0.01 tLTC. Then open the till that owns
+   that key and press **check now**: the receipt should move from *awaiting* to *seen*, and to
+   *confirmed* after a block. If it does not, that is the finding of the year.
+2. **Scan a receipt with a real camera.** Charge any demo sale, print or show the receipt, and point a
+   second phone's camera at the QR. It must read the address the receipt prints.
+3. **Run the seven-step script above** with one person who has never seen slip, and write down every
+   pause. No explaining.
+
+What the desk has already proved, so the trial is not starting from zero: the engine was fed a **real
+mined Litecoin testnet transaction** (tip block, real address, real amounts) through the same status
+function the till uses — a covered amount read *confirmed*, an impossible amount read *not confirmed*
+(`tests/ltc-chain-live.test.ts`, run with `SLIP_LIVE_CHAIN=1`).
