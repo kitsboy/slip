@@ -90,7 +90,14 @@ export default function OpenTill({ staff, shift, counter = '', currency, busy = 
               </button>
             )
           )}
-          <button type="button" onClick={onClose} disabled={busy} className="btn btn-secondary">
+          <button
+            type="button"
+            onClick={() => {
+              if (!busy) onClose();
+            }}
+            aria-disabled={busy || undefined}
+            className="btn btn-secondary"
+          >
             Close the till
           </button>
           {busy && <p className="w-full text-xs text-warn" role="status" data-blocker>Wait — the till is still closing.</p>}
@@ -165,8 +172,12 @@ export default function OpenTill({ staff, shift, counter = '', currency, busy = 
 
         <button
           type="button"
-          onClick={() => void onOpen(name.trim() || 'unassigned', floatMinor)}
-          disabled={busy}
+          onClick={() => {
+            // A blocked primary stays focusable so the line under it can be read (D-83).
+            if (busy) return;
+            void onOpen(name.trim() || 'unassigned', floatMinor);
+          }}
+          aria-disabled={busy || undefined}
           className="btn btn-primary"
         >
           Open the till

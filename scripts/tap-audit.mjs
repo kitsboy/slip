@@ -41,7 +41,9 @@ for (const section of SECTIONS) {
         if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) === 0) continue;
         // A checkbox drawn as a colour swatch is the *label* that carries the tap, so measure the
         // label. Otherwise every swatch in setup reports as a 13px target and hides the real ones.
-        const box = el.tagName === 'INPUT' && /check|radio/i.test(el.type ?? '') ? el.closest('label') ?? el : el;
+        const isBox = el.tagName === 'INPUT' && /check|radio/i.test(el.type ?? '');
+        const forLabel = isBox && el.id ? document.querySelector(`label[for="${el.id}"]`) : null;
+        const box = isBox ? el.closest('label') ?? forLabel ?? el : el;
         const r = box.getBoundingClientRect();
         if (r.width === 0 || r.height === 0) continue;
         // An inline link inside a paragraph is text, not a target: it is read, not tapped blind.

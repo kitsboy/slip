@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Docs gate (every panel documented, every path real)
+      - name: Bundle budget
         run: node scripts/check-budget.mjs
 
       - name: Docs audit
@@ -79,3 +79,4 @@ jobs:
           done
           curl -fsS http://127.0.0.1:4181/ >/dev/null
           node tests/e2e/run-all.mjs http://127.0.0.1:4181/
+          node scripts/tap-audit.mjs http://127.0.0.1:4181/

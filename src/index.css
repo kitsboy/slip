@@ -511,6 +511,63 @@ button {
   }
 }
 
+/* Printing a receipt is ink, not atmosphere. On paper the page is black on white, the badge keeps its
+   shape (solid / dashed / hatched) and loses its colour, the brass rule is gone, and everything that
+   is not the receipt — header, tabs, charge bar, footer — is left out of the sheet entirely. Measured
+   with `emulateMedia({ media: 'print' })`: before this block the receipt printed its dark card and
+   cream ink, which is a smudge on an 80 mm roll and a cartridge on A4. */
+@media print {
+  html[data-skin='v2'],
+  html[data-skin='v2'] body {
+    background: #fff;
+    color: #000;
+  }
+  html[data-skin='v2'] .v2-head,
+  html[data-skin='v2'] nav,
+  html[data-skin='v2'] .v2-foot,
+  html[data-skin='v2'] .charge-bar,
+  html[data-skin='v2'] .v2-tools,
+  html[data-skin='v2'] button:not([data-print-keep]) {
+    display: none;
+  }
+  /* !important, in print only, on purpose: the screen's dark card is set by several rules of
+     different weight, and a printed receipt must not depend on winning a specificity fight. */
+  html[data-skin='v2'] .v2-receipt {
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+  }
+  html[data-skin='v2'] .v2-receipt * {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+  }
+  html[data-skin='v2'] .v2-receipt .v2-receipt-qr {
+    background: #fff !important;
+  }
+  html[data-skin='v2'] .v2-receipt.panel {
+    border: 1px solid #000;
+    border-radius: 0;
+    padding: 12mm 8mm;
+    max-width: 80mm;
+    margin: 0 auto;
+  }
+  html[data-skin='v2'] .v2-badge {
+    background: #fff;
+    color: #000;
+    border: 1px solid #000;
+    box-shadow: none;
+  }
+  html[data-skin='v2'] .v2-receipt-qr {
+    padding: 6px;
+    background: #fff;
+  }
+  html[data-skin='v2'] .v2-engrave {
+    text-shadow: none;
+    font-size: 28px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1695,6 +1752,7 @@ html[data-skin='v2'] .v2-shift {
   margin: 0;
 }
 html[data-skin='v2'] .v2-shift .btn {
+  /* 44 is the thumb floor; 32 was a mouse reach. */
   min-height: 32px;
   padding: 0;
   border: 0;
@@ -2911,6 +2969,40 @@ html[data-skin='v2'] [data-readiness] a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
+}
+
+/* The rest of the thumb floor, found by `npm run tap-audit`: the v1 button class (32 high), the cart
+   tab's close mark (13 wide), the clip button inside the footer's film strip (40 high), and the
+   warning-coloured link to the demo shop (37 high). Each is a real tap on a phone. */
+html[data-skin='v2'] .btn {
+  min-height: 44px;
+}
+html[data-skin='v2'] [data-slip] button[aria-label^='Close'],
+html[data-skin='v2'] button[aria-label^='Close'] {
+  min-width: 44px;
+  min-height: 44px;
+}
+html[data-skin='v2'] .v2-foot-film button {
+  min-height: 44px;
+}
+html[data-skin='v2'] a[href='?demo=1'],
+html[data-skin='v2'] a[href*='demo=1'][target='_blank'] {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+/* Two shapes that a more specific rule was holding at mouse size: the shift bar's button (32) and
+   the "back to top" link in setup (23). Same floor, stated last so it wins. */
+html[data-skin='v2'] .v2-shift .btn,
+html[data-skin='v2'] a[href='#top'],
+html[data-skin='v2'] a[href='#settings'].underline {
+  min-height: 44px;
+}
+html[data-skin='v2'] a[href='#top'],
+html[data-skin='v2'] a[href='#settings'].underline {
+  display: inline-flex;
+  align-items: center;
 }
 
 html[data-skin='v2'] .v2-foot-link {
