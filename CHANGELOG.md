@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.32** — 2026-11-10T19:55:20Z — `c8718a8f896e` — Every tap target clears 44px, the receipt prints as ink on white, and the till's blocked buttons can be read
+
 - **v0.31.31** — 2026-11-10T19:28:10Z — `428cce856cf7` — The bundle budget and the thumb targets are measured by scripts now, not remembered
 
 - **v0.31.30** — 2026-11-10T19:20:18Z — `9590fb7ce213` — Learn now says what slip cannot do, and setup counts down what is left
