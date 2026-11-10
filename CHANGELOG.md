@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.35** — 2026-11-10T20:49:43Z — `9ffef44b08e8` — Money in reads as a ledger, the last blocked buttons explain themselves, and the old skin switch is gone
+
 - **v0.31.34** — 2026-11-10T20:31:34Z — `a0573a394c9f` — Two thumb floors, and blocked buttons that keep their reason readable
 
 - **v0.31.33** — 2026-11-10T20:13:04Z — `44c51a02c7b9` — One brass fill per screen: the open tab is ink, and the till's Charge is the only brass
