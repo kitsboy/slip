@@ -3308,3 +3308,62 @@ html[data-skin='v2'] .v2-receipt .v2-rule {
     transform: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Moves nine to twelve: the last four of the brief's twelve (D5).
+ * ------------------------------------------------------------------------- */
+
+/* M-09 — the till key has an edge. A brass control sits 2px proud of the panel, like a key on a real
+   till, and that edge is what moves when you press it. The fill never changes, so the press is
+   physical rather than a colour flash. */
+html[data-skin='v2'] .btn-primary:not(:disabled),
+html[data-skin='v2'] .v2-charge:not([aria-disabled='true']),
+html[data-skin='v2'] .v2-key {
+  box-shadow: 0 2px 0 0 color-mix(in oklab, var(--v2-acc) 62%, #000);
+}
+html[data-skin='v2'] .btn-primary:active:not(:disabled),
+html[data-skin='v2'] .v2-charge:active:not([aria-disabled='true']),
+html[data-skin='v2'] .v2-key:active {
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--v2-acc) 62%, #000);
+  transform: translateY(2px);
+}
+
+/* M-10 — the slit. The receipt's code sits in a white pocket with its bottom-right corner cut, as if
+   slipped in. The cut is 12px and the quiet zone is 14px, so no part of the code is ever clipped. */
+html[data-skin='v2'] .v2-receipt-qr {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+}
+
+/* M-11 — the figure arrives. A day's total on the books does not pop into place; it comes up 6px and
+   settles, once, in 200ms. The number itself is untouched: this is arrival, not arithmetic. */
+html[data-skin='v2'] [data-books-totals] {
+  animation: v2-arrive 200ms ease-out 1;
+}
+@keyframes v2-arrive {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* M-12 — the exhale. When a sale is done and the till returns to its resting line, the resting line
+   fades in rather than snapping — one breath, 180ms, and no motion after that. */
+html[data-skin='v2'] .v2-display-idle,
+html[data-skin='v2'] .v2-display-idle-line {
+  animation: v2-exhale 180ms ease-out 1;
+}
+@keyframes v2-exhale {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-skin='v2'] [data-books-totals],
+  html[data-skin='v2'] .v2-display-idle,
+  html[data-skin='v2'] .v2-display-idle-line {
+    animation: none;
+  }
+  html[data-skin='v2'] .btn-primary:active:not(:disabled),
+  html[data-skin='v2'] .v2-charge:active:not([aria-disabled='true']),
+  html[data-skin='v2'] .v2-key:active {
+    transform: none;
+  }
+}

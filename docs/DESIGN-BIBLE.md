@@ -449,7 +449,7 @@ It offers jumps into text that is already on the page. A search field that retur
 the manual uses is worse than no search field: it teaches the reader that the answer is not there. So
 it indexes prose, not just headings, and its empty state admits the limit in words.
 
-## The signature moves, measured (eight of the twelve)
+## The signature moves, all twelve, measured
 
 1. **The receipt is torn off, not cut.** Half-circles of the page's own colour eat the card's bottom
    edge (`::after`, 12px, repeat-x, inset by the corner radius so the first and last punch are not
@@ -500,3 +500,22 @@ All eight are measured in a browser, and all of them stand still under `prefers-
 own components is a rule with no benefit. Guard rails kept: nothing in the shop links to it, it sets
 `noindex`, and `scan-bundle.sh` fails the build if any `href` or tab ever points at it. It costs about
 9 KB raw, 2 KB over the wire.
+
+12. **The till key has an edge.** A brass control stands 2px proud of the panel (`box-shadow: 0 2px 0`
+    with a darkened brass) and the edge collapses as it is pressed. The fill never changes: the press is
+    physical, not a colour flash.
+13. **The slit.** The receipt's code sits in a white pocket with a 12px cut at its bottom-right corner.
+    The quiet zone is 14px, so the cut only ever eats white space — measured at 390px: box 168px, code
+    140px, 14px clear on every side.
+14. **The figure arrives.** A day's total does not pop in; it rises 6px and settles in 200ms, once. The
+    number is never animated between values — this is arrival, not arithmetic.
+15. **The exhale.** When a sale is done and the till returns to its resting line, the line fades in over
+    180ms instead of snapping.
+
+All twelve stand still under `prefers-reduced-motion`, and none of them carries information on its own.
+
+**Where the last four came from.** Claude's pack text is not in this repository — only our audit of it,
+which names five of his twelve (the tear, perforation leaders, the ink underline, the chunked address,
+the monogram fallback). The tear and the chunked address are shipped as he drew them. Moves 9–12 here
+are our own designs under the same brief and the same rules; calling them "Claude's" would be a
+marketing claim, not a fact.
