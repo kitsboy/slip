@@ -9,11 +9,12 @@ import { describe, expect, it } from 'vitest';
  * drops that markup from the bundle, which means the leftovers cost nothing at runtime — but they cost
  * readers, and a branch that can never run is a small lie about the product.
  *
- * 18 call sites went in this pass (EmptyState, Verify, Readiness, DemoBanner, AddressText, TabIcon,
- * FreshnessRing, Requests, History, OpenTill). The 51 left are concentrated in `Till.tsx` (41) and
- * `App.tsx` (4), where the dead halves are whole screen layouts mixed into live JSX — the exact shape
- * that broke a scripted rewrite before. This test holds the line: the number may go down, never up,
- * and it may never spread to a new file.
+ * 20 call sites have gone: 18 in the first pass (EmptyState, Verify, Readiness, DemoBanner, AddressText,
+ * TabIcon, FreshnessRing, Requests, History, OpenTill) and 2 more from the old header block in App.tsx.
+ * The 49 left are concentrated in `Till.tsx` (41) and two fragile ternaries in `App.tsx`, where the
+ * dead halves are whole screen layouts interleaved with live JSX — the exact shape that broke a
+ * scripted rewrite. This test holds the line: the number may go down, never up, and never to a new
+ * file.
  */
 function sources(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
@@ -42,9 +43,10 @@ describe('the dead skin branches', () => {
     const total = sources('src')
       .filter((f) => !f.endsWith('skin.ts'))
       .reduce((n, f) => n + (readFileSync(f, 'utf8').match(/isSkinV2\(\)/g) ?? []).length, 0);
-    // 51 when this test was written; 18 were deleted in the same pass. Lowering this number is the
-    // work; raising it means someone added a branch that can never be chosen.
-    expect(total).toBeLessThanOrEqual(51);
+    // 49 after the header went: 18 in the first pass, 2 more when the old header block was deleted by
+    // hand. Lowering this number is the work; raising it means someone added a branch that can never
+    // be chosen.
+    expect(total).toBeLessThanOrEqual(49);
   });
 
   it('come from a function that always says yes', () => {

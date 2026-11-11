@@ -263,9 +263,9 @@ export default function App() {
   return (
     <div className="flex min-h-full flex-col" data-section={activeSection}>
       <Watcher />
-      <header className={isSkinV2() ? 'v2-head sticky top-0 z-20' : 'sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur'}>
+      <header className="v2-head sticky top-0 z-20">
         {isDemo && <DemoBanner />}
-        {isSkinV2() ? (
+        {
           <div className="v2-head-row">
             <div className="v2-head-tools">
               <a href="#learn" className="chip hover:text-ink" aria-label="Help and the manual">
@@ -295,49 +295,7 @@ export default function App() {
             </div>
             <img className="v2-head-logo" src="./slip-mark.png" alt="" />
           </div>
-        ) : (
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-5 py-3">
-          <div className="flex items-center gap-2.5">
-            <span
-              aria-hidden
-              className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-[13px] font-bold text-bg"
-            >
-              s
-            </span>
-            <span className="flex items-baseline gap-2">
-              {onboarded && shellCounts.sold ? (
-                <h1 className="m-0 text-lg font-semibold tracking-tight">slip</h1>
-              ) : (
-                <span className="text-lg font-semibold tracking-tight">slip</span>
-              )}
-              <span className="hidden text-xs text-muted sm:inline">point of sale</span>
-            </span>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <a href="#learn" className="chip hover:text-ink" aria-label="Help and the manual">
-              <span aria-hidden>?</span>
-            </a>
-            <button
-              type="button"
-              onClick={() => setWizardOpen(true)}
-              className="chip hover:text-ink"
-            >
-              {onboarded ? 'run setup again' : 'start setup'}
-            </button>
-            {/* One menu instead of five chips: a header is a place to start, not a control panel. */}
-            <button
-              type="button"
-              onClick={() => setMenuOpen((open) => !open)}
-              className="chip hover:text-ink"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              aria-label="More: appearance, demo, version"
-            >
-              <span aria-hidden>⋯</span>
-            </button>
-          </div>
-        </div>
-        )}
+        }
         {menuOpen && (
           <div className="mx-auto w-full max-w-3xl px-5 pb-3" role="menu" aria-label="Appearance and about">
             <div className="panel p-3">
