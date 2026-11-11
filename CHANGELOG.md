@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.53** — 2026-11-11T21:02:51Z — `76f3800f686a` — slip can be installed to a home screen now, with its own icon
+
 - **v0.31.52** — 2026-11-11T20:28:30Z — `4c454c75dcfe` — A sale can be rung with no mouse, and slip says out loud what it can and cannot see
 
 - **v0.31.51** — 2026-11-11T18:28:09Z — `b4867859ddfe` — A busy day now prints on A4 as a proper sheet: two pages, real columns
