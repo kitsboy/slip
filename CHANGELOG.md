@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.52** — 2026-11-11T20:28:30Z — `4c454c75dcfe` — A sale can be rung with no mouse, and slip says out loud what it can and cannot see
+
 - **v0.31.51** — 2026-11-11T18:28:09Z — `b4867859ddfe` — A busy day now prints on A4 as a proper sheet: two pages, real columns
 
 - **v0.31.50** — 2026-11-11T17:27:50Z — `82ecdeba9979` — Offline is tested with the network actually off: suite 13
