@@ -7,7 +7,7 @@
 import { spawnSync } from 'node:child_process';
 
 const BASE = process.argv[2] ?? 'http://[::1]:4181/';
-const SUITES = ['till', 'features', 'ops', 'guide', 'assist', 'demo', 'polish', 'onboarding', 'states', 'watcher', 'workflow', 'info', 'offline', 'a11y', 'wizard'];
+const SUITES = ['till', 'features', 'ops', 'guide', 'assist', 'demo', 'polish', 'onboarding', 'states', 'watcher', 'workflow', 'info', 'offline', 'a11y', 'wizard', 'installable'];
 
 const failed = [];
 for (const s of SUITES) {

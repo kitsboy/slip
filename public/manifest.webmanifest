@@ -1,19 +1,36 @@
 {
+  "id": "/",
   "name": "slip — point of sale",
   "short_name": "slip",
   "description": "A non-custodial, serverless point-of-sale terminal. Sells pay straight into your own wallet.",
+  "lang": "en",
+  "dir": "ltr",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "any",
-  "background_color": "#0b0d10",
-  "theme_color": "#0b0d10",
+  "background_color": "#24201c",
+  "theme_color": "#24201c",
+  "categories": ["business", "finance", "productivity"],
   "icons": [
     {
-      "src": "./slip-mark.png",
-      "sizes": "300x220",
+      "src": "./icon-192.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

@@ -8,7 +8,11 @@
     />
     <meta name="color-scheme" content="dark light" />
     <meta name="description" content="slip — a non-custodial, serverless point-of-sale terminal. Sells pay straight into your own wallet." />
-    <link rel="icon" href="./slip-mark.png" type="image/png" />
+    <!-- An icon is a contract with the launcher, not a picture: a 32px favicon for the tab, a 180px
+         opaque apple-touch-icon for iOS (which ignores manifest icons entirely), and the manifest's
+         square 192/512 pair for everywhere that does read it. -->
+    <link rel="icon" href="./favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="theme-color" content="#0b0d10" />
     <title>slip</title>
