@@ -9,13 +9,14 @@
  * decided minutes or days later, and the receipt is gone by then.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createLedger } from '../core/ledger';
+import { createRepository } from '../core/accounts';
 import { closeReport, dayClose, daysWithSales, salesCsv, type SaleRow } from '../core/history';
 import { findSales } from '../core/findsale';
 import { METHOD_LABEL, checkRefund, makeRefund, refundedSoFar, type RefundMethod } from '../core/refunds';
 import { loadSettings } from '../core/settings';
-import { formatSats } from '../core/money';
+import { formatCoinAmount } from '../core/money';
 import { ScanField } from './Scan';
 import { escapeHtml, openPrintable } from './print';
 import { isSkinV2 } from './skin';
@@ -23,6 +24,8 @@ import Sheet from './Sheet';
 import InfoVideo from './InfoVideo';
 import Blocker from './Blocker';
 import { store as appStore } from '../core/storage';
+
+const COIN_WORD = { btc: 'Bitcoin', ltc: 'Litecoin' } as const;
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
@@ -50,7 +53,18 @@ export default function History() {
     return list.includes(date) ? list : [date, ...list];
   }, [data.invoices, date]);
 
-  const close = useMemo(() => dayClose(data.invoices, data.refunds, date), [data, date]);
+  // Which chain each wallet takes, so the books never add Litecoin atoms to Bitcoin atoms.
+  const coinOf = useCallback(
+    (walletId: string) => createRepository(appStore()).load().accounts.find((a) => a.id === walletId)?.coin ?? 'btc',
+    [],
+  );
+  const close = useMemo(() => dayClose(data.invoices, data.refunds, date, coinOf), [data, date, coinOf]);
+  const mixed = close.coins.length > 1;
+  /** The counter's coin, used wherever one number has to stand for the day. */
+  const dayCoin = close.coins[0] ?? 'btc';
+  /** A day with two coins gets two numbers, never one blended sentence. */
+  const perCoin = (pick: (t: (typeof close.byCoin)['btc']) => bigint) =>
+    close.coins.map((c) => formatCoinAmount(pick(close.byCoin[c]), c)).join(' + ');
 
   // The search runs over the day's rows, so a match keeps the day's totals beside it.
   const visibleRows = useMemo(() => {
@@ -220,33 +234,58 @@ export default function History() {
           <p className="text-[11px] text-muted">
             {close.count === 0
               ? 'Nothing taken'
-              : `${close.count} ${close.count === 1 ? 'sale' : 'sales'}${close.manualAtoms > 0n ? ` · ${formatSats(close.manualAtoms)} confirmed by you` : ' · all seen by slip'}`}
+              : `${close.count} ${close.count === 1 ? 'sale' : 'sales'}${close.manualAtoms > 0n ? ` · ${perCoin((t) => t.manualAtoms)} confirmed by you` : ' · all seen by slip'}`}
           </p>
         </div>
-        <p
-          className={[
-            'figure mt-1 text-[2rem] font-bold leading-none tabular-nums',
-            isSkinV2() && 'v2-engrave',
-          ]
-            .filter(Boolean)
-            .join(' ')}
-        >
-          {formatSats(close.netAtoms)}
-        </p>
+        {mixed ? (
+          // Two chains in one day: two numbers, each named, and the sentence that says why there is
+          // no single one. Atoms of Litecoin and atoms of Bitcoin are different money.
+          <div data-books-mixed className="mt-1">
+            {close.coins.map((coin) => (
+              <p key={coin} className="mt-1 flex flex-wrap items-baseline gap-2">
+                <span className="eyebrow w-16 shrink-0">{COIN_WORD[coin]}</span>
+                <span className="figure text-[1.6rem] font-bold leading-none tabular-nums">
+                  {formatCoinAmount(close.byCoin[coin].netAtoms, coin)}
+                </span>
+              </p>
+            ))}
+            <p className="mt-2 text-[11px] leading-relaxed text-muted">
+              This day has two coins, so it has two totals. They are never added together — a Litecoin
+              litoshi is not a Bitcoin satoshi, and one number for both would be true of neither.
+            </p>
+          </div>
+        ) : (
+          <p
+            className={[
+              'figure mt-1 text-[2rem] font-bold leading-none tabular-nums',
+              isSkinV2() && 'v2-engrave',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            {formatCoinAmount(close.netAtoms, close.coins[0] ?? 'btc')}
+          </p>
+        )}
         {<span className="v2-rule v2-rule-tight" aria-hidden />}
         {close.cancelledCount > 0 && (
           <p className="mt-1 text-xs text-muted" data-cancelled>
             {close.cancelledCount} {close.cancelledCount === 1 ? 'sale was' : 'sales were'} started and cancelled —{' '}
-            {formatSats(close.cancelledAtoms)} was never taken
+            {perCoin((t) => t.cancelledAtoms)} was never taken
           </p>
         )}
-        {close.count > 0 && (
-          <p className="mt-1 text-xs text-muted">
-            {formatSats(close.byRail.onchain)} on-chain · {formatSats(close.byRail.lightning)} Lightning ·{' '}
-            {formatSats(close.byRail.manual)} marked by hand
-            {close.refundedAtoms > 0n ? ` · ${formatSats(close.refundedAtoms)} refunded` : ''}
-          </p>
-        )}
+        {close.count > 0 &&
+          close.coins.map((coin) => {
+            const t = close.byCoin[coin];
+            return (
+              <p key={coin} className="mt-1 text-xs text-muted" data-books-coin={coin}>
+                {mixed ? `${COIN_WORD[coin]}: ` : ''}
+                {formatCoinAmount(t.byRail.onchain, coin)} on-chain ·{' '}
+                {formatCoinAmount(t.byRail.lightning, coin)} Lightning ·{' '}
+                {formatCoinAmount(t.byRail.manual, coin)} marked by hand
+                {t.refundedAtoms > 0n ? ` · ${formatCoinAmount(t.refundedAtoms, coin)} refunded` : ''}
+              </p>
+            );
+          })}
         {close.count === 0 && close.cancelledCount > 0 && (
           <p className="mt-3 text-sm text-ink" data-empty-drawer>
             Nothing was taken. The drawer is empty. Cancelled lines are listed below, and they are not in this total.
@@ -280,8 +319,8 @@ export default function History() {
         </label>
         {[
           ['Sales', String(close.count)],
-          ['Net', formatSats(close.netAtoms)],
-          ['Refunded', formatSats(close.refundedAtoms)],
+          ['Net', perCoin((t) => t.netAtoms)],
+          ['Refunded', perCoin((t) => t.refundedAtoms)],
         ].map(([k, v]) => (
           <div key={k} className="rounded-lg border border-line px-2 py-1">
             <span className="eyebrow">{k}</span>
@@ -301,14 +340,14 @@ export default function History() {
         ).map(([k, v]) => (
           <div key={k} className="rounded-lg border border-line px-2 py-1">
             <span className="eyebrow">{k}</span>
-            <p className="figure mt-0.5 text-[11px]">{formatSats(v)}</p>
+            <p className="figure mt-0.5 text-[11px]">{formatCoinAmount(v, dayCoin)}</p>
           </div>
         ))}
       </div>
 
       <p className="mt-2 text-[11px] text-muted" data-books-observed>
-        Observed by slip: <span className="figure">{formatSats(close.observedAtoms)}</span> · confirmed
-        by a human: <span className="figure">{formatSats(close.manualAtoms)}</span>
+        Observed by slip: <span className="figure">{perCoin((t) => t.observedAtoms)}</span> · confirmed
+        by a human: <span className="figure">{perCoin((t) => t.manualAtoms)}</span>
       </p>
 
       <div className="mt-2 flex flex-wrap gap-2">
@@ -374,12 +413,12 @@ export default function History() {
                   {row.at.slice(11, 16)} · {row.walletLabel}
                   {row.note ? ` · ${row.note}` : ''}
                 </span>
-                <span className="figure text-xs">{formatSats(row.netAtoms)}</span>
+                <span className="figure text-xs">{formatCoinAmount(row.netAtoms, row.coin)}</span>
               </div>
               <p className="mt-0.5 text-[11px] text-muted">
                 <span className="chip mr-1">{row.rail}</span>
                 {row.manual ? 'manual confirmation · ' : ''}
-                {row.refundedAtoms > 0n ? `refunded ${formatSats(row.refundedAtoms)} · ` : ''}
+                {row.refundedAtoms > 0n ? `refunded ${formatCoinAmount(row.refundedAtoms, row.coin)} · ` : ''}
                 {row.id}
               </p>
               {row.refundedAtoms < row.atoms && (
@@ -467,7 +506,7 @@ export default function History() {
                     {inv.createdAt.slice(11, 16)} · {inv.walletLabel}
                     {inv.note ? ` · ${inv.note}` : ''}
                   </span>
-                  <span className="figure text-xs line-through opacity-60">{formatSats(inv.amountAtoms)}</span>
+                  <span className="figure text-xs line-through opacity-60">{formatCoinAmount(inv.amountAtoms, coinOf(inv.walletId))}</span>
                 </div>
                 <p className="mt-0.5 text-[11px] text-muted">
                   <span className="chip mr-1">cancelled</span>

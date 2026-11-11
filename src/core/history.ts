@@ -10,6 +10,9 @@
 
 import type { Invoice } from './orders';
 
+import { formatCoinAmount } from './money';
+import type { Coin } from './network';
+
 export type Rail = 'onchain' | 'lightning' | 'manual' | 'other';
 
 export interface RefundLike {
@@ -21,6 +24,9 @@ export interface RefundLike {
 
 export interface SaleRow {
   readonly id: string;
+  /** The chain this sale was paid on. A row that does not name its coin is a row that can be added
+   *  to a Bitcoin total by accident, which is how a shop gets a number that means nothing. */
+  readonly coin: Coin;
   readonly at: string;
   readonly walletLabel: string;
   readonly rail: Rail;
@@ -29,6 +35,18 @@ export interface SaleRow {
   readonly netAtoms: bigint;
   readonly manual: boolean;
   readonly note: string;
+}
+
+export interface CoinTotals {
+  readonly count: number;
+  readonly grossAtoms: bigint;
+  readonly refundedAtoms: bigint;
+  readonly netAtoms: bigint;
+  readonly manualAtoms: bigint;
+  readonly observedAtoms: bigint;
+  readonly cancelledAtoms: bigint;
+  readonly cancelledCount: number;
+  readonly byRail: Readonly<Record<Rail, bigint>>;
 }
 
 export interface DayClose {
@@ -45,6 +63,11 @@ export interface DayClose {
   /** Sales started on this day and cancelled before they paid. Not takings — a separate number. */
   readonly cancelledAtoms: bigint;
   readonly cancelledCount: number;
+  /** Totals kept apart by chain. The blended numbers above are only meaningful when `coins` has one
+   *  entry; with two, the books must show these instead. */
+  readonly byCoin: Readonly<Record<Coin, CoinTotals>>;
+  /** Which chains appear in this day, in the order Bitcoin, Litecoin. */
+  readonly coins: readonly Coin[];
 }
 
 /** Which rail a sale came in on — read from the invoice, never inferred from the amount. */
@@ -55,12 +78,13 @@ export function railOf(invoice: Invoice): Rail {
   return 'onchain';
 }
 
-export function toRow(invoice: Invoice, refunds: readonly RefundLike[]): SaleRow {
+export function toRow(invoice: Invoice, refunds: readonly RefundLike[], coin: Coin = 'btc'): SaleRow {
   const refunded = refunds
     .filter((r) => r.invoiceId === invoice.id)
     .reduce((sum, r) => sum + r.atoms, 0n);
   return {
     id: invoice.id,
+    coin,
     at: invoice.createdAt,
     walletLabel: invoice.walletLabel,
     rail: railOf(invoice),
@@ -80,10 +104,13 @@ export function dayClose(
   invoices: readonly Invoice[],
   refunds: readonly RefundLike[],
   date: string,
+  /** Which chain each wallet takes. Without it every sale is assumed Bitcoin, which is what the
+   *  books used to do silently for Litecoin. */
+  coinOf: (walletId: string) => Coin = () => 'btc',
 ): DayClose {
   const rows = invoices
     .filter((i) => i.status === 'complete' && i.createdAt.slice(0, 10) === date)
-    .map((i) => toRow(i, refunds))
+    .map((i) => toRow(i, refunds, coinOf(i.walletId)))
     .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
 
   const byRail: Record<Rail, bigint> = { onchain: 0n, lightning: 0n, manual: 0n, other: 0n };
@@ -102,6 +129,55 @@ export function dayClose(
   const cancelled = invoices.filter((i) => i.status === 'cancelled' && i.createdAt.slice(0, 10) === date);
   const cancelledAtoms = cancelled.reduce((sum, i) => sum + i.amountAtoms, 0n);
 
+  const blank = (): CoinTotals => ({
+    count: 0,
+    grossAtoms: 0n,
+    refundedAtoms: 0n,
+    netAtoms: 0n,
+    manualAtoms: 0n,
+    observedAtoms: 0n,
+    cancelledAtoms: 0n,
+    cancelledCount: 0,
+    byRail: { onchain: 0n, lightning: 0n, manual: 0n, other: 0n },
+  });
+  const tally: Record<Coin, CoinTotals> = { btc: blank(), ltc: blank() };
+  const rails: Record<Coin, Record<Rail, bigint>> = {
+    btc: { onchain: 0n, lightning: 0n, manual: 0n, other: 0n },
+    ltc: { onchain: 0n, lightning: 0n, manual: 0n, other: 0n },
+  };
+  for (const row of rows) {
+    const t = tally[row.coin];
+    rails[row.coin][row.rail] += row.netAtoms;
+    tally[row.coin] = {
+      ...t,
+      count: t.count + 1,
+      grossAtoms: t.grossAtoms + row.atoms,
+      refundedAtoms: t.refundedAtoms + row.refundedAtoms,
+      netAtoms: t.netAtoms + row.netAtoms,
+      manualAtoms: row.manual ? t.manualAtoms + row.atoms : t.manualAtoms,
+      observedAtoms: row.manual ? t.observedAtoms : t.observedAtoms + row.atoms,
+    };
+  }
+  for (const invoice of cancelled) {
+    const coin = coinOf(invoice.walletId);
+    const t = tally[coin];
+    tally[coin] = {
+      ...t,
+      cancelledAtoms: t.cancelledAtoms + invoice.amountAtoms,
+      cancelledCount: t.cancelledCount + 1,
+    };
+  }
+  const byCoin: Record<Coin, CoinTotals> = {
+    btc: { ...tally.btc, byRail: rails.btc },
+    ltc: { ...tally.ltc, byRail: rails.ltc },
+  };
+  const coins: Coin[] = (['btc', 'ltc'] as const).filter(
+    (c) =>
+      byCoin[c].count > 0 ||
+      byCoin[c].cancelledCount > 0 ||
+      byCoin[c].refundedAtoms > 0n,
+  );
+
   return {
     date,
     rows,
@@ -114,6 +190,8 @@ export function dayClose(
     observedAtoms: gross - manual,
     cancelledAtoms,
     cancelledCount: cancelled.length,
+    byCoin,
+    coins: coins.length ? coins : ['btc'],
   };
 }
 
@@ -134,7 +212,19 @@ function csvCell(value: string): string {
  * string maths so the file never contains a float that disagrees with the app.
  */
 export function salesCsv(rows: readonly SaleRow[]): string {
-  const header = ['invoice', 'date_time_utc', 'wallet', 'rail', 'sats', 'refunded_sats', 'net_sats', 'btc', 'manual', 'note'];
+  const header = [
+    'invoice',
+    'date_time_utc',
+    'wallet',
+    'coin',
+    'rail',
+    'atoms',
+    'refunded_atoms',
+    'net_atoms',
+    'amount',
+    'manual',
+    'note',
+  ];
   const lines = [header.join(',')];
   for (const r of rows) {
     lines.push(
@@ -142,11 +232,12 @@ export function salesCsv(rows: readonly SaleRow[]): string {
         r.id,
         r.at,
         r.walletLabel,
+        r.coin,
         r.rail,
         r.atoms.toString(),
         r.refundedAtoms.toString(),
         r.netAtoms.toString(),
-        btcString(r.netAtoms),
+        formatCoinAmount(r.netAtoms, r.coin),
         r.manual ? 'yes' : 'no',
         r.note,
       ]
@@ -172,37 +263,52 @@ export interface CloseReport {
 }
 
 /**
- * The Z-report: a plain-text sheet, one line per sale plus totals per rail. Text, not HTML, so
- * it can be printed, pasted into an email or written to a till roll without a renderer.
+ * The Z-report: a plain-text sheet, one line per sale plus totals. Text, not HTML, so it can be
+ * printed, pasted into an email or written to a till roll without a renderer.
+ *
+ * With two chains in one day there is no single total. Atoms of Litecoin and atoms of Bitcoin are
+ * different money, and adding them produces a number that is true of nothing — so the report prints a
+ * block per coin and says out loud that they are kept apart.
  */
 export function closeReport(close: DayClose, shopName: string, currency: string): CloseReport {
-  const money = (atoms: bigint) => `${btcString(atoms)} BTC`;
-  const lines: string[] = [
-    shopName || 'slip',
-    `Day close — ${close.date}`,
-    '',
-    `Sales: ${close.count}`,
-    `Gross: ${money(close.grossAtoms)}`,
-    `Refunded: ${money(close.refundedAtoms)}`,
-    `Net: ${money(close.netAtoms)}  ${currency}`,
-    '',
-    `On-chain: ${money(close.byRail.onchain)}`,
-    `Lightning: ${money(close.byRail.lightning)}`,
-    `Manual: ${money(close.byRail.manual)}`,
-    close.byRail.other > 0n ? `Other rails: ${money(close.byRail.other)}` : '',
-    '',
-    `Observed by slip: ${money(close.observedAtoms)}`,
-    `Confirmed by a human: ${money(close.manualAtoms)}`,
-    close.cancelledCount > 0
-      ? `Cancelled, not taken: ${close.cancelledCount} (${money(close.cancelledAtoms)})`
-      : '',
-    '',
-    ...close.rows.map(
-      (r) =>
-        `${r.at.slice(11, 16)}  ${r.id.padEnd(20).slice(0, 20)}  ${money(r.netAtoms).padStart(14)}  ${r.rail}${r.manual ? ' (manual)' : ''}`,
-    ),
-    '',
-    'A manual line is a human confirmation, not an observation.',
-  ].filter((l) => l !== '');
-  return { title: `Close — ${close.date}`, lines };
+  const words = (atoms: bigint, coin: Coin) => formatCoinAmount(atoms, coin);
+  const lines: string[] = [shopName || 'slip', `Day close — ${close.date}`, ''];
+  const mixed = close.coins.length > 1;
+
+  lines.push(`Sales: ${close.count}`);
+  if (mixed) {
+    lines.push(
+      `Coins in this day: ${close.coins.map((c) => (c === 'ltc' ? 'Litecoin' : 'Bitcoin')).join(' and ')} — kept apart, never added.`,
+    );
+  }
+
+  for (const coin of close.coins) {
+    const t = close.byCoin[coin];
+    if (t.count === 0 && t.cancelledCount === 0) continue;
+    if (mixed) lines.push('', coin === 'ltc' ? '— Litecoin —' : '— Bitcoin —');
+    lines.push(
+      `${mixed ? '' : 'Gross: '}${words(t.grossAtoms, coin)}`,
+      `Refunded: ${words(t.refundedAtoms, coin)}`,
+      `Net: ${words(t.netAtoms, coin)}  ${currency}`,
+      '',
+      `On-chain: ${words(t.byRail.onchain, coin)}`,
+      `Lightning: ${words(t.byRail.lightning, coin)}`,
+      `Manual: ${words(t.byRail.manual, coin)}`,
+      t.byRail.other > 0n ? `Other rails: ${words(t.byRail.other, coin)}` : '',
+      '',
+      `Observed by slip: ${words(t.observedAtoms, coin)}`,
+      `Confirmed by a human: ${words(t.manualAtoms, coin)}`,
+      t.cancelledCount > 0
+        ? `Cancelled, not taken: ${t.cancelledCount} (${words(t.cancelledAtoms, coin)})`
+        : '',
+    );
+  }
+
+  if (close.rows.length > 0) lines.push('', ...close.rows.map((r) => {
+    const amount = words(r.netAtoms, r.coin);
+    return `${r.at.slice(11, 16)}  ${r.id.padEnd(20).slice(0, 20)}  ${amount.padStart(16)}  ${r.rail}${r.manual ? ' (manual)' : ''}`;
+  }));
+
+  lines.push('', 'A manual line is a human confirmation, not an observation.');
+  return { title: `Close — ${close.date}`, lines: lines.filter((l) => l !== '') };
 }

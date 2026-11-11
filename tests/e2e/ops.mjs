@@ -31,11 +31,17 @@ const today = new Date().toISOString().slice(0, 10);
 
 // Never seed a fixed wall-clock. An invoice "created" at 09:00 UTC is in the FUTURE when this
 // suite runs before 09:00 UTC, and reconciliation deliberately skips future-dated invoices — so
-// the sweep found nothing and inv_open stayed 'awaiting'. Anchor the fixture relative to now:
-// created 30 min ago (always swept), expiring 15 min ahead (never already-expired).
+// the sweep found nothing and inv_open stayed 'awaiting'. Anchor the fixture relative to now.
 const NOW_MS = Date.now();
-const agoMin = (m) => new Date(NOW_MS - m * 60_000).toISOString();
-const inMin = (m) => new Date(NOW_MS + m * 60_000).toISOString();
+
+// A second time bomb, and a nastier one: "30 minutes ago" is YESTERDAY for the first 30 minutes of
+// every UTC day, so the day-close panel — which shows today — counted nothing and this suite went red
+// at 00:19 UTC on green code. Keep the fixture inside today, in the past, and 10 minutes wide.
+const DAY_START_MS = Date.parse(`${today}T00:00:00.000Z`);
+const CREATED_MS = Math.min(Math.max(NOW_MS - 30 * 60_000, DAY_START_MS + 60_000), NOW_MS - 60_000);
+const CREATED_AT = new Date(CREATED_MS).toISOString();
+const EXPIRES_AT = new Date(CREATED_MS + 45 * 60_000).toISOString();
+const SEEN_AT = new Date(CREATED_MS + 60_000).toISOString();
 const wallet = (id, label, colour) => ({
   id,
   label,
@@ -66,13 +72,13 @@ const invoice = (id, over) => ({
   amountMinor: '600',
   currency: 'USD',
   rateMinorPerCoin: '6000000',
-  rateAt: agoMin(30),
+  rateAt: CREATED_AT,
   lines: [],
-  createdAt: agoMin(30),
-  expiresAt: inMin(15),
+  createdAt: CREATED_AT,
+  expiresAt: EXPIRES_AT,
   status: 'complete',
-  seenAt: agoMin(29),
-  confirmedAt: agoMin(29),
+  seenAt: SEEN_AT,
+  confirmedAt: SEEN_AT,
   manual: false,
   note: '',
   ...over,
