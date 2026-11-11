@@ -1061,6 +1061,15 @@ export default function Till() {
       });
     return (
       <section className={`mt-6 panel v2-pay`} id="tl-pay" tabIndex={-1}>
+        {/* Said out loud, once, for anyone listening rather than looking: a screen-reader user gets the
+            same news a sighted one does the moment the screen changes, instead of having to hunt for it. */}
+        <p className="sr-only" role="status" aria-live="polite" data-sale-announcer>
+          {invoice.status === 'complete'
+            ? `Paid. ${formatSats(shown.amountAtoms)} is in at ${shown.walletLabel}.`
+            : invoice.status === 'seen'
+              ? `Seen on its way, not confirmed yet. ${formatSats(shown.amountAtoms)} at ${shown.walletLabel}.`
+              : `${leg2 ? waitingLine : `Waiting to be paid, ${formatSats(invoice.amountAtoms)} at ${invoice.walletLabel}. The code is on screen.`}`}
+        </p>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="eyebrow">Payment</p>
           <span className={`chip ${pending ? 'border-warn text-warn' : 'chip-good'}`}>
@@ -1230,6 +1239,15 @@ export default function Till() {
     const proofUri = paymentUri('bitcoin', { address: receipt.address, amountSats: receipt.amountAtoms });
     return (
               <section className="v2-receipt">
+        {/* The same news, spoken. 'Marked paid by you' and 'seen on chain' are different claims, and a
+            screen-reader user must hear which one it is — not just that something finished. */}
+        <p className="sr-only" role="status" aria-live="polite" data-sale-announcer>
+          {receipt.manual
+            ? `Marked paid by you. ${formatSats(receipt.amountAtoms)}. slip did not observe this payment.`
+            : receipt.note === 'rehearsal'
+              ? 'Rehearsal finished. Nothing was charged.'
+              : `Paid — seen on chain. ${formatSats(receipt.amountAtoms)}.`}
+        </p>
         <div
           className={['flex items-start justify-between gap-3', 'v2-receipt-head']
             .filter(Boolean)
@@ -1885,13 +1903,24 @@ export default function Till() {
                 {rate.trim() === '' ? 'Bitcoin price not set' : `${rate} ${settings.currency} per Bitcoin`}
               </p>
             )}
+            {/* Refused is not the same as absent. A disabled button cannot be reached by a keyboard or
+                announced by a screen reader, so the one control that takes the money would simply not
+                exist for those users — and the reason it is refused would be invisible to them. It stays
+                focusable and says why (D-83). */}
             <button
               type="button"
               id="tl-charge"
-              onClick={charge}
-              disabled={!wallet || !totals || chargeSats === null || compareStopped}
-              tabIndex={5}
-              className={`btn btn-primary flex-1 sm:flex-none v2-charge`}
+              onClick={() => {
+                if (!wallet || !totals || chargeSats === null || compareStopped) return;
+                charge();
+              }}
+              aria-disabled={!wallet || !totals || chargeSats === null || compareStopped || undefined}
+              aria-describedby={
+                !wallet || !totals || chargeSats === null || compareStopped ? 'tl-charge-blocker' : undefined
+              }
+              className={`btn btn-primary flex-1 sm:flex-none v2-charge${
+                !wallet || !totals || chargeSats === null || compareStopped ? ' v2-blocked' : ''
+              }`}
             >
               {settings.assist.rehearsal ? 'Rehearse' : 'Charge'}
               {totals && chargeSats !== null ? ` ${formatSats(chargeSats)}` : ''}
@@ -1911,7 +1940,7 @@ export default function Till() {
             </span>
             {/* A greyed button with no reason is a dead end. Say what is missing, and where. */}
             {(!wallet || !totals || chargeSats === null || compareStopped) && (
-              <div className="w-full" data-charge-blocker>
+              <div className="w-full" id="tl-charge-blocker" data-charge-blocker>
                 {compareStopped ? (
                   <Failure
                     kind="chain"

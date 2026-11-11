@@ -51,7 +51,14 @@ check('shop details accepted', true);
 
 // Gate: wallet step cannot advance without the confirmation tick.
 const continueBtn = page.getByRole('button', { name: 'Continue' });
-check('cannot leave the wallet step unconfirmed', await continueBtn.isDisabled());
+// D-83: the gate refuses, but the button must stay reachable so the line under it can be read.
+// Playwright's isDisabled() follows ARIA, so it reads aria-disabled as disabled. The point of D-83 is
+// the opposite: the control must not carry the DOM `disabled` property, so focus can reach it.
+check(
+  'cannot leave the wallet step unconfirmed',
+  (await continueBtn.getAttribute('aria-disabled')) === 'true' &&
+    (await continueBtn.evaluate((el) => el.disabled)) === false,
+);
 
 await page.locator('#wz-network').selectOption('btc-mainnet');
 await page.locator('#wz-xpub').fill(ZPUB);
@@ -74,13 +81,20 @@ await page.waitForSelector('text=step 5 of 5');
 
 const summary = await page.locator('main, div').first().innerText();
 check('summary names the shop', /Corner Coffee/.test(await page.locator('body').innerText()));
-check('summary says no till yet', /cannot take a payment yet/.test(await page.locator('body').innerText()), summary.slice(0, 60));
+// The last gate is a human comparing address 0/0 with their own wallet. Until that tick, setup cannot
+// finish and says so; that is the sentence to assert, not an old heading that no longer exists.
+check('finishing is refused until the match is confirmed', (await page.locator('[data-finish-blocker]').count()) > 0, summary.slice(0, 60));
+const finishTick = page.getByLabel(/I checked address 0\/0/);
+if (await finishTick.count()) await finishTick.check();
+await page.waitForTimeout(200);
+check('confirming the match clears the refusal', (await page.locator('[data-finish-blocker]').count()) === 0);
 
 await page.getByRole('button', { name: 'Finish setup' }).click();
 await page.waitForSelector('h1');
 const after = await page.locator('body').innerText();
-// The section was renamed: a "counter" is now one kind of wallet, and the heading says so.
-check('finishing returns to the workbench', /Wallets & staff hand-off/.test(after), after.slice(0, 120));
+// What matters is that the shop can now take money: the till and its one control are on the page. The
+// old check looked for a panel heading that a later redesign moved behind the Setup tab.
+check('finishing leaves a till that can take money', await page.locator('#tl-charge').count() === 1, after.slice(0, 200));
 check('onboarding is remembered', /run setup again/i.test(after));
 
 // The counter created during setup is real and usable.

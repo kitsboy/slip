@@ -612,15 +612,18 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
         {step === 1 && (
           <p className="text-xs text-warn" role="status" data-blocker>This is the first step. There is nothing before it.</p>
         )}
+        {/* D-83 applies to every step, not only the last: a disabled Continue drops focus and hides the
+            one line that says what is missing. It stays focusable and refused. Same rule as the last step. */}
         {step < 5 ? (
           <button
             type="button"
             onClick={() => {
+              if (!gate.canAdvance) return;
               setStep(nextStep(step));
               setMessage(null);
             }}
-            disabled={!gate.canAdvance}
-            className="btn btn-primary"
+            aria-disabled={!gate.canAdvance || undefined}
+            className={`btn btn-primary${!gate.canAdvance ? ' v2-blocked' : ''}`}
           >
             Continue
           </button>
