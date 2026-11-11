@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.50** — 2026-11-11T17:27:50Z — `82ecdeba9979` — Offline is tested with the network actually off: suite 13
+
 - **v0.31.49** — 2026-11-11T17:07:59Z — `400d6abc7cda` — No dead skin branch left, and every class a component writes now has a rule
 
 - **v0.31.48** — 2026-11-11T13:35:02Z — `5da42d5658c3` — Two dead branches left, the menu in the new grammar, and the gallery as an audit
