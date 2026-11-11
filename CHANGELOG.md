@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.51** — 2026-11-11T18:28:09Z — `b4867859ddfe` — A busy day now prints on A4 as a proper sheet: two pages, real columns
+
 - **v0.31.50** — 2026-11-11T17:27:50Z — `82ecdeba9979` — Offline is tested with the network actually off: suite 13
 
 - **v0.31.49** — 2026-11-11T17:07:59Z — `400d6abc7cda` — No dead skin branch left, and every class a component writes now has a rule
