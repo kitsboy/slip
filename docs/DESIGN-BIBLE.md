@@ -449,7 +449,7 @@ It offers jumps into text that is already on the page. A search field that retur
 the manual uses is worse than no search field: it teaches the reader that the answer is not there. So
 it indexes prose, not just headings, and its empty state admits the limit in words.
 
-## The five signature moves, measured
+## The signature moves, measured (eight of the twelve)
 
 1. **The receipt is torn off, not cut.** Half-circles of the page's own colour eat the card's bottom
    edge (`::after`, 12px, repeat-x, inset by the corner radius so the first and last punch are not
@@ -481,3 +481,22 @@ PSBT or transaction-building code in the bundle — importing the payment builde
 `@scure/btc-signer/payment` instead of the package root changed the output by **0 bytes**, which is
 proof the library was already tree-shaken. Nothing can be cut without cutting a feature, so nothing
 was cut: the measurement was wrong, not the page.
+
+6. **The stamp lands, it does not appear.** A badge the engine earned arrives at −5° and 1.18 scale and
+   settles in 260ms, then keeps a 1.5° tilt — printed, not typeset. It never replaces the words: the
+   badge still says "seen on chain", and a cue is still a courtesy, never evidence.
+7. **The countertop catches the light.** Every raised card, receipt and tile carries a 1px inner
+   highlight along its top edge (`inset 0 1px 0` in 7% ink) and a top border in `--v2-raised`. No glow,
+   no stacked shadows.
+8. **The rule is drawn, not printed.** The hairline under a figure on the books slip and the receipt is
+   drawn left to right once, 240ms. Scoped to those two surfaces on purpose: a rule that animated on
+   every screen would be a tic.
+
+All eight are measured in a browser, and all of them stand still under `prefers-reduced-motion`.
+
+## The gallery ships now (the owner is the developer)
+
+`?gallery=1` was dev-only. It now ships, because asking the owner to run a build server to look at his
+own components is a rule with no benefit. Guard rails kept: nothing in the shop links to it, it sets
+`noindex`, and `scan-bundle.sh` fails the build if any `href` or tab ever points at it. It costs about
+9 KB raw, 2 KB over the wire.

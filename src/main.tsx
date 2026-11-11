@@ -138,9 +138,12 @@ if (isDemo) {
   seedDemo();
 }
 
-if (import.meta.env.DEV && params.get('gallery') === '1') {
-  // Dev server only. Vite drops this import from the production file, and
-  // scan-bundle refuses the build if the gallery marker survives.
+if (params.get('gallery') === '1') {
+  // The component gallery ships, because the owner is the developer and wants to look at the parts
+  // without a build server: https://slip.giveabit.io/?gallery=1. It is reachable only by typing the
+  // query — nothing links to it, it asks search engines to keep away, and every sample on it is
+  // labelled as a part, never as a sale. It is a workbench, not a screen of the shop.
+  document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="noindex" />');
   void import('./ui/Gallery').then(({ default: Gallery }) => {
     createRoot(el).render(
       <React.StrictMode>

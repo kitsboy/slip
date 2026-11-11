@@ -54,9 +54,13 @@ if [[ "$fail" -ne 0 ]]; then
   exit 1
 fi
 
-# 6. The component gallery is a dev page. It must not ship.
+# 6. The component gallery ships on purpose — the owner asked for it at ?gallery=1 — so the rule is no
+#    longer "it must not be in the file" but "nothing in the shop may link to it". A tab, a button or a
+#    footer link would put a workbench in front of a shopkeeper.
 if grep -qF 'data-slip-gallery' "$FILE"; then
-  report 'component gallery shipped in the production file'
+  if grep -qE '(href|data-tab)="[^"]*gallery' "$FILE"; then
+    report 'something links to the component gallery — it must stay reachable only by typing the query'
+  fi
 fi
 
 if [[ "$fail" -ne 0 ]]; then

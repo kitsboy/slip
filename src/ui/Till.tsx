@@ -115,6 +115,8 @@ export default function Till() {
   const [staffId, setStaffId] = useState<string>('');
   const [quote, setQuote] = useState<RateQuote | null>(null);
   const [rateFailed, setRateFailed] = useState<string | null>(null);
+  /** The loading state of the price line. Without it a slow price source looks like a dead till. */
+  const [rateBusy, setRateBusy] = useState(false);
   const [rateNote, setRateNote] = useState<string>(() => {
     try {
       const saved = appStore().getItem('rate:last');
@@ -343,6 +345,7 @@ export default function Till() {
     }
 
     let cancelled = false;
+    setRateBusy(true);
     const current = entry;
     current.promise
       .then((q) => {
@@ -350,6 +353,7 @@ export default function Till() {
         setQuote(q);
         setRate((prev) => prev.trim() || (Number(q.minorPerCoin) / 100).toFixed(2));
         setRateFailed(null);
+        setRateBusy(false);
         setRateNote(`fetched ${q.fetchedAt.slice(11, 16)} UTC from ${q.source}`);
       })
       .catch((e: unknown) => {
@@ -358,6 +362,7 @@ export default function Till() {
         RATE_CACHE.delete(key);
         setQuote(null);
         setRateFailed(e instanceof Error ? e.message : 'the rate service did not answer');
+        setRateBusy(false);
         setRateNote('');
       });
 
@@ -1786,6 +1791,14 @@ export default function Till() {
 
           </details>
 
+          {rateBusy && !rateNote && !rateFailed && (
+            // The loading state of the price line. A price source that is slow is not a broken till,
+            // and silence in this spot used to read as one.
+            <p className="mt-1 flex items-center gap-2 text-[11px] text-muted" role="status" data-rate-busy>
+              <span className="v2-beat" aria-hidden />
+              <span>Asking the price source… you can still type a rate in Tools.</span>
+            </p>
+          )}
           {rateNote && (
             <p className="mt-1 flex items-center gap-2 text-[11px] text-muted">
               {quote && settings.assist.freshnessRings && <FreshnessRing fetchedAt={quote.fetchedAt} />}

@@ -3251,3 +3251,60 @@ html[data-skin='v2'] .v2-foot-brand:focus-visible {
     padding-bottom: 56px;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Three more signature moves, from the brief's twelve (D5).
+ *
+ * Each is one small thing a shopkeeper would notice and could not name, and each is
+ * measurable: a computed transform, a painted border, a drawn rule. All three stand
+ * still under `prefers-reduced-motion`, because a till is not a toy.
+ * ------------------------------------------------------------------------- */
+
+/* M-06 — the stamp lands, it does not appear.
+   When the engine has actually seen the money, the badge is stamped onto the slip: it arrives turned
+   slightly and grows into place. A cue is still a courtesy, never evidence — the words do the proving;
+   this only makes the moment feel like a stamp rather than a repaint. */
+html[data-skin='v2'] .v2-badge-good {
+  animation: v2-stamp 260ms cubic-bezier(0.2, 1.4, 0.4, 1) 1;
+  transform-origin: 70% 60%;
+}
+@keyframes v2-stamp {
+  from { transform: rotate(-5deg) scale(1.18); opacity: 0.4; }
+  to { transform: rotate(-1.5deg) scale(1); opacity: 1; }
+}
+/* The stamp keeps a small tilt after it lands: printed, not typeset. */
+html[data-skin='v2'] .v2-badge-good { transform: rotate(-1.5deg); }
+
+/* M-07 — the countertop catches the light.
+   Every raised card gets a 1px inner line along its top edge, the way a sheet of paper catches a
+   lamp. It is a border colour and nothing else: no glow, no shadow stacking. */
+html[data-skin='v2'] .v2-card,
+html[data-skin='v2'] .v2-receipt,
+html[data-skin='v2'] .v2-tile {
+  border-top-color: var(--v2-raised);
+  box-shadow: inset 0 1px 0 0 color-mix(in oklab, var(--v2-ink) 7%, transparent);
+}
+
+/* M-08 — the rule is drawn, not printed.
+   The hairline under a figure is drawn left to right when the slip arrives, once, in 240ms. On the
+   books and the receipt only: a rule that animated on every screen would be a tic, not a signature. */
+html[data-skin='v2'] .v2-slip .v2-rule,
+html[data-skin='v2'] .v2-receipt .v2-rule {
+  transform-origin: left center;
+  animation: v2-draw 240ms ease-out 1;
+}
+@keyframes v2-draw {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-skin='v2'] .v2-badge-good,
+  html[data-skin='v2'] .v2-slip .v2-rule,
+  html[data-skin='v2'] .v2-receipt .v2-rule {
+    animation: none;
+  }
+  html[data-skin='v2'] .v2-badge-good {
+    transform: none;
+  }
+}
