@@ -1,7 +1,7 @@
 {
   "name": "slip",
   "private": true,
-  "version": "0.31.42",
+  "version": "0.31.43",
   "type": "module",
   "description": "slip — a non-custodial, serverless, watch-only point-of-sale terminal. Sells pay straight into the merchant's own wallet.",
   "license": "MIT",

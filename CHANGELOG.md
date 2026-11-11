@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.43** — 2026-11-11T00:29:32Z — `0b0ad8ef4311` — The books keep Bitcoin and Litecoin apart: two totals, never one blended number
+
 - **v0.31.42** — 2026-11-10T23:12:26Z — `c0988a3a122b` — Litecoin amounts print as LTC, never sats, plus the one-page trial sheet
 
 - **v0.31.41** — 2026-11-10T22:54:38Z — `eac4f7663726` — Litecoin limits in the manual, Fedimint pinned off, and the engine fed a real Litecoin block
