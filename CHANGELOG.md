@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.48** — 2026-11-11T13:35:02Z — `5da42d5658c3` — Two dead branches left, the menu in the new grammar, and the gallery as an audit
+
 - **v0.31.47** — 2026-11-11T13:02:45Z — `aed3714da391` — The old header is gone: 69 dead skin branches down to 49, no pixel changed
 
 - **v0.31.46** — 2026-11-11T12:38:39Z — `69d5a2fea3e0` — Eighteen dead skin branches gone, and the shelf now says when a search finds nothing
