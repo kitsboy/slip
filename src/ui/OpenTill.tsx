@@ -11,7 +11,6 @@
  */
 
 import { useState } from 'react';
-import { isSkinV2 } from './skin';
 
 export interface OpenShift {
   readonly staff: string;
@@ -109,15 +108,9 @@ export default function OpenTill({ staff, shift, counter = '', currency, busy = 
   if (!expanded) {
     return (
       <div
-        className={isSkinV2() ? 'v2-shift' : 'mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface-2 px-3 py-2'}
+        className="v2-shift"
         data-shift="closed"
       >
-        {isSkinV2() ? null : (
-          <p className="text-[11px] text-muted">
-            <span className="text-ink">The till isn&rsquo;t open yet.</span> Your first sale opens it —
-            or open it now to say who is on.
-          </p>
-        )}
         <button type="button" onClick={() => setExpanded(true)} className="btn btn-secondary">
           Open the till
         </button>

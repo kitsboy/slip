@@ -11,7 +11,6 @@ import { useEffect, useState } from 'react';
 import { createRepository } from '../core/accounts';
 import { createLedger } from '../core/ledger';
 import { store as appStore } from '../core/storage';
-import { isSkinV2 } from './skin';
 
 interface Row {
   readonly label: string;
@@ -83,7 +82,7 @@ export default function Readiness() {
 
       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
         <div
-          className={`h-full transition-all ${isSkinV2() ? 'v2-ink-fill' : 'bg-accent'}`}
+          className={`h-full transition-all v2-ink-fill`}
           style={{ width: `${(done / Math.max(1, checkable.length)) * 100}%` }}
         />
       </div>

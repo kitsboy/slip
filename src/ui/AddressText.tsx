@@ -1,4 +1,3 @@
-import { isSkinV2 } from './skin';
 
 /** Groups of four, for the eye. No spaces are inserted, so a check that reads the text still sees the plain address. */
 export function addressGroups(address: string): string[] {
@@ -7,7 +6,6 @@ export function addressGroups(address: string): string[] {
 }
 
 export default function AddressText({ address }: { address: string }) {
-  if (!isSkinV2()) return <>{address}</>;
   const raw = address.replace(/\s+/g, '');
   const groups = addressGroups(raw);
   return (

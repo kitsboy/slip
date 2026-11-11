@@ -24,7 +24,6 @@ import { fiatToAtoms, formatFiat, formatSats, parseFiat, parseRate } from '../co
 import { loadSettings } from '../core/settings';
 import { paymentUri, renderQrSvg } from '../core/qr';
 import { store as appStore } from '../core/storage';
-import { isSkinV2 } from './skin';
 import AddressText from './AddressText';
 import AwaitingStrip from './AwaitingStrip';
 import Sheet from './Sheet';
@@ -122,7 +121,7 @@ export default function Requests() {
   }
 
   return (
-    <section className={`mt-6 panel ${isSkinV2() ? 'v2-money-in' : ''}`} data-panel="requests">
+    <section className={`mt-6 panel v2-money-in`} data-panel="requests">
       <p className="eyebrow">Rent &amp; standing requests</p>
       <h2 className="panel-title mt-1">Money that arrives on a schedule</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">
@@ -130,7 +129,7 @@ export default function Requests() {
         never calls it covered unless a completed invoice says so.
       </p>
 
-      <div className={`mt-3 grid gap-2 sm:grid-cols-2 ${isSkinV2() ? 'v2-form' : ''}`}>
+      <div className={`mt-3 grid gap-2 sm:grid-cols-2 v2-form`}>
         <label className="block" htmlFor="rq-label">
           <span className="eyebrow">What is it</span>
           <input
@@ -210,7 +209,7 @@ export default function Requests() {
         }}
       />
 
-      <dl className={`mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 ${isSkinV2() ? 'v2-leaders' : ''}`}>
+      <dl className={`mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 v2-leaders`}>
         {[
           ['In (30d)', formatSats(clock.in30dAtoms)],
           ['Committed (30d)', formatFiat({ minor: clock.out30dAtoms, currency: settings.currency })],

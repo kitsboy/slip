@@ -18,7 +18,6 @@ import { formatSats } from '../core/money';
 import { ScanField } from './Scan';
 import InfoVideo from './InfoVideo';
 import { store as appStore } from '../core/storage';
-import { isSkinV2 } from './skin';
 
 export default function Verify() {
   const ledger = useMemo(() => createLedger(appStore()), []);
@@ -65,7 +64,7 @@ export default function Verify() {
   }
 
   return (
-    <section className={`mt-6 panel ${isSkinV2() ? 'v2-proof' : ''}`} data-panel="verify">
+    <section className={`mt-6 panel v2-proof`} data-panel="verify">
       <p className="eyebrow">Receipts</p>
       <div className="flex items-center gap-2">
         <h2 className="panel-title mt-1">Check a receipt</h2>

@@ -7,7 +7,6 @@
  */
 
 import { freshness } from '../core/freshness';
-import { isSkinV2 } from './skin';
 
 export interface FreshnessRingProps {
   readonly fetchedAt: string;
@@ -20,17 +19,11 @@ export default function FreshnessRing({ fetchedAt, now, size = 14, showLabel = t
   const f = freshness(fetchedAt, now);
   const r = size / 2 - 1.5;
   const circumference = 2 * Math.PI * r;
-  const v2 = isSkinV2();
-  const stroke = v2
-    ? 'currentColor'
-    : f.level === 'fresh'
-      ? 'var(--ok, #3fa66b)'
-      : f.level === 'ageing'
-        ? 'var(--warn, #c98a00)'
-        : 'var(--bad, #c0392b)';
+  // The ring is drawn in ink: colour is left to the label beside it, which also carries a word.
+  const stroke = 'currentColor';
 
   return (
-    <span className="inline-flex items-center gap-1" data-freshness={f.level} data-v2-ring={v2 ? f.level : undefined}>
+    <span className="inline-flex items-center gap-1" data-freshness={f.level} data-v2-ring={f.level}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`data ${f.label}`}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeOpacity="0.18" strokeWidth="1.5" />
         <circle

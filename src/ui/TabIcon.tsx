@@ -7,7 +7,6 @@
 
 import type { ReactNode } from 'react';
 
-import { isSkinV2 } from './skin';
 
 const PATHS: Readonly<Record<string, ReactNode>> = {
   sell: (
@@ -50,15 +49,14 @@ const PATHS: Readonly<Record<string, ReactNode>> = {
 };
 
 export default function TabIcon({ tab }: { readonly tab: string }) {
-  const v2 = isSkinV2();
   return (
     <svg
       viewBox="0 0 24 24"
-      width={v2 ? 24 : 20}
-      height={v2 ? 24 : 20}
+      width={24}
+      height={24}
       fill="none"
       stroke="currentColor"
-      strokeWidth={v2 ? 2 : 1.6}
+      strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden

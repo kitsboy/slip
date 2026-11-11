@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 
-import { isSkinV2 } from './skin';
 
 /**
  * One honest line plus one next action for a panel that has nothing in it yet.
@@ -9,14 +8,6 @@ import { isSkinV2 } from './skin';
  * and what to do now. Wording stays concrete — no "get started", no exclamation marks.
  */
 export default function EmptyState({ children, action }: { children: ReactNode; action?: ReactNode }) {
-  if (!isSkinV2()) {
-    return (
-      <div className="mt-3 rounded-lg border border-dashed border-line bg-surface-2 p-3 text-xs leading-relaxed text-muted">
-        <p>{children}</p>
-        {action && <div className="mt-2">{action}</div>}
-      </div>
-    );
-  }
   return (
     <div className="v2-empty">
       <svg viewBox="0 0 32 32" width="48" height="48" aria-hidden fill="none" stroke="currentColor" strokeWidth="2">

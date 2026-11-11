@@ -19,7 +19,6 @@ import { loadSettings } from '../core/settings';
 import { formatCoinAmount } from '../core/money';
 import { ScanField } from './Scan';
 import { escapeHtml, openPrintable } from './print';
-import { isSkinV2 } from './skin';
 import Sheet from './Sheet';
 import InfoVideo from './InfoVideo';
 import Blocker from './Blocker';
@@ -200,7 +199,7 @@ export default function History() {
 
   return (
     <section
-      className={`mt-6 panel ${isSkinV2() ? 'v2-books' : ''}`}
+      className={`mt-6 panel v2-books`}
       data-version={version}
       data-panel="history"
       data-close-count={close.count}
@@ -228,7 +227,7 @@ export default function History() {
       </p>
 
       {/* The day's line before its detail: the number a shopkeeper came for, and what it is made of. */}
-      <div className={`mt-3 rounded-xl border border-line bg-surface p-3 ${isSkinV2() ? 'v2-slip v2-slip-tear' : ''}`} data-today-line data-books-sheet data-cancelled-count={close.cancelledCount} data-cancelled-atoms={close.cancelledAtoms.toString()}>
+      <div className={`mt-3 rounded-xl border border-line bg-surface p-3 v2-slip v2-slip-tear`} data-today-line data-books-sheet data-cancelled-count={close.cancelledCount} data-cancelled-atoms={close.cancelledAtoms.toString()}>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="eyebrow">{date === todayIso ? 'Today' : 'That day'}</p>
           <p className="text-[11px] text-muted">
@@ -256,12 +255,7 @@ export default function History() {
           </div>
         ) : (
           <p
-            className={[
-              'figure mt-1 text-[2rem] font-bold leading-none tabular-nums',
-              isSkinV2() && 'v2-engrave',
-            ]
-              .filter(Boolean)
-              .join(' ')}
+            className="figure v2-engrave mt-1 text-[2rem] font-bold leading-none tabular-nums"
           >
             {formatCoinAmount(close.netAtoms, close.coins[0] ?? 'btc')}
           </p>
@@ -301,7 +295,7 @@ export default function History() {
         )}
       </div>
 
-      <div className={`mt-3 grid gap-2 sm:grid-cols-4 ${isSkinV2() ? 'v2-leaders' : ''}`} data-books-totals>
+      <div className={`mt-3 grid gap-2 sm:grid-cols-4 v2-leaders`} data-books-totals>
         <label className="block" htmlFor="hs-date">
           <span className="eyebrow">Day</span>
           <select
@@ -329,7 +323,7 @@ export default function History() {
         ))}
       </div>
 
-      <div className={`mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4 ${isSkinV2() ? 'v2-leaders' : ''}`} data-books-rails>
+      <div className={`mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4 v2-leaders`} data-books-rails>
         {(
           [
             ['on-chain', close.byRail.onchain],
@@ -369,7 +363,7 @@ export default function History() {
             printClose();
           }}
           aria-disabled={close.count === 0 || undefined}
-          className={`btn btn-primary px-3 py-2 text-xs${isSkinV2() ? ' v2-close' : ''}${close.count === 0 ? ' v2-blocked' : ''}`}
+          className={`btn btn-primary px-3 py-2 text-xs v2-close${close.count === 0 ? ' v2-blocked' : ''}`}
         >
           Close the day
         </button>

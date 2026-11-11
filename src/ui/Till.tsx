@@ -1603,6 +1603,20 @@ export default function Till() {
                   }}
                 />
               </div>
+              {items.length > 0 && visible.length === 0 && (
+                // A search that matches nothing used to leave blank space where the shelf should be:
+                // the till looked broken rather than empty-handed. Say what was searched for, and
+                // offer the one thing that helps — everything back on the shelf.
+                <div className="mt-3 rounded-lg border border-line p-3" data-catalog-empty>
+                  <p className="text-xs text-muted">
+                    Nothing on the shelf matches &ldquo;{query}&rdquo;. Search checks the item name and
+                    its note.
+                  </p>
+                  <button type="button" onClick={() => setQuery('')} className="btn btn-secondary mt-2 text-xs">
+                    Show everything
+                  </button>
+                </div>
+              )}
               <div className={`mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4${isSkinV2() ? ' v2-catalog' : ''}`}>
                 {visible.map((i) => {
                   const inCart = cart.find((l) => l.item.id === i.id);
