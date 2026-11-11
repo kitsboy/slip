@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.44** — 2026-11-11T02:12:23Z — `17d60ecad914` — The gallery ships at ?gallery=1, the price line admits it is waiting, and three more signature moves
+
 - **v0.31.43** — 2026-11-11T00:29:32Z — `0b0ad8ef4311` — The books keep Bitcoin and Litecoin apart: two totals, never one blended number
 
 - **v0.31.42** — 2026-11-10T23:12:26Z — `c0988a3a122b` — Litecoin amounts print as LTC, never sats, plus the one-page trial sheet
