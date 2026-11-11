@@ -18,8 +18,13 @@ const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '00', '⌫'] as 
 const SAMPLE = 'bc1qcr8te4zc7example0000000000000006fyu';
 
 /**
- * The parts, on a page of their own. Dev server only — the production build
- * drops this file. Nothing here moves money or reads a wallet.
+ * The parts, on a page of their own — at `?gallery=1`, in production too.
+ *
+ * It is a workbench, not a screen of the shop: nothing links to it, it asks search engines to stay
+ * away, and every figure here is a sample. Nothing on it moves money or reads a wallet.
+ *
+ * The table at the bottom is the point of the page now: every state of the money path, per surface,
+ * with the ones that do not exist yet marked as missing rather than drawn as if they did.
  */
 export default function Gallery() {
   const [open, setOpen] = useState(false);
@@ -111,6 +116,121 @@ export default function Gallery() {
         <Progress value={40} />
         <Progress />
         <Stepper step={2} of={3} labels={['Wallet', 'Compare', 'Done']} />
+      </section>
+
+      <section>
+        <h2>The nine states</h2>
+        <p className="prose">
+          Every state the money path can be in, in words and in the component that carries it. A state
+          that is drawn here but missing from a screen is a bug in the screen, not a gap in the page.
+        </p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <div className="panel p-3">
+            <p className="eyebrow">Resting</p>
+            <p className="mt-1 text-xs text-muted">Nothing typed. The till shows its resting line.</p>
+            <p className="v2-display-idle-line mt-2">What would you like to sell?</p>
+          </div>
+          <div className="panel p-3">
+            <p className="eyebrow">Blocked</p>
+            <p className="mt-1 text-xs text-muted">The action is refused, and the reason is on screen.</p>
+            <div className="mt-2">
+              <Button kind="primary" blocked="Add a wallet first">
+                Charge
+              </Button>
+            </div>
+          </div>
+          <div className="panel p-3">
+            <p className="eyebrow">Loading</p>
+            <p className="mt-1 text-xs text-muted">Waiting on a price source, said out loud.</p>
+            <p className="mt-2 flex items-center gap-2 text-[11px] text-muted" role="status">
+              <span className="v2-beat" aria-hidden />
+              <span>Asking the price source…</span>
+            </p>
+          </div>
+          <div className="panel p-3">
+            <p className="eyebrow">Waiting</p>
+            <p className="mt-1 text-xs text-muted">A code is on screen and nobody has paid yet.</p>
+            <div className="mt-2 grid gap-1">
+              <StatusLine state="waiting" word="Waiting to be paid" />
+              <Countdown secondsLeft={75} />
+            </div>
+          </div>
+          <div className="panel p-3">
+            <p className="eyebrow">Seen, not paid</p>
+            <p className="mt-1 text-xs text-muted">A transaction exists; confirmations do not yet.</p>
+            <div className="mt-2">
+              <StatusLine state="waiting" word="Seen on chain — waiting for confirmations" />
+            </div>
+          </div>
+          <div className="panel p-3">
+            <p className="eyebrow">Paid</p>
+            <p className="mt-1 text-xs text-muted">The engine observed it. Only then does it say paid.</p>
+            <div className="mt-2">
+              <StatusLine state="confirmed" word="Paid — seen on chain" />
+            </div>
+          </div>
+          <div className="panel p-3">
+            <p className="eyebrow">Marked by you</p>
+            <p className="mt-1 text-xs text-muted">A human said so. It says a human said so.</p>
+            <div className="mt-2">
+              <StatusLine state="manual" word="Marked paid by you" />
+            </div>
+          </div>
+          <div className="panel p-3">
+            <p className="eyebrow">Expired</p>
+            <p className="mt-1 text-xs text-muted">The window closed with nothing taken.</p>
+            <div className="mt-2">
+              <Countdown secondsLeft={0} />
+            </div>
+          </div>
+          <div className="panel p-3">
+            <p className="eyebrow">Cancelled and refunded</p>
+            <p className="mt-1 text-xs text-muted">Cancelled is not taken; refunded is taken and given back.</p>
+            <div className="mt-2 flex flex-wrap gap-1">
+              <Badge kind="warn" word="CANCELLED" />
+              <Badge kind="warn" word="REFUNDED" />
+              <Badge kind="simulated" word="SIMULATED" />
+            </div>
+          </div>
+        </div>
+
+        <h3 className="mt-4">Which screen has which state</h3>
+        <table className="mt-2 w-full text-left text-[11px]">
+          <thead>
+            <tr className="text-muted">
+              <th className="py-1 pr-2 font-semibold">State</th>
+              <th className="py-1 pr-2 font-semibold">Till</th>
+              <th className="py-1 pr-2 font-semibold">Receipt</th>
+              <th className="py-1 pr-2 font-semibold">Books</th>
+              <th className="py-1 font-semibold">Money in</th>
+            </tr>
+          </thead>
+          <tbody className="text-ink-2">
+            {[
+              ['Resting', 'yes', '—', '—', 'yes'],
+              ['Entry', 'yes', '—', '—', '—'],
+              ['Loading', 'yes', '—', '—', '—'],
+              ['Blocked', 'yes', '—', 'yes', '—'],
+              ['Waiting', 'yes', 'yes', 'yes', 'yes'],
+              ['Seen', 'yes', 'yes', '—', 'yes'],
+              ['Paid', 'yes', 'yes', 'yes', 'yes'],
+              ['Expired', 'yes', '—', 'yes', 'yes'],
+              ['Cancelled', 'yes', '—', 'yes', '—'],
+            ].map((row) => (
+              <tr key={row[0]} className="border-t border-line">
+                {row.map((cell) => (
+                  <td key={cell} className="py-1 pr-2">
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="prose mt-2">
+          Read as an audit, not a boast: a dash means the surface has no such state, and that is a
+          question for the design, not a promise that it never needs one.
+        </p>
       </section>
 
       <section>

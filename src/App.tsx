@@ -298,7 +298,7 @@ export default function App() {
         }
         {menuOpen && (
           <div className="mx-auto w-full max-w-3xl px-5 pb-3" role="menu" aria-label="Appearance and about">
-            <div className="panel p-3">
+            <div className="panel v2-menu p-3">
               <p className="eyebrow">Appearance</p>
               <div className="mt-2 grid gap-1">
                 {(
@@ -317,13 +317,11 @@ export default function App() {
                       setTheme(value);
                       setMenuOpen(false);
                     }}
-                    className={`flex items-center gap-2 rounded-lg px-2 py-2 text-left text-sm ${
-                      theme === value ? 'bg-accent/10 text-ink' : 'text-secondary hover:text-ink'
-                    }`}
+                    className="v2-menu-row"
                   >
                     <span aria-hidden className="w-4">{glyph}</span>
                     <span className="flex-1">{label}</span>
-                    {theme === value && <span className="text-xs text-accent">in use</span>}
+                    {theme === value && <span className="v2-menu-inuse">in use</span>}
                   </button>
                 ))}
               </div>

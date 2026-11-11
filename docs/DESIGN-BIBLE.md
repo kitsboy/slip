@@ -519,3 +519,15 @@ which names five of his twelve (the tear, perforation leaders, the ink underline
 the monogram fallback). The tear and the chunked address are shipped as he drew them. Moves 9–12 here
 are our own designs under the same brief and the same rules; calling them "Claude's" would be a
 marketing claim, not a fact.
+
+## A class name is not a design
+
+`Countdown` carried `className="v2-count"` for weeks with no rule behind it, so a receipt read
+"01:15until this QR expires" — two inline spans butted together. Nothing failed: it type-checked, it
+rendered, it passed every suite. It was found by looking at the gallery at close range.
+
+The lesson is not "write more tests". It is that **a component's class must exist in the stylesheet, and
+where two pieces of text sit side by side the component owns the gap**. `tests/countdown-style.test.ts`
+now asserts both for this component. Extending that check to every `v2-*` class is the next honest step,
+once the false positives (hooks, state markers) are named.
+

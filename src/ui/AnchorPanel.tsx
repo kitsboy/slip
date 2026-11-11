@@ -17,7 +17,6 @@ import { createLedger } from '../core/ledger';
 import { CALENDARS, dayDigest, describeAnchor, submitAnchor, verifyLocally, type Anchor, type DayBook } from '../core/anchor';
 import { formatSats } from '../core/money';
 import { store as appStore } from '../core/storage';
-import { isSkinV2 } from './skin';
 import Blocker from './Blocker';
 
 function recentDays(count: number): string[] {
@@ -123,16 +122,12 @@ export default function AnchorPanel() {
           <span className="eyebrow">Day digest</span>
           <p className="mt-0.5 break-all font-mono text-[11px]">
             {book ? (
-              isSkinV2() ? (
-                <span className="v2-addr">
-                  {(book.digestHex.slice(0, 32).match(/.{1,4}/g) ?? []).map((group, index) => (
-                    <span key={index}>{group}</span>
-                  ))}
-                  …
-                </span>
-              ) : (
-                `${book.digestHex.slice(0, 32)}…`
-              )
+              <span className="v2-addr">
+                {(book.digestHex.slice(0, 32).match(/.{1,4}/g) ?? []).map((group, index) => (
+                  <span key={index}>{group}</span>
+                ))}
+                …
+              </span>
             ) : (
               '—'
             )}
@@ -148,14 +143,8 @@ export default function AnchorPanel() {
             void stamp();
           }}
           aria-disabled={busy || !book || book.count === 0 || existing?.status === 'submitted' || undefined}
-          className={`${
-            isSkinV2() ? 'btn btn-primary px-3 py-2 text-xs v2-close' : 'rounded-lg border px-3 py-2 text-xs'
-          } ${
-            busy || !book || book.count === 0 || existing?.status === 'submitted'
-              ? 'v2-blocked'
-              : isSkinV2()
-                ? ''
-                : 'border-accent text-accent'
+          className={`btn btn-primary px-3 py-2 text-xs v2-close${
+            busy || !book || book.count === 0 || existing?.status === 'submitted' ? ' v2-blocked' : ''
           }`}
         >
           {busy ? 'submitting…' : existing?.status === 'submitted' ? 'already stamped' : 'stamp with a calendar'}

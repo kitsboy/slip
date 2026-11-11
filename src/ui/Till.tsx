@@ -41,7 +41,6 @@ import { openPrintable } from './print';
 import { paymentLabel } from '../core/brand';
 import { registerDemoSale } from '../demo/fakeExplorer';
 import { isDemo } from '../core/storage';
-import { isSkinV2 } from './skin';
 import Badge from './Badge';
 import { isCompareStopped } from '../core/compare-stop';
 import { resumeOpenSale } from '../core/resume-sale';
@@ -377,7 +376,7 @@ export default function Till() {
   }, [items, category, query]);
 
   useEffect(() => {
-    if (!isSkinV2() || query.trim() === '') return;
+    if (query.trim() === '') return;
     const tile = document.querySelector('[data-panel="till"] .v2-tile');
     if (!(tile instanceof HTMLElement)) return;
     tile.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
@@ -387,7 +386,6 @@ export default function Till() {
   }, [query, visible]);
 
   useEffect(() => {
-    if (!isSkinV2()) return;
     if (focusSearch.current && !receipt && !invoice) {
       focusSearch.current = false;
       document.getElementById('tl-search')?.focus();
@@ -1062,7 +1060,7 @@ export default function Till() {
         label: item.walletLabel,
       });
     return (
-      <section className={`mt-6 panel${isSkinV2() ? ' v2-pay' : ''}`} id="tl-pay" tabIndex={-1}>
+      <section className={`mt-6 panel v2-pay`} id="tl-pay" tabIndex={-1}>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="eyebrow">Payment</p>
           <span className={`chip ${pending ? 'border-warn text-warn' : 'chip-good'}`}>
@@ -1073,7 +1071,7 @@ export default function Till() {
         <p
           className={[
             'figure mt-1 text-[2.5rem] font-bold leading-none tabular-nums',
-            isSkinV2() && 'v2-engrave',
+            'v2-engrave',
           ]
             .filter(Boolean)
             .join(' ')}
@@ -1144,9 +1142,9 @@ export default function Till() {
           )
         ) : (
         <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:items-start">
-          <div className={`relative shrink-0 rounded-2xl bg-white p-4${isSkinV2() ? ' v2-qr' : ' border-2 border-accent/40'}`}>
+          <div className={`relative shrink-0 rounded-2xl bg-white p-4 v2-qr`}>
             <div
-              className={isSkinV2() ? 'v2-qr-box' : 'h-64 w-64'}
+              className="v2-qr-box"
               dangerouslySetInnerHTML={{ __html: qrSvg(uri, 8) }}
             />
             <span aria-hidden className="pointer-events-none absolute -left-1 -top-1 h-4 w-4 border-l-2 border-t-2 border-accent" />
@@ -1221,43 +1219,6 @@ export default function Till() {
           </button>
         </div>
 
-        {leg2 && !isSkinV2() && (
-          <div className="mt-4 rounded-xl border border-line p-3" data-split-leg="2">
-            <p className="eyebrow">Second leg · {leg2.walletLabel}</p>
-            <div className="mt-2 flex flex-wrap items-start gap-3">
-              <div
-                className={`h-56 w-56 shrink-0 rounded-xl bg-white p-3${isSkinV2() ? ' v2-qr' : ''}`}
-                dangerouslySetInnerHTML={{
-                  __html: qrSvg(
-                    paymentUri('bitcoin', {
-                      address: leg2.address,
-                      amountSats: leg2.amountAtoms,
-                      label: leg2.walletLabel,
-                    }),
-                    8,
-                  ),
-                }}
-              />
-              <div className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
-                <p className="figure text-sm text-ink">{formatCoinAmount(leg2.amountAtoms, coinOf(leg2.walletId))}</p>
-                <p>This leg: {formatCoinAmount(leg2.amountAtoms, coinOf(leg2.walletId))}. The first wallet: {formatCoinAmount(invoice.amountAtoms, coinOf(invoice.walletId))}.</p>
-                <p>
-                  {leg2.status === 'complete'
-                    ? 'this leg is in — the sale is not paid yet'
-                    : leg2.status === 'seen'
-                      ? 'seen on its way — not confirmed yet'
-                      : 'waiting — not paid'}
-                </p>
-                <p className="mt-1 break-all font-mono text-[11px]">
-                  <AddressText address={leg2.address} />
-                </p>
-                <p className="mt-1 text-warn">
-                  A split sale is one sale: the receipt appears when both legs are paid.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {status && <p className="mt-2 text-[11px] text-muted">{status}</p>}
       </section>
@@ -1268,9 +1229,9 @@ export default function Till() {
   if (receipt) {
     const proofUri = paymentUri('bitcoin', { address: receipt.address, amountSats: receipt.amountAtoms });
     return (
-              <section className={isSkinV2() ? 'v2-receipt' : 'mt-6 panel'}>
+              <section className="v2-receipt">
         <div
-          className={['flex items-start justify-between gap-3', isSkinV2() && 'v2-receipt-head']
+          className={['flex items-start justify-between gap-3', 'v2-receipt-head']
             .filter(Boolean)
             .join(' ')}
         >
@@ -1279,8 +1240,8 @@ export default function Till() {
             <p
               className={[
                 'figure mt-1 text-[2rem] font-bold leading-none tabular-nums',
-                isSkinV2() && 'v2-paid-figure',
-                isSkinV2() && 'v2-engrave',
+                'v2-paid-figure',
+                'v2-engrave',
               ]
                 .filter(Boolean)
                 .join(' ')}
@@ -1289,13 +1250,13 @@ export default function Till() {
             </p>
             {<span className="v2-rule v2-rule-tight" aria-hidden />}
             <p className="mt-1 text-xs text-muted">
-              <span className={isSkinV2() ? 'v2-yours' : ''}>{settings.businessName || 'Your shop'}</span>
+              <span className="v2-yours">{settings.businessName || 'Your shop'}</span>
               {' · '}
               {formatFiat({ minor: receipt.amountMinor, currency: receipt.currency })} ·{' '}
               {receipt.confirmedAt?.slice(0, 16).replace('T', ' ')}
             </p>
           </div>
-          {isSkinV2() ? (
+          {
             <span className="shrink-0">
               <Badge
                 kind={receipt.note === 'rehearsal' ? 'simulated' : receipt.manual ? 'manual' : 'good'}
@@ -1308,22 +1269,10 @@ export default function Till() {
                 }
               />
             </span>
-          ) : (
-            <span
-              className={`badge shrink-0 ${
-                receipt.note === 'rehearsal' || receipt.manual ? 'border-warn text-warn' : 'chip-good'
-              }`}
-            >
-              {receipt.note === 'rehearsal'
-                ? 'rehearsal'
-                : receipt.manual
-                  ? 'marked paid by you'
-                  : 'seen on chain'}
-            </span>
-          )}
+          }
         </div>
         <h2
-          className={`mt-2 text-sm font-semibold${isSkinV2() ? ' v2-paid' : ''}${
+          className={`mt-2 text-sm font-semibold v2-paid${
             receipt.note !== 'rehearsal' && !receipt.manual ? ' v2-yours' : ''
           }`}
         >
@@ -1334,18 +1283,18 @@ export default function Till() {
               : 'Paid — seen on chain'}
         </h2>
         {receipt.index !== null && (
-          <p className={`mt-2 text-sm font-semibold text-ink${isSkinV2() ? ' v2-next-address' : ''}`}>
+          <p className={`mt-2 text-sm font-semibold text-ink v2-next-address`}>
             This sale was address #{receipt.index}. Next sale uses address #{ledger.book(receipt.walletId).next}.
           </p>
         )}
 
         <div
-          className={['mt-3 flex flex-wrap items-start gap-3', isSkinV2() && 'v2-receipt-body']
+          className={['mt-3 flex flex-wrap items-start gap-3', 'v2-receipt-body']
             .filter(Boolean)
             .join(' ')}
         >
           <div
-            className={isSkinV2() ? 'v2-receipt-qr' : 'h-32 w-32 rounded-lg bg-white p-1'}
+            className="v2-receipt-qr"
             dangerouslySetInnerHTML={{ __html: qrSvg(proofUri, 5) }}
           />
           <div className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
@@ -1383,7 +1332,7 @@ export default function Till() {
         )}
 
         <div className="mt-6 flex flex-wrap items-center gap-2 pb-1">
-          <button type="button" id="tl-next" onClick={() => void finish()} className={`btn btn-primary${isSkinV2() ? ' v2-charge' : ''}`}>
+          <button type="button" id="tl-next" onClick={() => void finish()} className={`btn btn-primary v2-charge`}>
             Next sale
           </button>
           <button
@@ -1416,7 +1365,7 @@ export default function Till() {
     <section className="mt-6 panel" data-panel="till">
       <div className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1${wallets.length === 0 ? ' v2-open-status' : ''}`}>
         <p className="eyebrow">Till</p>
-        <span className={`badge ${online ? 'badge-pending' : 'badge-bad'}${isSkinV2() ? ' v2-watch' : ''}`}>
+        <span className={`badge ${online ? 'badge-pending' : 'badge-bad'} v2-watch`}>
           {online ? 'Watching for payments' : 'Offline — not watching'}
           {(wallet?.source === 'xpub' || wallet?.source === 'descriptor') &&
             ` · next address #${ledger.book(wallet.id).next}`}
@@ -1463,9 +1412,9 @@ export default function Till() {
         <>
           {/* On a shop laptop the counter is two panes: choose and ring up on the left, the money
               and the Charge press on the right, held in place while the list scrolls (D-83). */}
-          <div className={`lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-6${isSkinV2() ? ' v2-two' : ''}`}>
-          <div className={`min-w-0${isSkinV2() ? ' v2-sale' : ''}`}>
-          <div className={`mt-3 grid gap-2 sm:grid-cols-2${isSkinV2() ? ' v2-wallet-row' : ''}`}>
+          <div className={`lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-6 v2-two`}>
+          <div className={`min-w-0 v2-sale`}>
+          <div className={`mt-3 grid gap-2 sm:grid-cols-2 v2-wallet-row`}>
             <label className="block" htmlFor="tl-wallet">
               <span className="eyebrow">Which wallet gets the money</span>
               <select
@@ -1483,19 +1432,6 @@ export default function Till() {
                 ))}
               </select>
             </label>
-            {isSkinV2() ? null : (
-            <label className="block" htmlFor="tl-rate">
-              <span className="eyebrow">What one {wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth ({settings.currency})</span>
-              <input
-                id="tl-rate"
-                value={rate}
-                onChange={(e) => setRate(e.target.value)}
-                inputMode="decimal"
-                placeholder="60000.00"
-                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
-              />
-            </label>
-            )}
           </div>
           {items.length === 0 && (
             <div className="mt-3 rounded-lg border border-line p-3">
@@ -1554,20 +1490,20 @@ export default function Till() {
             </div>
           )}
 
-          <div className={`mt-3 flex flex-wrap gap-1${isSkinV2() ? ' v2-cats' : ''}`}>
+          <div className={`mt-3 flex flex-wrap gap-1 v2-cats`}>
                 {cats.map((c) => (
                   <button
                     key={c}
                     type="button"
                     onClick={() => setCategory(c)}
-                    tabIndex={isSkinV2() ? 2 : undefined}
+                    tabIndex={2}
                     className={`rounded-full border px-3 text-[11px] ${category === c ? 'border-accent text-accent' : 'border-line text-muted'}`}
                   >
                     {c}
                   </button>
                 ))}
               </div>
-              <div className={`mt-2 flex flex-wrap items-start gap-2${isSkinV2() ? ' v2-find' : ''}`}>
+              <div className={`mt-2 flex flex-wrap items-start gap-2 v2-find`}>
                 {notice && (
                   <p className="v2-notice w-full text-base text-ink" data-cancelled>
                     {notice}
@@ -1575,11 +1511,11 @@ export default function Till() {
                 )}
                 <input
                   id="tl-search"
-                  tabIndex={isSkinV2() ? 1 : undefined}
+                  tabIndex={1}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key !== 'Enter' || !isSkinV2()) return;
+                    if (e.key !== 'Enter') return;
                     e.preventDefault();
                     const first = visible[0];
                     if (first) addLine(first);
@@ -1617,16 +1553,16 @@ export default function Till() {
                   </button>
                 </div>
               )}
-              <div className={`mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4${isSkinV2() ? ' v2-catalog' : ''}`}>
+              <div className={`mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 v2-catalog`}>
                 {visible.map((i) => {
                   const inCart = cart.find((l) => l.item.id === i.id);
                   return (
                     <button
                       key={i.id}
                       type="button"
-                      tabIndex={isSkinV2() ? 3 : undefined}
+                      tabIndex={3}
                       onClick={() => addLine(i)}
-                      className={`relative flex min-h-24 flex-col justify-between rounded-xl border border-line bg-surface-2 p-3 text-left transition hover:border-accent active:scale-[0.98]${isSkinV2() ? ' v2-tile' : ''}`}
+                      className={`relative flex min-h-24 flex-col justify-between rounded-xl border border-line bg-surface-2 p-3 text-left transition hover:border-accent active:scale-[0.98] v2-tile`}
                     >
                       {inCart && (
                         <span
@@ -1652,7 +1588,7 @@ export default function Till() {
             </>
           )}
 
-          <details className={isSkinV2() ? 'v2-tools' : undefined} open>
+          <details className="v2-tools" open>
             {<summary>Tools</summary>}
             {(
               <label className="v2-price mt-2 block" htmlFor="tl-rate">
@@ -1680,7 +1616,7 @@ export default function Till() {
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
             <label className="block" htmlFor="tl-custom">
               <span className="eyebrow">Custom amount ({settings.currency}) — added to the items</span>
-              <span className={isSkinV2() ? 'v2-custom-in' : undefined}>
+              <span className="v2-custom-in">
                 <input
                   id="tl-custom"
                   value={custom}
@@ -1709,7 +1645,7 @@ export default function Till() {
                   setCategory('All');
                 }}
                 aria-pressed={tipJar}
-                className={isSkinV2() ? `btn btn-secondary${tipJar ? ' v2-on' : ''}` : `btn ${tipJar ? 'btn-primary' : 'btn-secondary'}`}
+                className={`btn btn-secondary${tipJar ? ' v2-on' : ''}`}
               >
                 Tip jar
               </button>
@@ -1836,7 +1772,7 @@ export default function Till() {
 
           </div>
 
-          <div className={`lg:sticky lg:top-20${isSkinV2() ? ' v2-held' : ''}`}>
+          <div className={`lg:sticky lg:top-20 v2-held`}>
           {cart.length > 0 && (
             <ul className="mt-3 space-y-1">
               {cart.map((l) => (
@@ -1865,7 +1801,7 @@ export default function Till() {
                       setUndone({ item: l.item, quantity: l.quantity });
                       setCart((lines) => lines.filter((x) => x.item.id !== l.item.id));
                     }}
-                    className={`grid h-9 w-9 place-items-center rounded-lg border border-line text-base text-secondary${isSkinV2() ? ' v2-qremove' : ''}`}
+                    className={`grid h-9 w-9 place-items-center rounded-lg border border-line text-base text-secondary v2-qremove`}
                     aria-label={`Remove ${l.item.name} entirely`}
                   >
                     ×
@@ -1928,7 +1864,7 @@ export default function Till() {
 
           {/* The bar stays at thumb height on a phone: the shopkeeper never scrolls to find the
               button that takes the money. */}
-          <div className={`charge-bar mt-3 flex flex-wrap items-center gap-2${isSkinV2() ? ' v2-rail' : ''}`}>
+          <div className={`charge-bar mt-3 flex flex-wrap items-center gap-2 v2-rail`}>
             {(
               <p className="v2-figure">
                 {totals && chargeSats !== null ? (
@@ -1954,15 +1890,11 @@ export default function Till() {
               id="tl-charge"
               onClick={charge}
               disabled={!wallet || !totals || chargeSats === null || compareStopped}
-              tabIndex={isSkinV2() ? 5 : undefined}
-              className={`btn btn-primary flex-1 sm:flex-none${isSkinV2() ? ' v2-charge' : ''}`}
+              tabIndex={5}
+              className={`btn btn-primary flex-1 sm:flex-none v2-charge`}
             >
               {settings.assist.rehearsal ? 'Rehearse' : 'Charge'}
-              {totals && chargeSats !== null
-                ? isSkinV2()
-                  ? ` ${formatSats(chargeSats)}`
-                  : ` ${formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })} · ${formatSats(chargeSats)}`
-                : ''}
+              {totals && chargeSats !== null ? ` ${formatSats(chargeSats)}` : ''}
             </button>
             <button
               type="button"

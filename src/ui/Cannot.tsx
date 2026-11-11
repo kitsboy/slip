@@ -8,7 +8,6 @@
  * selling point is the same lie as a tick slip did not earn.
  */
 
-import { isSkinV2 } from './skin';
 
 interface Limit {
   /** The plain claim. Short enough to read at a glance. */
@@ -69,10 +68,8 @@ const LIMITS: readonly Limit[] = [
 ];
 
 export default function Cannot() {
-  const v2 = isSkinV2();
-
   return (
-    <section className="panel" id="cannot" data-cannot data-panel={v2 ? 'cannot' : undefined}>
+    <section className="panel" id="cannot" data-cannot>
       <h2 className="panel-title">What slip cannot do</h2>
       <p className="mt-1 max-w-2xl text-sm text-secondary">
         Read this before you rely on it at a counter. Each line is a thing this page will not do, not

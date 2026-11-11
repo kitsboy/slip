@@ -1051,6 +1051,30 @@ html[data-skin='v2'] .v2-status {
   gap: 8px;
   font: 600 14px/20px var(--v2-font-ui);
 }
+/* The countdown had no rules at all: two inline spans butted together, so the receipt read
+   "01:15until this QR expires". A line of rules, and the words get their own breathing room. */
+html[data-skin='v2'] .v2-count {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin: 0;
+  font-size: 14px;
+  color: var(--v2-ink);
+}
+html[data-skin='v2'] .v2-count .v2-money-num {
+  font-weight: 600;
+}
+html[data-skin='v2'] .v2-count-soon .v2-money-num {
+  color: var(--v2-warn);
+}
+html[data-skin='v2'] .v2-count-dead {
+  display: block;
+  font-size: 13px;
+  color: var(--v2-warn);
+  font-weight: 600;
+}
+
 html[data-skin='v2'] .v2-status-detail {
   font-weight: 400;
   color: var(--v2-ink-2);
@@ -3366,4 +3390,47 @@ html[data-skin='v2'] .v2-display-idle-line {
   html[data-skin='v2'] .v2-key:active {
     transform: none;
   }
+}
+
+/* The ⋯ menu, in the new grammar. It was the last survival of the old look in the header: a tinted
+   accent row and secondary-grey text inside an otherwise ink-and-brass header. Rules, not decoration:
+   a chosen row is marked with a 2px brass edge and ink text (a marker, not a second brass fill), and
+   an unchosen row is body ink that lifts to paper on hover. */
+html[data-skin='v2'] .v2-menu {
+  background: var(--v2-card);
+  border: 1px solid var(--v2-edge);
+  border-radius: 12px;
+}
+html[data-skin='v2'] .v2-menu .eyebrow {
+  color: var(--v2-muted);
+}
+html[data-skin='v2'] .v2-menu-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 8px 0 10px;
+  border-left: 2px solid transparent;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 14px;
+  color: var(--v2-ink-2);
+}
+html[data-skin='v2'] .v2-menu-row:hover,
+html[data-skin='v2'] .v2-menu-row:focus-visible {
+  color: var(--v2-ink);
+  background: var(--v2-raised);
+}
+html[data-skin='v2'] .v2-menu-row[aria-checked='true'] {
+  /* A chosen row is marked in ink, not brass. Brass is the one action on a screen; a selection is a
+     fact, and the token linter is right to refuse it. */
+  color: var(--v2-ink);
+  border-left-color: var(--v2-ink);
+  background: var(--v2-raised);
+}
+html[data-skin='v2'] .v2-menu-inuse {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--v2-muted);
 }

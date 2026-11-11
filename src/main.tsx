@@ -119,7 +119,7 @@ const isParts = params.get('parts') === '1';
  * The new look is the only look.
  *
  * `?skin=v1` was the escape hatch for one bad publish. It is gone: the old interface is still in the
- * tree behind `isSkinV2()` and can be restored by deploying the tagged build `pre-v2-2026-11-10`,
+ * tree behind a skin check and can be restored by deploying the tagged build `pre-v2-2026-11-10`,
  * which is proven to pass the browser suites. Nothing is stored and no query string changes the skin.
  */
 document.documentElement.dataset.skin = 'v2';
