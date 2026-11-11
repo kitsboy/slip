@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.46** — 2026-11-11T12:38:39Z — `69d5a2fea3e0` — Eighteen dead skin branches gone, and the shelf now says when a search finds nothing
+
 - **v0.31.45** — 2026-11-11T02:39:51Z — `7389528aa698` — The last four signature moves: the till key's edge, the slit in the code's pocket, arrival and the exhale
 
 - **v0.31.44** — 2026-11-11T02:12:23Z — `17d60ecad914` — The gallery ships at ?gallery=1, the price line admits it is waiting, and three more signature moves
