@@ -199,6 +199,28 @@ check(
   JSON.stringify(counts),
 );
 
+// --- the day close on A4 ------------------------------------------------------------
+// A till roll is 80mm wide, so a busy day printed on A4 used to be a thin strip down the left edge.
+// The A4 sheet must be A4, must carry every sale as a real row, and must keep the honesty note.
+const [sheet] = await Promise.all([
+  context.waitForEvent('page', { timeout: 8000 }).catch(() => null),
+  page.getByRole('button', { name: 'Print on A4' }).click(),
+]);
+if (sheet) {
+  await sheet.waitForLoadState('load');
+  const a4 = await sheet.evaluate(() => ({
+    style: [...document.querySelectorAll('style')].map((n) => n.textContent).join('').replace(/\s+/g, ' '),
+    rows: document.querySelectorAll('tr.sale').length,
+    text: document.body.innerText,
+  }));
+  check('the day close prints as A4 when asked', /@page \{ size: A4/.test(a4.style), a4.style.slice(0, 120));
+  check('every counted sale is a row on the sheet', a4.rows === 4, `${a4.rows} rows`);
+  check('the A4 sheet keeps the manual-confirmation note', /human confirmation, not an observation/.test(a4.text));
+  await sheet.close();
+} else {
+  check('the day close prints as A4 when asked', false, 'no print window');
+}
+
 // --- CSV ----------------------------------------------------------------------------
 const [download] = await Promise.all([
   page.waitForEvent('download', { timeout: 8000 }).catch(() => null),

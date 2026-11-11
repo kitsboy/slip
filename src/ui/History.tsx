@@ -175,7 +175,7 @@ export default function History() {
     openPrintable(html, 'slip-books');
   }
 
-  function printClose() {
+  function printClose(page: 'roll' | 'a4' = 'roll') {
     const report = closeReport(close, settings.businessName, settings.currency);
     const rows = report.lines
       .map((line) => {
@@ -186,6 +186,77 @@ export default function History() {
         return `<p>${escapeHtml(line)}</p>`;
       })
       .join('');
+    if (page === 'a4') {
+      // A till roll is 80mm wide: on a sheet of A4 that is a thin strip down the left edge, which is
+      // what a shopkeeper got when they printed a busy day to keep or to hand to an accountant. This is
+      // the same report set for the paper it is going on, with the same numbers and the same words —
+      // nothing is rounded or dropped, and the mixed-coin sentence stays exactly as the roll prints it.
+      // Two sources, each good at one thing: the totals come from the same line list the roll prints,
+      // so the two sheets can never disagree; the sale rows come from the structured day close, so the
+      // columns are real columns instead of padded text that shifts when a rail name is longer.
+      const isSaleLine = (line: string) => /^\d{2}:\d{2}\s/.test(line);
+      const totals = report.lines
+        .filter((line) => line.trim().length > 0 && !isSaleLine(line))
+        .map((line) => {
+          const cut = line.indexOf(': ');
+          if (cut > 0 && cut < 28) {
+            return `<tr><th>${escapeHtml(line.slice(0, cut))}</th><td>${escapeHtml(line.slice(cut + 2))}</td></tr>`;
+          }
+          return `<tr class="word"><td colspan="2">${escapeHtml(line)}</td></tr>`;
+        })
+        .join('');
+      const sales = close.rows
+        .map(
+          (r) =>
+            `<tr class="sale"><td class="c0">${escapeHtml(r.at.slice(11, 16))}</td>` +
+            `<td class="c1">${escapeHtml(r.id)}</td>` +
+            `<td class="c2">${escapeHtml(formatCoinAmount(r.netAtoms, r.coin))}</td>` +
+            `<td class="c3">${escapeHtml(r.rail)}</td></tr>`,
+        )
+        .join('');
+      const html =
+        `<!doctype html><title>${escapeHtml(report.title)}</title>` +
+        `<style>
+  @page { size: A4; margin: 14mm }
+  html, body { margin: 0; background: #fff; color: #000 }
+  body { font: 16px/1.45 Palatino, Georgia, serif }
+  .page { width: 182mm; margin: 0 auto; padding-top: 2mm }
+  .rule { border-top: 3px solid #000; border-bottom: 1px solid #000; height: 4px; margin: 0 0 16px }
+  h1 { font-size: 34px; font-weight: 500; line-height: 1.1; margin: 0 }
+  .sub { margin-top: 6px; font: 14px/1.4 ui-monospace, Menlo, monospace }
+  table { width: 100%; margin-top: 14px; border-collapse: collapse; font: 14px/1.4 ui-monospace, Menlo, monospace }
+  /* A busy day runs to a second page. A row must not be cut in half at the break, and the footer must
+     not sit alone on a page of its own. */
+  tr, .foot { break-inside: avoid }
+  th { width: 46mm; text-align: left; font-weight: 400; padding: 5px 0; border-bottom: 1px solid #000; vertical-align: top }
+  td { padding: 5px 0; border-bottom: 1px solid #000; text-align: right; font-weight: 700; vertical-align: top }
+  tr.word th, tr.word td { border-bottom: 0 }
+  tr.word td { text-align: left; font-weight: 400; padding: 2px 0; font-family: Palatino, Georgia, serif; font-size: 14px }
+  tr.sale td { padding: 2px 0; border-bottom: 1px dotted #999; font-weight: 400; text-align: left; white-space: nowrap }
+  tr.sale td.c0 { width: 16mm; color: #333 }
+  tr.sale td.c1 { width: 40mm }
+  tr.sale td.c2 { text-align: right; font-weight: 700 }
+  tr.sale td.c3 { width: 30mm; text-align: right }
+  table.sales { margin-top: 14px; table-layout: fixed }
+  tr.sale td.c0 { width: 16mm }
+  tr.sale td.c1 { width: auto }
+  tr.sale td.c2 { width: 36mm }
+  tr.sale td.c3 { width: 28mm }
+  tr.head td { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid #000; padding-bottom: 4px; text-align: left; font-weight: 700 }
+  tr.head td.c2, tr.head td.c3 { text-align: right }
+  .foot { margin-top: 22px; padding-top: 10px; border-top: 1px solid #000; font: 13px/1.5 ui-monospace, Menlo, monospace }
+  .foot p { margin: 0 }
+</style>
+<div class="page"><div class="rule"></div><h1>${escapeHtml(settings.businessName || 'slip')}</h1>
+<div class="sub">${escapeHtml(report.title)}</div>
+<table>${totals}</table>${close.rows.length ? `<table class="sales"><tr class="head"><td class="c0">Time</td><td class="c1">Invoice</td><td class="c2">Net</td><td class="c3">Rail</td></tr>${sales}</table>` : ''}
+<div class="foot"><p>Nothing here was rounded. A manual confirmation counts only because you said so.</p>
+<p>slip · watch-only · no keys, no server</p></div></div>`;
+      if (!openPrintable(html, 'slip-close-a4', 'width=900,height=1200')) {
+        setNote({ kind: 'warn', text: 'allow pop-ups to print the day close' });
+      }
+      return;
+    }
     const html =
       `<!doctype html><title>${escapeHtml(report.title)}</title>` +
       '<style>@page{size:80mm auto;margin:4mm}body{width:72mm;font:12px/1.45 ui-monospace,monospace;color:#000;background:#fff;margin:0}' +
@@ -366,6 +437,17 @@ export default function History() {
           className={`btn btn-primary px-3 py-2 text-xs v2-close${close.count === 0 ? ' v2-blocked' : ''}`}
         >
           Close the day
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (close.count === 0) return;
+            printClose('a4');
+          }}
+          aria-disabled={close.count === 0 || undefined}
+          className={`rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink${close.count === 0 ? ' v2-blocked' : ''}`}
+        >
+          Print on A4
         </button>
       </div>
       <Blocker show={close.count === 0}>Nothing sold on this day yet, so there is no sheet to close and no CSV to download.</Blocker>
