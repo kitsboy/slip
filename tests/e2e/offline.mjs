@@ -29,11 +29,22 @@ const browser = await chromium.launch({ executablePath: chromePath(), args: ['--
 const context = await browser.newContext({ viewport: { width: 430, height: 1200 } });
 const page = await context.newPage();
 const errs = [];
-page.on('pageerror', (e) => errs.push(String(e)));
+const injected = [];
+page.on('pageerror', (e) => errs.push('PAGEERROR ' + String(e)));
 page.on('console', (m) => {
-  if (m.type() === 'error' && !/cdn-cgi|challenge-platform|ERR_INTERNET_DISCONNECTED|Failed to fetch|net::/.test(m.text())) {
-    errs.push(m.text());
+  const text = m.text();
+  if (m.type() !== 'error') return;
+  if (/ERR_INTERNET_DISCONNECTED|Failed to fetch|net::/.test(text)) return;
+  // The build ships exactly one inline script and the CSP pins its hash, so slip's own script cannot be
+  // refused — if it were, nothing would render and every check above would fail first. A refusal of
+  // "Executing inline script" therefore means a *second*, injected script: on the live domain that is
+  // Cloudflare's JavaScript detection (__CF$cv$params), added at the edge. Noted below, never swallowed;
+  // a local run has no such injection, so this only ever fires on the live host.
+  if (text.startsWith('Executing inline script violates the following Content Security Policy')) {
+    injected.push(text.slice(0, 80));
+    return;
   }
+  errs.push(text);
 });
 
 // ── 1. A real shop, built online, with a real public key ────────────────────────────────────────────
@@ -131,6 +142,9 @@ if (await paid.count()) {
 }
 
 check('no runtime errors from slip', errs.length === 0, errs.slice(0, 2).join(' | '));
+if (injected.length) {
+  console.log(`NOTE  Cloudflare injected ${injected.length} inline script(s) this page's CSP refused (a zone setting, not slip)`);
+}
 
 await page.screenshot({ path: 'screenshots/offline-sale.png' });
 await browser.close();
