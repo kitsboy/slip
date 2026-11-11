@@ -5,7 +5,6 @@ import AddressCheck from './ui/AddressCheck';
 import Counters from './ui/Counters';
 import KeyCheck from './ui/KeyCheck';
 import PriceCheck from './ui/PriceCheck';
-import RequestCounter from './ui/RequestCounter';
 import Services from './ui/Services';
 import Requests from './ui/Requests';
 import Settings from './ui/Settings';
@@ -19,17 +18,14 @@ import Verify from './ui/Verify';
 import Watchlist from './ui/Watchlist';
 import History from './ui/History';
 import SilentPay from './ui/SilentPay';
-import Install from './ui/Install';
 import InfoVideo from './ui/InfoVideo';
 import HowItWorks from './ui/HowItWorks';
 import Cannot from './ui/Cannot';
 import LearnSearch from './ui/LearnSearch';
-import { isSkinV2 } from './ui/skin';
 import NextStep from './ui/NextStep';
 import Tech, { Advanced } from './ui/Tech';
 import Glossary from './ui/Glossary';
 import Manual from './ui/Manual';
-import BookSeal from './ui/BookSeal';
 import SelfTest from './ui/SelfTest';
 import WallClock from './ui/WallClock';
 import WeeklyLetter from './ui/WeeklyLetter';
@@ -38,7 +34,6 @@ import { createRepository } from './core/accounts';
 import { createLedger } from './core/ledger';
 import TabIcon from './ui/TabIcon';
 import { loadSettings } from './core/settings';
-import Status from './ui/Status';
 import { applyTheme, loadTheme, saveTheme, systemTheme, type Theme } from './core/theme';
 import Readiness from './ui/Readiness';
 import Wizard from './ui/Wizard';
@@ -404,7 +399,7 @@ export default function App() {
                   <HowItWorks onboarded={onboarded} onStart={() => setWizardOpen(true)} />
                 </details>
                 </>
-              ) : isSkinV2() ? (
+              ) : (
                 <div className="v2-start">
                   <h1 className="v2-start-title">A till that pays you, not a bank.</h1>
                   <p className="v2-start-line">
@@ -433,31 +428,6 @@ export default function App() {
                     </details>
                   </div>
                 </div>
-              ) : (
-                <>
-                  <p className="eyebrow">a free till for Bitcoin</p>
-                  <h1 className="mt-2 text-3xl font-semibold leading-[1.1] tracking-tight sm:text-4xl">
-                    A till that pays you, not a bank.
-                  </h1>
-                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-secondary">
-                    Your customer pays with Bitcoin. Every sale lands in your own wallet the moment it
-                    happens — no card machine, no account with us, and nobody taking a cut. slip cannot
-                    hold or move a penny: it shows the code, then tells you what it saw.
-                  </p>
-
-                  <div className="mt-4">
-                    <InfoVideo
-                      card
-                      src="videos/01-intro.mp4"
-                      poster="videos/01-intro.jpg"
-                      title="What slip is"
-                      seconds={12}
-                      label="What is slip? — 12 seconds"
-                    />
-                  </div>
-
-                  <HowItWorks onboarded={onboarded} onStart={() => setWizardOpen(true)} />
-                </>
               )}
 
             </section>
@@ -626,41 +596,7 @@ export default function App() {
         ))}
       </nav>
 
-      {isSkinV2() ? (
-        <Footer />
-      ) : (
-        <footer className="border-t border-line px-5 pb-24 pt-6 sm:pb-6">
-          <div className="mx-auto flex max-w-3xl flex-col items-center gap-2 text-center">
-            <span className="chip figure">{buildLabel()}</span>
-            <BookSeal />
-            {loadSettings(appStore()).settings.signature.trim() && (
-              <span className="inline-flex items-center gap-1 text-[11px] text-muted" data-brand="giveabit">
-                <span aria-hidden>₿</span>
-                <a
-                  href="https://giveabit.io"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="underline decoration-dotted hover:text-ink"
-                >
-                  {loadSettings(appStore()).settings.signature.trim()}
-                </a>
-              </span>
-            )}
-            <Status />
-            <InfoVideo
-              src="videos/03-status-strip.mp4"
-              poster="videos/03-status-strip.jpg"
-              title="Status, rails, networks, backend"
-              seconds={17}
-            />
-            <Install />
-            <RequestCounter />
-            <span className="text-[11px] text-muted">
-              no accounts · no analytics · no telemetry · MIT licensed
-            </span>
-          </div>
-        </footer>
-      )}
+      <Footer />
     </div>
   );
 }

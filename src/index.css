@@ -2892,6 +2892,36 @@ html[data-skin='v2'] .v2-foot-zero {
   overflow-wrap: anywhere;
   min-width: 0;
 }
+/* Named, not forgotten: these six classes had no rules of their own. They inherit almost everything
+   (the status word takes its weight from .v2-status, the footer label its colour from .v2-foot-zero),
+   but "inherits almost everything" was an assumption, not a decision — so each gets its own line, or
+   an explicit note that it is a hook only. */
+html[data-skin='v2'] .v2-status-word {
+  font-weight: 600;
+}
+html[data-skin='v2'] .v2-foot-zero-label,
+html[data-skin='v2'] .v2-foot-zero-tail {
+  color: var(--v2-ink-2);
+}
+html[data-skin='v2'] .v2-dialog-body {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--v2-ink-2);
+}
+html[data-skin='v2'] .v2-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+/* A size modifier for the small copy button inside a code card. */
+html[data-skin='v2'] .v2-btn-m {
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
 html[data-skin='v2'] .v2-foot-zero-n {
   display: inline-block;
   font-size: 32px;

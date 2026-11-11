@@ -20,22 +20,21 @@ function sources(dir: string): string[] {
 }
 
 describe('the dead skin branches', () => {
-  it('live in exactly these files, and no new ones', () => {
+  it('are not called from anywhere any more', () => {
     const offenders = sources('src')
       .filter((f) => !f.endsWith('skin.ts'))
       .filter((f) => readFileSync(f, 'utf8').includes('isSkinV2()'))
       .map((f) => f.replace(/\\/g, '/'))
       .sort();
-    expect(offenders).toEqual(['src/App.tsx']);
+    expect(offenders).toEqual([]);
   });
 
   it('do not grow', () => {
     const total = sources('src')
       .filter((f) => !f.endsWith('skin.ts'))
       .reduce((n, f) => n + (readFileSync(f, 'utf8').match(/isSkinV2\(\)/g) ?? []).length, 0);
-    // 2: the hero and the footer ternaries in App.tsx, the only two where the dead half is a whole
-    // screen braided into live JSX. Two screens are the whole list now — 69 a week ago.
-    expect(total).toBeLessThanOrEqual(2);
+    // 0. Every branch has gone: 69 a week ago, 20 after the easy pass, 2 after the till, none now.
+    expect(total).toBe(0);
   });
 
   it('come from a function that always says yes', () => {
