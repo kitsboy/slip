@@ -18,6 +18,8 @@ const manifest = JSON.parse(readFileSync(join(root, 'public/manifest.webmanifest
   short_name?: string;
   start_url?: string;
   display?: string;
+  background_color?: string;
+  theme_color?: string;
   icons?: { src: string; sizes: string; type?: string; purpose?: string }[];
 };
 
@@ -69,7 +71,14 @@ describe('what a launcher needs to install slip', () => {
     expect(b.toString('ascii').slice(0, 40)).not.toContain('tRNS');
   });
 
-  it('gives the browser tab a favicon that is not the wordmark', () => {
+  it('launches on black, matching the artwork', () => {
+    // Cam's call: the shop's own wordmark on black, the "i" staying orange. The splash and the icon
+    // must agree, or the app flashes a different colour than the tile it was opened from.
+    expect(manifest.background_color).toBe('#000000');
+    expect(manifest.theme_color).toBe('#000000');
+  });
+
+  it('gives the browser tab a square favicon at 32px', () => {
     const html = readFileSync(join(root, 'index.html'), 'utf8');
     expect(html).toMatch(/rel="icon"[^>]*favicon-32\.png/);
     expect(pngSize(join(root, 'public/favicon-32.png'))).toEqual({ w: 32, h: 32 });
