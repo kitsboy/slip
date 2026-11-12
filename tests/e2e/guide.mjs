@@ -133,6 +133,35 @@ const qr = await page.evaluate(() => {
 check('the customer QR is drawn inside its own box', Boolean(qr) && qr.inside, JSON.stringify(qr));
 check('the customer QR does not cross the words beside it', Boolean(qr) && qr.clearsText, JSON.stringify(qr));
 check('the customer QR is big enough to scan', Boolean(qr) && qr.px >= 100, `${qr?.px ?? 0}px`);
+
+// The code on the page is a screen size. The sheet it prints is a paper size — 92mm — and that is the one a
+// customer actually scans, so measure the sheet, not the pocket.
+const [sheet] = await Promise.all([
+  page.waitForEvent('popup'),
+  page.locator('[data-manual-qr]').click(),
+]);
+await sheet.waitForLoadState('domcontentloaded');
+await sheet.waitForTimeout(400);
+const sheetInfo = await sheet.evaluate(() => {
+  const style = document.querySelector('style')?.textContent ?? '';
+  const svg = document.querySelector('.qr svg');
+  const r = svg ? svg.getBoundingClientRect() : null;
+  const text = document.body.innerText;
+  return {
+    a4: /size:\s*A4/.test(style),
+    mm: /width:\s*92mm/.test(style),
+    px: r ? Math.round(r.width) : 0,
+    saysMoney: /goes straight into the shop/.test(text),
+    saysReceipt: /Nothing is emailed/.test(text),
+    link: /explain=1/.test(text),
+  };
+});
+check('the customer sheet is an A4 page', sheetInfo.a4);
+check('the sheet draws the code at 92mm, not at screen size', sheetInfo.mm && sheetInfo.px >= 300, `${sheetInfo.px}px`);
+check('the sheet says who holds the money', sheetInfo.saysMoney);
+check('the sheet says why nothing is emailed', sheetInfo.saysReceipt);
+check('the sheet carries the link in words, for a phone that will not scan', sheetInfo.link);
+await sheet.close();
 await page.locator('#mn-search').fill('lightning');
 await page.waitForTimeout(200);
 check('search narrows the manual', (await manual.locator('[data-manual-entry]').count()) < entries);

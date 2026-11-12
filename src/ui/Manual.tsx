@@ -10,10 +10,76 @@ import { useMemo, useState } from 'react';
 import { MANUAL_GROUPS, searchManual } from '../manual/entries';
 import { renderQrSvg } from '../core/qr';
 import { BRAND_GLYPH, BRAND_NAME } from '../core/brand';
+import { loadSettings } from '../core/settings';
+import { escapeHtml } from './print';
+
+/**
+ * The customer sheet, at the size it is printed at.
+ *
+ * A code that lives on a screen at 116px is a code nobody can scan from across a counter. This builds a
+ * one-page sheet in its own window with the same code drawn at 92mm — measured in millimetres, so the
+ * paper, not the device, decides the size — and the same three sentences the `?explain=1` page says.
+ */
+function customerSheetHtml(url: string, shopName: string): string {
+  const qr = renderQrSvg(url, { scale: 12, margin: 3 });
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${escapeHtml(
+    shopName || 'slip',
+  )} — how to pay</title><style>
+    @page { size: A4; margin: 18mm }
+    * { box-sizing: border-box }
+    body { margin: 0; color: #111; background: #fff;
+      font: 15px/1.55 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif }
+    h1 { font-size: 26px; margin: 0 0 2mm }
+    .sub { color: #555; margin: 0 0 8mm; font-size: 13px }
+    .qr { width: 92mm; margin: 0 0 6mm }
+    .qr svg { display: block; width: 92mm; height: 92mm }
+    h2 { font-size: 15px; margin: 0 0 2mm }
+    ul { margin: 0 0 6mm; padding-left: 5mm }
+    li { margin-bottom: 2mm }
+    .link { font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: #444;
+      word-break: break-all; border-top: 1px solid #ddd; padding-top: 3mm }
+    .foot { margin-top: 6mm; font-size: 11px; color: #666 }
+  </style></head><body>
+    <h1>${escapeHtml(shopName || 'This shop')}</h1>
+    <p class="sub">Point your phone camera at the square. No app, no account.</p>
+    <div class="qr">${qr}</div>
+    <h2>What you are paying</h2>
+    <ul>
+      <li>You pay in Bitcoin, Lightning or Litecoin — whatever this till asks for.</li>
+      <li>The money goes straight into the shop's own wallet. No bank holds it, and no payment
+        processor is involved.</li>
+      <li>Nothing is emailed. There is no receipt by post: the payment is your record, and the shop
+        can print one for you.</li>
+    </ul>
+    <p class="link">${escapeHtml(url)}</p>
+    <p class="foot">Printed by ${escapeHtml(BRAND_NAME)}. The page behind this code says the same
+      three things in full, and keeps saying them if the shop is closed.</p>
+  </body></html>`;
+}
+
+function openSheet(html: string, feature: string, print: boolean): void {
+  const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+  const win = window.open(url, feature, 'width=560,height=820');
+  if (!win) {
+    URL.revokeObjectURL(url);
+    return;
+  }
+  if (print) win.addEventListener('load', () => { win.focus(); win.print(); });
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
 
 export default function Manual() {
   const [query, setQuery] = useState('');
   const results = useMemo(() => searchManual(query), [query]);
+
+  // The same link the code carries, read at click time so a deploy under a new name cannot leave a stale code.
+  const sheet = () =>
+    customerSheetHtml(
+      `${window.location.origin}${window.location.pathname}?explain=1`,
+      loadSettings(window.localStorage).settings.businessName,
+    );
+  const showSheet = () => openSheet(sheet(), 'slip-customer-sheet', false);
+  const printSheet = () => openSheet(sheet(), 'slip-customer-sheet-print', true);
 
   return (
     <section className="mt-6 panel" data-panel="manual">
@@ -43,22 +109,36 @@ export default function Manual() {
       <div className="mt-3 flex flex-wrap items-start gap-3">
         {/* The code used to be drawn at its own pixel size inside a fixed 112px box, so it painted 132px
             wide and crossed the paragraph beside it. The box owns the size now, and the SVG fills it. */}
-        <div
-          className="qr-pocket h-32 w-32 shrink-0"
-          role="img"
-          aria-label="QR code: opens the customer page explaining this payment"
+        <button
+          type="button"
+          className="qr-pocket qr-pocket-btn h-32 w-32 shrink-0"
+          aria-label="Show the customer sheet with a large QR code"
+          title="Show the customer sheet"
           data-manual-qr
-          dangerouslySetInnerHTML={{
-            __html: renderQrSvg(`${window.location.origin}${window.location.pathname}?explain=1`, {
-              scale: 4,
-              margin: 2,
-            }),
-          }}
-        />
+          onClick={showSheet}
+        >
+          <span
+            dangerouslySetInnerHTML={{
+              __html: renderQrSvg(`${window.location.origin}${window.location.pathname}?explain=1`, {
+                scale: 4,
+                margin: 2,
+              }),
+            }}
+          />
+        </button>
         <p className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
-          <strong className="text-ink">A QR for your customers.</strong> Print this and stand it beside
-          the till: it opens one plain page explaining what they are paying, who holds the money, and
-          why no receipt is emailed.
+          <strong className="text-ink">A QR for your customers.</strong> Stand it beside the till: it
+          opens one plain page explaining what they are paying, who holds the money, and why no receipt
+          is emailed.{' '}
+          <button
+            type="button"
+            className="underline decoration-dotted underline-offset-2 hover:text-ink"
+            onClick={printSheet}
+            data-manual-qr-print
+          >
+            Print the sheet
+          </button>{' '}
+          — it prints at 92mm on A4, big enough to scan from a metre away.
         </p>
       </div>
 

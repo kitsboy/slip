@@ -2925,10 +2925,19 @@ html[data-skin='v2'] .v2-dialog-actions {
   background: #fff;
   padding: 6px;
 }
-.qr-pocket > svg {
+.qr-pocket svg {
   display: block;
   width: 100%;
   height: auto;
+}
+.qr-pocket-btn {
+  border: 0;
+  cursor: pointer;
+  padding: 6px;
+}
+.qr-pocket-btn:focus-visible {
+  outline: 2px solid var(--v2-chip, #f0a32a);
+  outline-offset: 2px;
 }
 
 /* The limits panel in More: one row, then a reading panel. The lesson is long, so the row is the only
