@@ -110,6 +110,28 @@ for (const id of ids) {
   await page.goto(`http://127.0.0.1:${PORT}/#${id}`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('h1').catch(() => {});
 
+  // Two manual cards describe a SECTION rather than a panel: the till lock lives inside Settings and
+  // the overpayment note inside Books. Photograph the section, not a panel that does not exist.
+  const SECTIONS = {
+    lock: { path: `/#settings`, sel: '[data-till-lock]' },
+    // The demo shop carries one sale that arrived over its ask; a seeded clean shop has none.
+    overpaid: { path: `/?demo=1#history`, sel: '[data-sale-row]' },
+  };
+  const section = SECTIONS[id];
+  if (section) {
+    await page.goto(`http://127.0.0.1:${PORT}${section.path}`, { waitUntil: 'domcontentloaded' });
+    const target = page.locator(section.sel).first();
+    await target.waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
+    if ((await target.count()) > 0) {
+      await target.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(200);
+      await target.screenshot({ path: join(ROOT, `screenshots/manual/${id}.png`) });
+      captured += 1;
+      console.log(`shot ${id}`);
+      continue;
+    }
+  }
+
   // The developer panels sit behind the technical switch (D-79). The manual documents them, so the
   // shooter presses that switch the way a person would, then photographs what appears.
   let panel = page.locator(`[data-panel="${id}"]`).first();

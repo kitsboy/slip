@@ -18,6 +18,7 @@ import { buildLabel } from '../core/buildinfo';
 import { createRepository, SHIFT_STORAGE_KEY, STORAGE_KEY } from '../core/accounts';
 import { SETTINGS_KEY } from '../core/settings';
 import { store as appStore } from '../core/storage';
+import { hashPin, LOCK_CHOICES, LOCK_NOW_EVENT, newSalt, sanitizePin, verifyPin } from '../core/lock';
 
 const COMMON = ['USD', 'CAD', 'EUR', 'GBP', 'AUD', 'JPY', 'CHF', 'MXN', 'KWD', 'VND'];
 
@@ -44,8 +45,15 @@ export default function Settings() {
     loaded.warnings.length > 0 ? { kind: 'warn', text: loaded.warnings.join(' · ') } : null,
   );
   const [confirmWipe, setConfirmWipe] = useState('');
+  const [pinSalt, setPinSalt] = useState<string | null>(loaded.settings.pinSalt);
+  const [pinHash, setPinHash] = useState<string | null>(loaded.settings.pinHash);
+  const [lockAfter, setLockAfter] = useState(loaded.settings.lockAfterMinutes);
+  const [pinNew, setPinNew] = useState('');
+  const [pinConfirmField, setPinConfirmField] = useState('');
+  const [pinCurrent, setPinCurrent] = useState('');
+  const [pinBusy, setPinBusy] = useState(false);
 
-  function save() {
+  function save(pin: { pinSalt?: string | null; pinHash?: string | null; lockAfterMinutes?: number } = {}) {
     const { settings, warnings } = sanitizeSettings({
       businessName,
       currency,
@@ -63,6 +71,9 @@ export default function Settings() {
       density,
       language: 'en',
       onboardedAt: loaded.settings.onboardedAt ?? new Date().toISOString(),
+      pinSalt: pin.pinSalt !== undefined ? pin.pinSalt : pinSalt,
+      pinHash: pin.pinHash !== undefined ? pin.pinHash : pinHash,
+      lockAfterMinutes: pin.lockAfterMinutes !== undefined ? pin.lockAfterMinutes : lockAfter,
     });
 
     saveSettings(store, settings);
@@ -76,6 +87,47 @@ export default function Settings() {
         ? { kind: 'warn', text: `saved, with corrections: ${warnings.join(' · ')}` }
         : { kind: 'ok', text: 'saved' },
     );
+  }
+
+  async function setThePin() {
+    const clean = sanitizePin(pinNew);
+    if (!clean) {
+      setNote({ kind: 'bad', text: 'A PIN is 4 to 8 digits.' });
+      return;
+    }
+    if (clean !== pinConfirmField.replace(/\s+/g, '')) {
+      setNote({ kind: 'bad', text: 'The two PINs do not match.' });
+      return;
+    }
+    setPinBusy(true);
+    const salt = newSalt();
+    const hash = await hashPin(clean, salt);
+    setPinSalt(salt);
+    setPinHash(hash);
+    save({ pinSalt: salt, pinHash: hash });
+    setPinBusy(false);
+    setPinNew('');
+    setPinConfirmField('');
+    setNote({
+      kind: 'ok',
+      text: `PIN set. The till locks itself ${lockAfter === 0 ? 'when you press Lock now' : `after ${lockAfter} quiet minutes`} — and every time the page is opened.`,
+    });
+  }
+
+  async function removeThePin() {
+    if (!pinSalt || !pinHash) return;
+    setPinBusy(true);
+    const ok = await verifyPin(pinCurrent, pinSalt, pinHash);
+    setPinBusy(false);
+    if (!ok) {
+      setNote({ kind: 'bad', text: 'That is not the current PIN.' });
+      return;
+    }
+    setPinSalt(null);
+    setPinHash(null);
+    setPinCurrent('');
+    save({ pinSalt: null, pinHash: null });
+    setNote({ kind: 'ok', text: 'PIN removed. The till opens to anyone who picks it up.' });
   }
 
   async function wipe() {
@@ -377,7 +429,7 @@ export default function Settings() {
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={save}
+          onClick={() => save()}
           className={`rounded-lg border border-accent px-3 py-2 text-xs font-semibold text-accent ${dirty ? 'ring-2 ring-accent/40' : ''}`}
         >
           Save settings
@@ -399,6 +451,117 @@ export default function Settings() {
           {note.text}
         </p>
       )}
+
+      <hr className="divider my-5" />
+
+      <div data-till-lock>
+        <p className="eyebrow">Till lock</p>
+        <p className="mt-1 text-xs leading-relaxed text-muted">
+          A PIN keeps a passer-by out of the day's takings when the phone is left on the counter. It is{' '}
+          <span className="text-ink">not encryption</span> — the books live in this browser, and anyone
+          with the device and its own tools can read them. Forgotten PIN? Restore your backup file on a
+          fresh device.
+        </p>
+
+        {pinHash ? (
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="block" htmlFor="st-lock-after">
+              <span className="eyebrow">Lock the till</span>
+              <select
+                id="st-lock-after"
+                value={lockAfter}
+                onChange={(e) => {
+                  const minutes = Number(e.target.value);
+                  setLockAfter(minutes);
+                  save({ lockAfterMinutes: minutes });
+                  setNote({ kind: 'ok', text: `the till will lock ${minutes === 0 ? 'only when you press Lock now' : `after ${minutes} quiet minutes`}` });
+                }}
+                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+              >
+                {LOCK_CHOICES.map((c) => (
+                  <option key={c.minutes} value={c.minutes}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="flex flex-wrap items-end gap-2">
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new Event(LOCK_NOW_EVENT))}
+                className="btn btn-secondary"
+                id="st-lock-now"
+              >
+                Lock now
+              </button>
+              <span className="text-[11px] text-muted">the PIN is asked for at once</span>
+            </div>
+            <label className="block sm:col-span-2" htmlFor="st-pin-current">
+              <span className="eyebrow">Current PIN, to change or remove it</span>
+              <div className="mt-1 flex flex-wrap gap-2">
+                <input
+                  id="st-pin-current"
+                  value={pinCurrent}
+                  onChange={(e) => setPinCurrent(e.target.value.replace(/[^\d]/g, '').slice(0, 8))}
+                  type="password"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  className="w-28 rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+                />
+                <button
+                  type="button"
+                  onClick={() => void removeThePin()}
+                  aria-disabled={pinBusy || undefined}
+                  className="btn btn-secondary"
+                  id="st-pin-remove"
+                >
+                  Remove the PIN
+                </button>
+              </div>
+            </label>
+          </div>
+        ) : (
+          <p className="mt-2 text-xs text-muted">No PIN yet. The till opens to anyone who picks it up.</p>
+        )}
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <label className="block" htmlFor="st-pin-new">
+            <span className="eyebrow">{pinHash ? 'New PIN' : 'Set a PIN'}</span>
+            <input
+              id="st-pin-new"
+              value={pinNew}
+              onChange={(e) => setPinNew(e.target.value.replace(/[^\d]/g, '').slice(0, 8))}
+              type="password"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="4 to 8 digits"
+              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            />
+          </label>
+          <label className="block" htmlFor="st-pin-confirm">
+            <span className="eyebrow">Once more</span>
+            <input
+              id="st-pin-confirm"
+              value={pinConfirmField}
+              onChange={(e) => setPinConfirmField(e.target.value.replace(/[^\d]/g, '').slice(0, 8))}
+              type="password"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="the same digits"
+              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            />
+          </label>
+        </div>
+        <button
+          type="button"
+          onClick={() => void setThePin()}
+          aria-disabled={pinBusy || undefined}
+          className="btn btn-secondary mt-2"
+          id="st-pin-save"
+        >
+          {pinBusy ? 'Working…' : pinHash ? 'Replace the PIN' : 'Set the PIN'}
+        </button>
+      </div>
 
       <hr className="divider my-5" />
 

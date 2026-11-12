@@ -66,7 +66,13 @@ export async function sweep(
         now,
       );
       const next = settled.status;
-      updated.push({ ...invoice, status: next });
+      // Record what the source said arrived, not only the verdict: an overpaid sale is still a
+      // complete sale, and this is the number that lets the receipt say so.
+      updated.push({
+        ...invoice,
+        status: next,
+        receivedAtoms: activity.chainReceivedAtoms + activity.mempoolReceivedAtoms,
+      });
       if (next !== invoice.status) {
         changes.push({ invoiceId: invoice.id, from: invoice.status, to: next, atoms: invoice.amountAtoms });
       }

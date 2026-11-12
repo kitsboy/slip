@@ -94,6 +94,7 @@ Every term on the till has a plain meaning, and the exact name for whoever wants
 
 slip never holds money, so a wallet here is only a public address slip watches for you.
 
+1. Not sure where the code is? Pick your wallet app at the top of Setup — slip names the exact taps for it.
 1. Paste the public code your wallet app gives you — one code, not a seed phrase.
 1. Compare address 0/0 with the same address in your own wallet.
 1. Tick the box only when they match, then save.
@@ -194,6 +195,7 @@ A pretend café so a stranger can take a sale before owning a wallet.
 
 1. Open the Manual and press “open the demo shop”.
 1. Take a sale: it becomes paid on its own after a few seconds, because the explorer is simulated.
+1. Try the Lightning card too: the address is pre-filled and settles in about four seconds.
 1. Press exit demo when you are done. Your real books are untouched — the demo has its own drawer.
 
 **Limit:** Demo money is pretend and the explorer is simulated. Nothing leaves the device.
@@ -281,6 +283,26 @@ One encrypted file holds your wallets, your PIN, your staff log and your books.
 1. To restore, preview the file first, then confirm.
 
 **Limit:** The file holds public wallet material only. If you lose it, your money is still safe — only the records are lost.
+
+### Till lock  `lock`
+
+A PIN that keeps a passer-by out of the day’s takings when the phone is left on the counter.
+
+1. Settings → Till lock → type a PIN twice → Set the PIN.
+1. Choose how long it may sit untouched before it locks, or Lock now.
+1. It asks for the PIN every time the page is opened.
+
+**Limit:** 
+
+### A payment above the ask  `overpaid`
+
+What slip says when more money arrives than the sale asked for — and what it does not do.
+
+1. The receipt says how much arrived and by how much it exceeded the ask.
+1. Books marks the row "over by …", and the printed day close names it in one line.
+1. Check with the customer; refund from your own wallet if it was a mistake.
+
+**Limit:** 
 
 ### Settings  `settings`
 

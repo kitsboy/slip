@@ -1,70 +1,100 @@
-# Next ten: what to repair next, in order
+# What is actually open
 
-Written 2026-11-10, after v0.31.25. This is a repair list, not a feature list — the owner's
-words were *"Do not just add more things, let's fix and repair and improve what we can here now."*
-Each item says what is wrong now, and how we would know it is fixed.
+Rewritten 2026-11-12, at v0.31.58. The old list was written at v0.31.25 and had drifted: five of its
+ten items had shipped by the time anyone read it again, and one pointed at a file that does not exist.
+A list that lies is worse than no list, because the next person trusts it.
+
+Two rules for this document:
+
+- an item stays only while it is true;
+- every item says how we would know it is finished, and whether a robot can finish it.
 
 ---
 
 ## 1. Prove the camera on a real phone — **blocked on a human thumb**
-`public/_headers` ships `Permissions-Policy: camera=(self)` as of v0.31.24 (verified with
-`curl -sI`), and the Scan button calls `getUserMedia` with `facingMode: 'environment'`.
-Everything up to the permission prompt is now correct; only a phone can confirm the rest.
-**Done when:** a shopkeeper taps "Scan the zpub", allows the camera, and the public code lands in
-the field. If it fails, the on-screen text now names the fix instead of showing `Permission denied`.
 
-## 2. Navigation is measured, and it is not slow in the built app
-Measured 2026-11-10 on the preview build at 390×844, headless Chromium:
+`public/_headers` ships `Permissions-Policy: camera=(self)` and the Scan button asks for
+`facingMode: 'environment'`. Everything up to the permission prompt is right; only a phone can confirm
+the rest.
 
-| tab switch | ms (two animation frames) |
-|---|---|
-| Money in | 37 |
-| Books | 37 |
-| Setup | 26 |
-| More | 18 |
-| Sell | 29 |
+**Done when:** a shopkeeper taps "Scan the zpub", allows the camera, and the public code lands in the
+field. **A robot cannot finish this.**
 
-Zero long tasks over 50 ms during four consecutive switches. Two frames is ~32 ms at 60 Hz, so
-each switch costs about one frame of work. **This does not prove it feels fast on a phone.**
-The felt slowness was probably the removed `v2-breathe`/`v2-head-drift` animations and the blurred
-fixed tab bar (both gone in `1e51aad`), plus first paint of a 700 KB single file.
-**Next:** measure the same probe on the real device with Chrome remote debugging, and time
-cold first-paint separately from switching.
+## 2. A funded sale on a real chain — **blocked on a captcha**
 
-## 3. Make setup read as a path, not a form
-The wizard is five steps of fields with a stepper. A shopkeeper cannot tell how far along they are
-or what is left. Name the steps as questions ("Which wallet?", "Where does the money go?") and show
-the remaining count in words.
-**Done when:** someone who has never used Bitcoin can describe the next step without reading a label.
+Every sale so far has been a demo or a rehearsal. The LTC testnet faucet (`cypherfaucet.com`) sits
+behind Cloudflare Turnstile, which needs fingers.
 
-## 4. Retire the v1 skin, or freeze it
-`?skin=v1` doubles the cost of every UI fix — two footers, two headers, two colour systems.
-**Done when:** `pre-v2` is the rollback story and the v1 branch is deleted.
+**Done when:** real testnet coins move to a counter address, slip reports `seen`, then `confirmed`, and
+the day close carries the sale. Then the same again on mainnet, with money that matters.
 
-## 5. One honest failure screen
-When something breaks, a merchant currently sees nothing, or an English exception. A single card
-saying *what happened / what is safe / what to do next* covers most of them.
-**Done when:** unplugging the network mid-sale produces that card, not a blank panel.
+## 3. A stranger runs the trial — **blocked on a person**
 
-## 6. Test the four real failure paths
-No rate set, no network, wrong chain, wallet offline. These are what actually goes wrong in a shop,
-and none of them is in the browser suites today.
+`docs/MERCHANT-TRIAL-LTC.md` has never been run by anyone who did not write it. Every "it works" so far
+is the author with a robot browser.
 
-## 7. Find a sale again
-Books shows today. Add a search by amount or the last four digits of the address.
-**Done when:** a merchant can answer "did the 20 franc coffee go through?" in under five seconds.
+**Done when:** one shopkeeper, unaided, gets from a blank phone to a printed day close, and the notes
+from that run are attached to this file.
 
-## 8. Keep the public repo small — **done 2026-11-10**
-`docs/matrix-shots/` was 39 MB of generated PNGs committed to a public MIT repo. It is now untracked
-and ignored, alongside `docs/shots/`. The files stay on disk; `scripts/shots-matrix.mjs` regenerates
-them. History still carries the old blobs — rewriting it would be a force-push, so it was not done.
+## 4. Print on payment — **a code job, open**
 
-## 9. Ship the Fable brief
-`docs/BRIEF-FOR-FABLE-V3.md` still has ~20 `SYMBOL UNVERIFIED` rows. A brief with unverified symbols
-teaches the next model to guess.
-**Done when:** every symbol in it was read from the tree, or the row is deleted.
+A receipt prints through the browser's own print window at 80mm, which is fine. What is missing is
+printing *by itself* when money lands, and a raw ESC/POS path for the printer many cafés already own
+(no auto-cut, no second copy for the kitchen).
 
-## 10. A one-page "what slip cannot do"
-It cannot hold, move, refund or recover money. That is the strongest trust asset on the site and it
-is currently scattered across four screens.
-**Done when:** it is one screen, linked from the footer, written for a shopkeeper.
+**Done when:** a setting exists and a real thermal printer produces a receipt without a tap.
+
+## 5. The customer leaves with nothing — **a design job, open, honesty-sensitive**
+
+There is a paper receipt, a proof code (`docs/PROOF.md`) and an `?explain=1` page, but no "here is your
+record" a customer can keep on their own phone after walking out.
+
+**Done when:** a customer can keep something, and that something says out loud what slip did **not**
+observe. **Any version that implies a signature is refused** — slip holds no key.
+
+## 6. Two counters, one set of books — **open, and it breaks a rule**
+
+One browser is one till. Two phones are two sets of books and a backup file between them. This is a
+consequence of no server and no accounts, not an oversight.
+
+**Done when:** either a two-device story exists that keeps the no-custody rule, or the site says plainly
+that a shop with two counters keeps two tills.
+
+## 7. No real install on a phone since the icon fix — **blocked on a device**
+
+Chromium's own installability verdict is green locally and live, and the wordmark icon is on the
+manifest. No Android or iOS launcher has been asked since.
+
+**Done when:** a phone offers "Install" and the home-screen icon is the slip wordmark.
+
+## 8. The printed A4 has never touched paper — **blocked on hardware**
+
+The A4 day close is measured in Chromium's PDF output (one page, columns right, footer intact). Nobody
+has printed it on a shop's printer.
+
+**Done when:** a page comes off a real printer with no column shifted and the totals right.
+
+## 9. The tap targets — **known, not urgent**
+
+`tap-audit` reports 0 controls under the 44px floor and ~164 between 44 and 48px. The 48px floor is the
+money-path rule; the rest is comfort, not a defect.
+
+**Done when:** the count between 44 and 48 is under 40, or the audit is re-scoped with a reason.
+
+---
+
+## Closed since the old list (kept so nobody re-opens them)
+
+| Item | Outcome |
+| --- | --- |
+| Setup reads as a path, not a form | Named steps, remaining count in words, and every blocked Continue still focusable (D-83). |
+| Retire the v1 skin | `?skin=v1` is gone; `pre-v2-2026-11-10` is the rollback story. |
+| One honest failure screen | `Failure.tsx` — what happened / what is safe / what to do next. |
+| Find a sale again | Search over the day's rows in Books. |
+| The four real failure paths | `states.mjs` and `boot-fallback.mjs` cover no rate, no network, wrong chain, wallet offline. |
+| A one-page "what slip cannot do" | The limits panel in More, behind one 48px row. |
+| Ship the Fable brief | There is no `BRIEF-FOR-FABLE-V3.md`; the V2 brief is the shipped one. |
+| Keep the public repo small | Generated screenshots are untracked and ignored. |
+| Navigation speed | Measured: every tab switch is about one frame of work, no long tasks. Unproven on a real phone, which is item 7's kind of problem, not this list's. |
+| Overpayment passes silently | `receivedAtoms` is recorded, Books marks the row, the printed day close names the extra, and the totals stay at the ask. |
+| Anybody can open the till | Till lock: a 4–8 digit PIN, PBKDF2 hash, locks on open and after N quiet minutes. |

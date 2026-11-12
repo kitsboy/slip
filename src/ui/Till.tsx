@@ -22,6 +22,7 @@ import {
   completeIfConfirmed,
   createInvoice,
   markManualPaid,
+  overpaidBy,
   statusFromObservation,
   type Invoice,
 } from '../core/orders';
@@ -700,7 +701,8 @@ export default function Till() {
         const activity = await fetchAddressActivity(t, target.address);
         setCheckedAt(Date.now());
         const next = statusFromObservation(target, { activity });
-        const updated = completeIfConfirmed(applyStatus(target, next));
+        const observed = activity.chainReceivedAtoms + activity.mempoolReceivedAtoms;
+        const updated = completeIfConfirmed({ ...applyStatus(target, next), receivedAtoms: observed });
         // A cue is a courtesy, never evidence: nothing about the invoice changes here.
         const cue = cueForTransition(target.status, updated.status);
         if (cue) announceOnce(updated.id, cue, { enabled: settings.assist.soundOnPayment });
@@ -737,7 +739,10 @@ export default function Till() {
             if (secondTarget) {
               const secondActivity = await fetchAddressActivity(secondTarget, leg2.address);
               const secondNext = statusFromObservation(leg2, { activity: secondActivity });
-              const secondUpdated = completeIfConfirmed(applyStatus(leg2, secondNext));
+              const secondUpdated = completeIfConfirmed({
+                ...applyStatus(leg2, secondNext),
+                receivedAtoms: secondActivity.chainReceivedAtoms + secondActivity.mempoolReceivedAtoms,
+              });
               ledger.putInvoice(secondUpdated);
               setLeg2(secondUpdated);
               if (secondUpdated.status !== 'complete') {
@@ -1330,6 +1335,19 @@ export default function Till() {
             </p>
           </div>
         </div>
+
+        {overpaidBy(receipt.amountAtoms, receipt.receivedAtoms) > 0n && (
+          <p
+            className="mt-3 rounded-lg border border-warn/60 bg-warn/10 p-2 text-[11px] leading-relaxed"
+            data-overpaid
+          >
+            <strong className="text-ink">More arrived than the ask.</strong> The source reports{' '}
+            {formatSats(receipt.receivedAtoms ?? 0n)} at this address —{' '}
+            {formatSats(overpaidBy(receipt.amountAtoms, receipt.receivedAtoms))} over the{' '}
+            {formatSats(receipt.amountAtoms)} asked for. The sale still counts; the extra is at the same
+            address. Worth checking the customer meant it.
+          </p>
+        )}
 
         {proof && receipt.note !== 'rehearsal' && (
           <div className="mt-3 flex flex-wrap items-start gap-3 border-t border-line pt-3">
@@ -2003,6 +2021,7 @@ function printReceipt(
     : invoice.manual
       ? 'Marked paid by you'
       : 'Paid — seen on chain';
+  const overpaid = overpaidBy(invoice.amountAtoms, invoice.receivedAtoms);
   const observed = invoice.manual
     ? 'slip did not observe a payment. This is a record of what you marked.'
     : invoice.note === 'rehearsal'
@@ -2018,6 +2037,7 @@ function printReceipt(
   <tr><td>Wallet</td><td>${esc(invoice.walletLabel)}</td></tr>
   <tr><td>Address</td><td><code>${esc(invoice.address)}</code></td></tr>
   <tr><td>Index</td><td>${invoice.index === null ? 'fixed address' : `#${invoice.index}`}</td></tr>
+  ${overpaid > 0n ? `<tr><td>Received</td><td>${esc(formatSats(invoice.receivedAtoms ?? 0n))} — ${esc(formatSats(overpaid))} more than asked</td></tr>` : ''}
 </table>
 <p class="note">${observed}</p>
 ${proof ? `<p class="note">Proof</p><code>${esc(formatProof(proof))}</code>` : ''}

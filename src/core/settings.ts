@@ -55,6 +55,15 @@ export interface ShopSettings {
   readonly density: 'comfortable' | 'compact';
   readonly language: 'en';
   readonly onboardedAt: string | null;
+  /**
+   * The till lock. A salt and a PBKDF2 hash of a 4–8 digit PIN — never the PIN itself, and never
+   * anything that can be turned back into one. A curtain, not encryption: the books are still in
+   * this browser's storage and anyone with its tools can read them.
+   */
+  readonly pinSalt: string | null;
+  readonly pinHash: string | null;
+  /** Minutes of stillness before the till locks itself. 0 means "only when asked". */
+  readonly lockAfterMinutes: number;
 }
 
 export interface AssistOptions {
@@ -174,6 +183,9 @@ export const DEFAULT_SETTINGS: ShopSettings = {
   density: 'comfortable',
   language: 'en',
   onboardedAt: null,
+  pinSalt: null,
+  pinHash: null,
+  lockAfterMinutes: 10,
 };
 
 export type WizardStep = 1 | 2 | 3 | 4 | 5;
@@ -329,6 +341,17 @@ export function sanitizeSettings(raw: unknown): { settings: ShopSettings; warnin
         : [],
       language: 'en',
       onboardedAt: typeof input.onboardedAt === 'string' ? input.onboardedAt : null,
+      // A stored hash is only trusted when it is a 64-hex digest and a salt came with it;
+      // anything else is discarded rather than half-honoured, which would lock a merchant out.
+      pinSalt: typeof input.pinSalt === 'string' && /^[0-9a-f]{16,64}$/i.test(input.pinSalt) ? input.pinSalt : null,
+      pinHash:
+        typeof input.pinHash === 'string' && /^[0-9a-f]{64}$/i.test(input.pinHash) && typeof input.pinSalt === 'string'
+          ? input.pinHash
+          : null,
+      lockAfterMinutes:
+        typeof input.lockAfterMinutes === 'number' && Number.isFinite(input.lockAfterMinutes)
+          ? Math.max(0, Math.min(240, Math.round(input.lockAfterMinutes)))
+          : DEFAULT_SETTINGS.lockAfterMinutes,
     },
     warnings,
   };

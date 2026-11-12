@@ -49,10 +49,13 @@ interface WireLine extends Omit<InvoiceLine, 'unitAtoms' | 'unitMinor'> {
   unitAtoms: string;
   unitMinor: string;
 }
-interface WireInvoice extends Omit<Invoice, 'amountAtoms' | 'amountMinor' | 'rateMinorPerCoin' | 'lines'> {
+interface WireInvoice
+  extends Omit<Invoice, 'amountAtoms' | 'amountMinor' | 'rateMinorPerCoin' | 'lines' | 'receivedAtoms'> {
   amountAtoms: string;
   amountMinor: string;
   rateMinorPerCoin: string | null;
+  /** Additive: an older backup has no such field, and that is not an error. */
+  receivedAtoms?: string | null;
   lines: WireLine[];
 }
 interface WireRequest extends Omit<StandingRequest, 'amountMinor'> {
@@ -81,6 +84,8 @@ export function toWire(ledger: Ledger): WireLedger {
       ...i,
       amountAtoms: i.amountAtoms.toString(),
       amountMinor: i.amountMinor.toString(),
+      receivedAtoms:
+        i.receivedAtoms === null || i.receivedAtoms === undefined ? null : i.receivedAtoms.toString(),
       rateMinorPerCoin: i.rateMinorPerCoin === null ? null : i.rateMinorPerCoin.toString(),
       lines: i.lines.map((l) => ({
         ...l,
@@ -116,6 +121,7 @@ export function fromWire(wire: WireLedger): Ledger {
         : 'awaiting') as InvoiceStatus,
       amountAtoms: big(i.amountAtoms),
       amountMinor: big(i.amountMinor),
+      receivedAtoms: i.receivedAtoms === null || i.receivedAtoms === undefined ? null : big(i.receivedAtoms),
       rateMinorPerCoin: i.rateMinorPerCoin === null ? null : big(i.rateMinorPerCoin),
       lines: (i.lines ?? []).map((l) => ({
         ...l,

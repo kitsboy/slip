@@ -35,6 +35,8 @@ import { createRepository } from './core/accounts';
 import { createLedger } from './core/ledger';
 import TabIcon from './ui/TabIcon';
 import { loadSettings } from './core/settings';
+import { LOCK_NOW_EVENT } from './core/lock';
+import Lock from './ui/Lock';
 import { applyTheme, loadTheme, saveTheme, systemTheme, type Theme } from './core/theme';
 import Readiness from './ui/Readiness';
 import Wizard from './ui/Wizard';
@@ -121,6 +123,36 @@ export default function App() {
     return () => window.removeEventListener('slip:settings-changed', reload);
   }, []);
   const assist = shop.settings.assist;
+
+  // The till lock. A shop with a PIN starts locked every time the page opens, because a lock that
+  // only engages when asked is a lock nobody asks for.
+  const [locked, setLocked] = useState(() => Boolean(loadSettings(appStore()).settings.pinHash));
+  useEffect(() => {
+    const onLockNow = () => setLocked(true);
+    window.addEventListener(LOCK_NOW_EVENT, onLockNow);
+    return () => window.removeEventListener(LOCK_NOW_EVENT, onLockNow);
+  }, []);
+  useEffect(() => {
+    const { settings } = shop;
+    if (!settings.pinHash) {
+      setLocked(false);
+      return;
+    }
+    const minutes = settings.lockAfterMinutes;
+    if (!locked || minutes <= 0) return;
+    let timer = 0;
+    const reset = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setLocked(true), minutes * 60_000);
+    };
+    const events: Array<keyof WindowEventMap> = ['pointerdown', 'keydown', 'wheel', 'touchstart'];
+    events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
+    reset();
+    return () => {
+      window.clearTimeout(timer);
+      events.forEach((e) => window.removeEventListener(e, reset));
+    };
+  }, [locked, shop]);
   // The wizard is a guided path, not a gate: a shop owner gets walked through it, a
   // visitor evaluating slip still sees what it is. Never force a stranger through five
   // screens before they can read the page.
@@ -255,6 +287,19 @@ export default function App() {
       : activeSection === t
         ? 'border-accent bg-accent/10 text-accent'
         : 'border-line text-muted hover:border-accent hover:text-accent';
+
+  // Locked is a whole-app state: no header, no tabs, no books. A curtain that leaves the window
+  // open is not a curtain.
+  if (locked && shop.settings.pinHash && shop.settings.pinSalt) {
+    return (
+      <Lock
+        shopName={shop.settings.businessName}
+        salt={shop.settings.pinSalt}
+        hash={shop.settings.pinHash}
+        onUnlock={() => setLocked(false)}
+      />
+    );
+  }
 
   return (
     <div className="flex min-h-full flex-col" data-section={activeSection}>

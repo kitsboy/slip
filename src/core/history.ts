@@ -8,7 +8,7 @@
  *    into text for a human at the very last moment.
  */
 
-import type { Invoice } from './orders';
+import { overpaidBy, type Invoice } from './orders';
 
 import { formatCoinAmount } from './money';
 import type { Coin } from './network';
@@ -35,6 +35,10 @@ export interface SaleRow {
   readonly netAtoms: bigint;
   readonly manual: boolean;
   readonly note: string;
+  /** What the source reported arriving, or null when nobody looked. */
+  readonly receivedAtoms: bigint | null;
+  /** How much MORE arrived than was asked for, past tolerance. 0n is the ordinary case. */
+  readonly overpaidAtoms: bigint;
 }
 
 export interface CoinTotals {
@@ -96,6 +100,8 @@ export function toRow(invoice: Invoice, refunds: readonly RefundLike[], coin: Co
         : invoice.amountAtoms - refunded,
     manual: invoice.manual,
     note: invoice.note,
+    receivedAtoms: invoice.receivedAtoms ?? null,
+    overpaidAtoms: overpaidBy(invoice.amountAtoms, invoice.receivedAtoms),
   };
 }
 
@@ -222,6 +228,7 @@ export function salesCsv(rows: readonly SaleRow[]): string {
     'refunded_atoms',
     'net_atoms',
     'amount',
+    'overpaid_atoms',
     'manual',
     'note',
   ];
@@ -238,6 +245,7 @@ export function salesCsv(rows: readonly SaleRow[]): string {
         r.refundedAtoms.toString(),
         r.netAtoms.toString(),
         formatCoinAmount(r.netAtoms, r.coin),
+        r.overpaidAtoms.toString(),
         r.manual ? 'yes' : 'no',
         r.note,
       ]
@@ -308,6 +316,18 @@ export function closeReport(close: DayClose, shopName: string, currency: string)
     const amount = words(r.netAtoms, r.coin);
     return `${r.at.slice(11, 16)}  ${r.id.padEnd(20).slice(0, 20)}  ${amount.padStart(16)}  ${r.rail}${r.manual ? ' (manual)' : ''}`;
   }));
+
+  const overRows = close.rows.filter((r) => r.overpaidAtoms > 0n);
+  if (overRows.length > 0) {
+    const extra = overRows.reduce((sum, r) => sum + r.overpaidAtoms, 0n);
+    lines.push(
+      '',
+      `${overRows.length} sale${overRows.length === 1 ? '' : 's'} arrived ABOVE the ask, ${words(
+        extra,
+        overRows[0]!.coin,
+      )} more in total. The money is real and in the wallet; check the customer meant it.`,
+    );
+  }
 
   lines.push('', 'A manual line is a human confirmation, not an observation.');
   return { title: `Close — ${close.date}`, lines: lines.filter((l) => l !== '') };

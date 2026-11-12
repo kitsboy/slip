@@ -284,6 +284,38 @@ export const MANUAL: readonly ManualEntry[] = [
     status: 'live',
   },
   {
+    id: 'lock',
+    title: 'Till lock',
+    why: 'A PIN that keeps a passer-by out of the day’s takings when the phone is left on the counter.',
+    steps: [
+      'Settings → Till lock → type a PIN twice → Set the PIN.',
+      'Choose how long it may sit untouched before it locks, or Lock now.',
+      'It asks for the PIN every time the page is opened.',
+    ],
+    limit:
+      'It is a curtain, not encryption: the books live in this browser, and anyone with the device and its own tools can read them. A forgotten PIN is recovered from the backup file on a fresh device — slip cannot reset it for you.',
+    code: ['src/core/lock.ts', 'src/ui/Lock.tsx'],
+    tests: ['tests/e2e/lock.mjs'],
+    group: 'records',
+    status: 'live',
+  },
+  {
+    id: 'overpaid',
+    title: 'A payment above the ask',
+    why: 'What slip says when more money arrives than the sale asked for — and what it does not do.',
+    steps: [
+      'The receipt says how much arrived and by how much it exceeded the ask.',
+      'Books marks the row "over by …", and the printed day close names it in one line.',
+      'Check with the customer; refund from your own wallet if it was a mistake.',
+    ],
+    limit:
+      'The sale still counts at the amount asked for, never at the excess — the extra is named, not added to the day’s totals. slip cannot send anything back.',
+    code: ['src/core/orders.ts', 'src/core/history.ts'],
+    tests: ['tests/overpaid.test.ts', 'tests/e2e/overpaid.mjs'],
+    group: 'records',
+    status: 'live',
+  },
+  {
     id: 'settings',
     title: 'Settings',
     why: 'The shop’s name, currency, tax, explorer and rate source in one place.',

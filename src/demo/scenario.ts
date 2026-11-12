@@ -69,6 +69,9 @@ export function demoScenario(now = new Date()): {
       address: 'bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu',
       index: i,
       amountAtoms: String(amount * 100),
+      // A few arrived over the ask, including one today, so the demo shows what slip says when
+      // that happens rather than describing it.
+      receivedAtoms: i % 13 === 0 ? String(amount * 100 + Math.round(amount * 100 * 0.08)) : null,
       amountMinor: String(amount),
       currency: 'USD',
       rateMinorPerCoin: '6000000',

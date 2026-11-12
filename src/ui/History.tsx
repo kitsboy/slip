@@ -495,6 +495,7 @@ export default function History() {
                 <span className="chip mr-1">{row.rail}</span>
                 {row.manual ? 'manual confirmation · ' : ''}
                 {row.refundedAtoms > 0n ? `refunded ${formatCoinAmount(row.refundedAtoms, row.coin)} · ` : ''}
+                {row.overpaidAtoms > 0n ? ` · over by ${formatCoinAmount(row.overpaidAtoms, row.coin)}` : ''}
                 {row.id}
               </p>
               {row.refundedAtoms < row.atoms && (

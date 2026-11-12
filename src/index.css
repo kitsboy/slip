@@ -2915,6 +2915,63 @@ html[data-skin='v2'] .v2-dialog-actions {
   gap: 8px;
   margin-top: 12px;
 }
+/* The lock screen. Deliberately plain: one card, one field, one button, and the truth underneath. */
+.v2-lock {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--v2-bg);
+}
+.v2-lock-card {
+  width: 100%;
+  max-width: 340px;
+  padding: 22px 18px;
+  border: 1px solid var(--v2-line);
+  border-radius: 14px;
+  background: var(--v2-card);
+  text-align: center;
+}
+.v2-lock-card svg {
+  color: var(--v2-ink);
+}
+.v2-lock-title {
+  margin: 4px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--v2-ink);
+}
+.v2-lock-pin {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--v2-line);
+  border-radius: 10px;
+  background: var(--v2-sunk);
+  color: var(--v2-ink);
+  font: 600 22px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.35em;
+  text-align: center;
+  outline: none;
+}
+.v2-lock-pin:focus-visible {
+  border-color: var(--v2-chip);
+  box-shadow: 0 0 0 2px var(--v2-chip);
+}
+.v2-lock-go {
+  width: 100%;
+  min-height: 48px;
+}
+.v2-lock-help {
+  margin: 14px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--v2-ink-2);
+}
+
 /* A QR pocket owns the size; the SVG fills it. A code drawn at its own pixel size inside a fixed box paints
    wider than the box and crosses whatever sits beside it — the failure this rule exists to prevent. Never
    crop a code: scale it, so every module survives. */

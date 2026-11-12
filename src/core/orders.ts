@@ -51,6 +51,12 @@ export interface Invoice {
   readonly confirmedAt: string | null;
   /** True when a human pressed "mark as paid" — never mixed with an observed payment. */
   readonly manual: boolean;
+  /**
+   * What the source last reported arriving at this address, in atoms, or null when nobody looked.
+   * Kept because a shop sometimes receives MORE than it asked for, and a till that says only
+   * "paid" hides the one fact the merchant would want to know.
+   */
+  readonly receivedAtoms?: bigint | null;
   readonly note: string;
 }
 
@@ -149,6 +155,29 @@ export function statusFromObservation(invoice: Invoice, obs: Observation, now = 
   }
   if (new Date(invoice.expiresAt) < now) return 'expired';
   return 'awaiting';
+}
+
+/**
+ * How far over the ask counts as worth a word, in basis points. 1% matches the under-payment
+ * tolerance, so the two edges of "this is the number I asked for" are symmetric.
+ */
+export const OVERPAID_BPS = 100n;
+
+/**
+ * The amount received above the ask, or 0n when it is within tolerance (or nobody looked).
+ *
+ * Deliberately a computation over two numbers rather than a status: an overpaid sale is a
+ * COMPLETE sale — the merchant has the money — and giving it its own status would make the day's
+ * totals, the sound cues and the reports disagree about whether it counted. It is a note, not a state.
+ */
+export function overpaidBy(
+  amountAtoms: bigint,
+  received: bigint | null | undefined,
+  toleranceBps = OVERPAID_BPS,
+): bigint {
+  if (received === null || received === undefined) return 0n;
+  if (received * 10_000n <= amountAtoms * (10_000n + toleranceBps)) return 0n;
+  return received - amountAtoms;
 }
 
 /** A human confirming by eye. Recorded as manual, never dressed up as an observation. */
