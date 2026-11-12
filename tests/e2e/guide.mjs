@@ -144,20 +144,30 @@ await sheet.waitForLoadState('domcontentloaded');
 await sheet.waitForTimeout(400);
 const sheetInfo = await sheet.evaluate(() => {
   const style = document.querySelector('style')?.textContent ?? '';
-  const svg = document.querySelector('.qr svg');
+  const svg = document.querySelector('.qr-card svg');
   const r = svg ? svg.getBoundingClientRect() : null;
+  const centre = r ? r.left + r.width / 2 : 0;
+  const pageCentre = document.documentElement.clientWidth / 2;
   const text = document.body.innerText;
   return {
     a4: /size:\s*A4/.test(style),
-    mm: /width:\s*92mm/.test(style),
+    mm: /width:\s*95mm/.test(style),
     px: r ? Math.round(r.width) : 0,
+    centred: Math.abs(centre - pageCentre) <= 2,
+    logo: document.querySelectorAll('header svg path').length >= 5,
     saysMoney: /goes straight into the shop/.test(text),
     saysReceipt: /Nothing is emailed/.test(text),
     link: /explain=1/.test(text),
   };
 });
 check('the customer sheet is an A4 page', sheetInfo.a4);
-check('the sheet draws the code at 92mm, not at screen size', sheetInfo.mm && sheetInfo.px >= 300, `${sheetInfo.px}px`);
+check('the sheet draws the code at 95mm, not at screen size', sheetInfo.mm && sheetInfo.px >= 300, `${sheetInfo.px}px`);
+check('the code is centred on the page', sheetInfo.centred);
+check('the slip wordmark is on the sheet', sheetInfo.logo);
+// One sheet of paper, proved by printing it: a popup's viewport is not an A4 page, so measure the PDF.
+const sheetPdf = await sheet.pdf({ format: 'A4', printBackground: true });
+const pdfPages = (sheetPdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) ?? []).length;
+check('the sheet prints on one page of A4', pdfPages === 1, `${pdfPages} pages`);
 check('the sheet says who holds the money', sheetInfo.saysMoney);
 check('the sheet says why nothing is emailed', sheetInfo.saysReceipt);
 check('the sheet carries the link in words, for a phone that will not scan', sheetInfo.link);

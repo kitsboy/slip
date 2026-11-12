@@ -17,43 +17,82 @@ import { escapeHtml } from './print';
  * The customer sheet, at the size it is printed at.
  *
  * A code that lives on a screen at 116px is a code nobody can scan from across a counter. This builds a
- * one-page sheet in its own window with the same code drawn at 92mm — measured in millimetres, so the
- * paper, not the device, decides the size — and the same three sentences the `?explain=1` page says.
+ * one-page sheet with the same code drawn at 95mm — measured in millimetres, so the paper, not the device,
+ * decides the size — centred on the page, under the shop's own name and the slip wordmark, and saying the
+ * same three things the `?explain=1` page says.
+ *
+ * The wordmark is reproduced here rather than imported, because a print sheet is a string handed to another
+ * window: it cannot carry React components. `BRAND_WORDMARK` is the same geometry as `Brand.tsx`, so the two
+ * cannot drift in shape — only in ink.
  */
+const BRAND_WORDMARK = `<svg viewBox="0 0 64 38" width="152" height="90" fill="none" stroke="#111111"
+  stroke-width="4" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="slip">
+  <path d="M13.5 12H10a3.5 3.5 0 0 0 0 7a3.5 3.5 0 0 1 0 7H6.5" />
+  <path d="M24 4V26" />
+  <path d="M34 12V26" stroke="#f5820a" />
+  <circle cx="34" cy="5.5" r="2.4" fill="#f5820a" stroke="none" />
+  <path d="M44 12V34" />
+  <path d="M44 12H51a7 7 0 0 1 0 14H44" />
+</svg>`;
+
 function customerSheetHtml(url: string, shopName: string): string {
-  const qr = renderQrSvg(url, { scale: 12, margin: 3 });
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${escapeHtml(
-    shopName || 'slip',
-  )} — how to pay</title><style>
-    @page { size: A4; margin: 18mm }
+  const qr = renderQrSvg(url, { scale: 12, margin: 0 });
+  const name = escapeHtml(shopName || 'This shop');
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>${name} — how to pay</title><style>
+    @page { size: A4; margin: 16mm }
     * { box-sizing: border-box }
-    body { margin: 0; color: #111; background: #fff;
-      font: 15px/1.55 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif }
-    h1 { font-size: 26px; margin: 0 0 2mm }
-    .sub { color: #555; margin: 0 0 8mm; font-size: 13px }
-    .qr { width: 92mm; margin: 0 0 6mm }
-    .qr svg { display: block; width: 92mm; height: 92mm }
-    h2 { font-size: 15px; margin: 0 0 2mm }
-    ul { margin: 0 0 6mm; padding-left: 5mm }
-    li { margin-bottom: 2mm }
-    .link { font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: #444;
-      word-break: break-all; border-top: 1px solid #ddd; padding-top: 3mm }
-    .foot { margin-top: 6mm; font-size: 11px; color: #666 }
+    html, body { margin: 0; padding: 0 }
+    body {
+      color: #111; background: #fff;
+      font: 15px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      display: flex; flex-direction: column; align-items: center;
+      min-height: calc(297mm - 32mm); justify-content: space-between;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    header { width: 100%; text-align: center; border-bottom: 1.5px solid #111; padding-bottom: 4mm }
+    header svg { display: block; margin: 0 auto 3mm }
+    .kicker { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #555; margin: 0 }
+    main { display: flex; flex-direction: column; align-items: center; width: 100% }
+    h1 { font-size: 30px; line-height: 1.15; margin: 0 0 2mm; text-align: center; letter-spacing: -.01em }
+    .lead { font-size: 15px; color: #444; margin: 0 0 7mm; text-align: center; max-width: 120mm }
+    .qr-card {
+      width: 108mm; padding: 6.5mm; margin: 0 auto;
+      border: 1px solid #ddd; border-radius: 3mm; background: #fff;
+    }
+    .qr-card svg { display: block; width: 95mm; height: 95mm; margin: 0 auto }
+    .scan { font-size: 12px; letter-spacing: .04em; color: #555; margin: 4mm 0 0; text-align: center }
+    ul { list-style: none; padding: 0; margin: 9mm auto 0; max-width: 132mm; width: 100% }
+    li { display: flex; gap: 3mm; font-size: 13.5px; line-height: 1.45; padding: 2.6mm 0; border-top: 1px solid #eee }
+    li:last-child { border-bottom: 1px solid #eee }
+    li b { flex: 0 0 34mm; font-weight: 600 }
+    li span { flex: 1; color: #333 }
+    footer { width: 100%; text-align: center }
+    .link {
+      font: 10.5px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: #444;
+      word-break: break-all; margin: 0 0 2mm; letter-spacing: -.01em;
+    }
+    .fine { font-size: 10px; color: #777; margin: 0 }
   </style></head><body>
-    <h1>${escapeHtml(shopName || 'This shop')}</h1>
-    <p class="sub">Point your phone camera at the square. No app, no account.</p>
-    <div class="qr">${qr}</div>
-    <h2>What you are paying</h2>
-    <ul>
-      <li>You pay in Bitcoin, Lightning or Litecoin — whatever this till asks for.</li>
-      <li>The money goes straight into the shop's own wallet. No bank holds it, and no payment
-        processor is involved.</li>
-      <li>Nothing is emailed. There is no receipt by post: the payment is your record, and the shop
-        can print one for you.</li>
-    </ul>
-    <p class="link">${escapeHtml(url)}</p>
-    <p class="foot">Printed by ${escapeHtml(BRAND_NAME)}. The page behind this code says the same
-      three things in full, and keeps saying them if the shop is closed.</p>
+    <header>
+      ${BRAND_WORDMARK}
+      <p class="kicker">How to pay here</p>
+    </header>
+    <main>
+      <h1>${name}</h1>
+      <p class="lead">Point your phone's camera at the square below. No app, no account, no card.</p>
+      <div class="qr-card">${qr}</div>
+      <p class="scan">Scan with your camera · hold still for a second</p>
+      <ul>
+        <li><b>What you pay</b><span>Bitcoin, Lightning or Litecoin — whatever this till asks for.</span></li>
+        <li><b>Who holds it</b><span>It goes straight into the shop's own wallet. No bank, no payment processor.</span></li>
+        <li><b>Your receipt</b><span>Nothing is emailed. The payment itself is the record, and the shop can print one for you.</span></li>
+      </ul>
+    </main>
+    <footer>
+      <p class="link">${escapeHtml(url)}</p>
+      <p class="fine">Printed by slip · the same three answers, in full, on the page behind this code.</p>
+    </footer>
   </body></html>`;
 }
 
