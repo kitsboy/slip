@@ -162,6 +162,9 @@ Tabs are `<a href="#…">` and active-state reflects the fragment.
 | Lightning | Sell → `data-panel="lightning"` (LNURL-pay, settle only on wallet verify URL; no URL = "unverifiable") | Stays under Sell: it is a way to take a sale |
 | Watchlist | More → `data-panel="watchlist"` | Any address, checked on demand, read-time shown |
 | SelfTest (5 vectors) | More → `data-panel="selftest"` | Local, no network |
+| Till lock | Setup → Settings (`[data-till-lock]`, inside `data-panel="settings"`) | A whole-app gate, not a drawer: no new panel id, and no way round it except the PIN |
+| Overpayment note | Sell → receipt · Books → `data-panel="history"` rows · printed day close · CSV | A note, not a status — the sale is complete and the totals do not move |
+| Customer sheet (A4) | Manual → the counter QR (`[data-manual-qr]`) opens its own window | Paper size, not screen size: the code is 95mm |
 | Live 100-sat test / WallClock / WeeklyLetter | Omitted unless assist toggle on (`data-panel="livetest"/"wallclock"/"letter"`) | Opt-in, never clutter |
 
 ## 5. Pinned surface audit (what the e2e/maps must keep their ids for)

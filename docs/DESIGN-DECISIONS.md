@@ -103,7 +103,7 @@ attempt" budget from the spec.
 The workflow watched `branches: [main]` while the repo branch is `master`, so it never fired — a
 green badge would have been a lie. Branch corrected to `master`, a `verify` job covers
 typecheck/lint/unit/build/docs-gate/bundle-scan, and an `e2e` job installs Chromium, builds, serves
-on `127.0.0.1:4181` and runs **all nine** browser suites. The suites no longer hardcode
+on `127.0.0.1:4181` and runs **every** browser suite (18 as of v0.31.59). The suites no longer hardcode
 `/root/.cache`: `tests/e2e/_chrome.mjs` resolves `CHROME_PATH` → `$HOME/.cache` → Playwright's own
 path, so the same suites run on a laptop and a runner. `npm run test:e2e` and CI share one list
 (`tests/e2e/run-all.mjs`).

@@ -14,13 +14,26 @@ src/
     addresses.ts   validate an address against the network it will be spent into
     accounts.ts    counter accounts (BIP-85 child xpubs), ACK gate, persistence
     pin.ts         PBKDF2 till PIN + hand-off rules
+    lock.ts        the till lock: salt + PBKDF2-SHA256 hash, never the PIN; idle policy
     shifts.ts      hash-chained, tamper-EVIDENT shift log
     qr.ts          BIP-21 URIs + inline SVG QR (decode-verified in tests)
     backup.ts      encrypted .slip file (AES-GCM + PBKDF2)
     buildinfo.ts   version / commit / build time, injected at build
   ui/              one panel per capability; no business logic
-  App.tsx          the shell
+  App.tsx          the shell; also the one whole-app gate — a locked till returns Lock, not a drawer
+
 ```
+
+## Two things that look like features but are arithmetic
+
+- **Overpayment is a note, not a status.** Nothing in `orders.ts` gains a state for it. `overpaidBy()`
+  names the difference above a 1% tolerance (the same edge as the short-payment rule), the row carries
+  it, and every total still counts the sale **at the amount asked for**. A status would have meant a
+  sale that is complete being shown as incomplete.
+- **The till lock is a gate, not an encryption story.** `lock.ts` holds a salt and a PBKDF2-SHA256 hash
+  (120,000 iterations, 256 bits); the PIN is never stored and cannot be recovered. What it buys is the
+  ordinary thing — a passer-by at the counter cannot open the till, and the page says so rather than
+  implying the books are encrypted.
 
 ## Rules that shaped it
 
@@ -62,8 +75,23 @@ cancelled — that is what makes "no address reuse" true rather than intended.
 | Built artifact, real browser | Playwright | `tests/e2e/` |
 | Live deploy identity | `scripts/deploy.sh` | version meta on the live page |
 
-Run everything:
+Run everything — the same eleven gates CI and the deploy use:
 
 ```bash
-npx tsc --noEmit && npx vitest run && npm run build && node tests/e2e/keycheck.mjs
+npx tsc -p tsconfig.json --noEmit
+npx eslint .
+npm run build
+npx vitest run
+node scripts/lint-tokens.mjs
+node scripts/contrast-audit.mjs --strict
+node scripts/docs-audit.mjs --strict
+node scripts/check-budget.mjs
+node scripts/tap-audit.mjs
+npx vite preview --port 4183 --strictPort --host 127.0.0.1   # separate shell
+node tests/e2e/run-all.mjs "http://127.0.0.1:4183/"           # 18 browser suites
+node scripts/demo-check.mjs "http://127.0.0.1:4183/?demo=1"   # the demo never touches the network
 ```
+
+`npm run build` kills a running `vite preview`; start the preview **after** the build, and kill it by
+PID (`pgrep -f "^node .*slip/node_modules/.bin/vite preview"`), never with `pkill -f "vite preview"`,
+which also matches the shell that issued it.

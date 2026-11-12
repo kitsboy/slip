@@ -348,3 +348,27 @@ It is removable in one field, and it is true: Give A Bit built this.
 ### D-59 — Optional surfaces are switches, not pages
 Clock, letter, live test, explanations, rehearsal and the rest all ship behind Settings → Assistance
 so a vendor can hand over a quiet till and a merchant can add depth as they grow.
+
+### D-60 — An overpayment is a note, not a status
+Under-payment already had a tolerance and a word. Over-payment had neither, so a customer who typed an
+extra zero got a clean "Paid" and the excess vanished into nothing. The money is real either way: the
+merchant has it, the sale is complete, and a status that made it look incomplete would be the dishonest
+option. So `overpaidBy()` names the difference above **1%** — the same edge as the short rule, because a
+number with two tolerances is a number nobody can explain — and the sale still counts at the amount
+asked for. It is named in words in five places (receipt, Books row, printed receipt, printed day close,
+CSV) because one place is not where a merchant looks. `receivedAtoms` is recorded only when something
+actually observed the chain, so "nobody looked" can never be reported as "exactly right".
+
+### D-61 — The till lock is a curtain, not a vault
+A shop with staff had no way to stop the next person reading the day's takings. The lock is a **whole-app
+gate**: when it is on there is no header, no tabs and no books, because a lock that leaves the drawer
+open is theatre. A shop with a PIN starts **locked on every page load** — a lock only engages when asked
+is a lock nobody asks for — and also after N quiet minutes (default 10, "never" allowed).
+
+What it is not: encryption. The books live in this browser's storage and remain readable by anyone with
+the device and its own developer tools. The PIN itself is **never stored** — only a random salt and a
+PBKDF2-SHA256 hash (120,000 iterations, 256 bits) — and a forgotten PIN is unrecoverable by design, with
+the recovery being the encrypted backup on a fresh device. The Settings copy says both of these plainly,
+because a curtain labelled "vault" teaches the person relying on it the wrong thing, and the next
+decision they make with it will be worse for having been misled.
+

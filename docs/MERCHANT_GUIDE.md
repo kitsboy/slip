@@ -138,6 +138,17 @@ History & day close panel → pick the day. You get every completed sale, the sp
 slip **observed** versus how much a **human** confirmed. **download CSV** gives your accountant
 integers plus a BTC column; **print day close** gives a plain-text sheet on white paper.
 
+### When more money arrives than you asked for
+
+It happens: a customer types an extra zero, or pays for two coffees by mistake. slip records what the
+source reported arriving, so the receipt says *"a little more arrived than asked"* with both numbers,
+the sale is marked **· over by N sats** in History, the printed receipt carries a `Received …` line,
+the printed day close names it in one sentence, and the CSV has an `overpaid_atoms` column.
+
+The sale still counts **at the amount you asked for** — the extra is named, never added to the day's
+totals — and slip cannot send anything back. A refund is something you do from your own wallet, then
+record here (see below).
+
 ## 3k. Refund something
 
 History → **refund** on the sale → sats, how it went back (on-chain, Lightning, cash, goodwill),
@@ -193,6 +204,24 @@ safe. There is still nowhere to paste a key.
 
 Settings → Assistance → **print the counter card**. One A4 sheet, black on white: the three rules,
 what to do on shift, and the never-list. Tape it behind the till.
+
+## 3s. Lock the till when you step away
+
+Settings → **Till lock**. Type a PIN twice (4–8 digits) → **set the PIN**. Choose how long the till
+may sit untouched before it locks itself — 1, 5, 10 or 30 minutes, or never — and use **lock now** at
+any time.
+
+A till with a PIN is locked **every time the page is opened**, not only when you ask. When locked there
+is no header, no tabs and no books: the lock screen replaces the whole app. Entering the PIN opens it;
+a wrong one slows successive tries.
+
+What this is, plainly: **a curtain, not a safe.** The PIN is never stored — only a random salt and a
+hash of it — and nothing in your books is encrypted. Anyone with the phone and the browser's own tools
+can still read the data. What the lock buys is the ordinary thing: the next person at the counter
+cannot open your till.
+
+**Forgotten PIN:** it cannot be reset or recovered. Restore your backup `.slip` file on a fresh device,
+or wipe the browser's data for this site and start again. That is why the backup in §5 matters.
 
 ## 4. Hand the till to a member of staff
 

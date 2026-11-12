@@ -10,7 +10,9 @@ ability to sign anything.
 
 ## Status: shipping — it takes payments and closes the day.
 
-The next session starts at `docs/RESUME-2026-11-10.md`. Live is v0.31.26; the ordered repair list is `docs/NEXT-TEN.md`.
+Live is **v0.31.59** on https://slip.giveabit.io. Read `docs/RESUME-2026-11-10.md` first, then
+`docs/NEXT-TEN.md` — rewritten 2026-11-12 and honest about what is open: three items blocked on a human
+thumb or a captcha, three on a shop's hardware, the rest code.
 
 On-chain (BTC/LTC, mainnet and testnets), Lightning via LNURL-pay + LNURL-verify, receipts with
 customer-kept proofs, rent requests, a day book you can stamp, wallet pairing by QR, a watchlist and
@@ -19,28 +21,23 @@ a customer screen. Every rail is labelled with what was actually observed — `s
 
 Still planned: Fedimint (needs a federation to test against), translations, an APK shell.
 
-What exists right now: a single `index.html` (485 KB raw / 150 KB gzip) with strict TypeScript
-and React — the ISO 4217 currency table, integer-only money maths, BTC + LTC address derivation,
-SLIP-132 and BIP-380 descriptor parsing, counter accounts with a derivation gate, a staff hand-off
-with a PBKDF2 PIN, a hash-chained shift log, an encrypted backup (books included), QR + BIP-21
-URIs, the till with catalog and receipts, standing requests, Lightning, anchoring, pairing, the
-watchlist and a customer screen.
+What exists right now: a single `index.html` (**777 KB raw, 229 KB over the wire**) of strict
+TypeScript and React — the ISO 4217 currency table, integer-only money maths, BTC + LTC address
+derivation, SLIP-132 and BIP-380 descriptor parsing, counter accounts with a derivation gate, a
+staff hand-off with a PBKDF2 PIN, a **till lock** that shuts the whole app behind a PIN, a
+hash-chained shift log, an encrypted backup (books included), QR + BIP-21 URIs, the till with catalog
+and receipts, **an overpayment note** that names money that arrived above the ask, standing requests,
+Lightning, anchoring, pairing, the watchlist and a customer screen.
 
 Verified against the official BIP-84 / BIP-86 / SLIP-132 vectors, against **Bitcoin Core's own
 `deriveaddresses`** for every address shape, against an independent Python implementation for the
 money maths, and against stubbed explorers/calendars/LNURL endpoints for every status transition.
-**436 unit tests** and **seven browser suites** (124 checks) run against the built artifact.
+**640 unit tests** and **18 browser suites** run against the built artifact.
 
-There is deliberately no selling screen yet. A till that shows a receive address
-before the derivation-preview gate exists is the one bug that costs a merchant
-money, so the screens land in a fixed order — see `SLIP-PLAN.md` §7:
-
-```
-P0 pipeline ✅   P2 derivation ✅   P1 money math   P2b descriptors
-P3 storage/backup   P4 providers/rates   P5 payment engine
-P6 selling UI   P7 safeguards   P7b Silent Payments   P7c BIP-85 + Fedimint
-P7d Lightning   P8 reports   P9 PWA/APK/embed   P10 rehearsal + release
-```
+Two things are genuinely unproven and are named as such in `docs/NEXT-TEN.md`: the camera has never
+been pointed at a code on a real phone, and no sale has been paid from a real wallet — every sale so
+far is a demo or a rehearsal. The trial for a shopkeeper is `docs/MERCHANT-TRIAL-LTC.md` and nobody
+outside this repo has run it.
 
 ## Rails in scope (v1)
 
@@ -88,7 +85,7 @@ NWC, 19 further languages, iOS App Store build, thermal printing, kiosk, peer sy
 | Offline reconcile | Open sales re-checked on load and on reconnect |
 | Silent Payments | `sp1…` display + BIP-21 QR, recorded as a manual confirmation by design |
 | Scanning | Camera (BarcodeDetector) where supported, USB wedge anywhere, paste always |
-| Install | Add-to-device prompt only when the browser actually offers one |
+| Install | Manifest + wordmark icons on black; Chromium reports zero installability errors through CDP |
 | Manual | Generated from panel declarations; `npm run docs:audit` fails the build when docs drift |
 | Freshness | Age rings on fetched numbers, from the same rule that refuses a stale rate |
 | Book seal | Today's digest in the footer, changing as sales land |
@@ -105,6 +102,12 @@ NWC, 19 further languages, iOS App Store build, thermal printing, kiosk, peer sy
 | Self test | Five fixed vectors in the browser — proves the file's arithmetic |
 | Handover note | Three generated lines for the next shift |
 | Counter card | A4 rules sheet for the wall behind the till |
+| **Till lock** | A 4–8 digit PIN (PBKDF2-SHA256, 120k iterations, salted) locks the whole app on open and after N quiet minutes; never stored, never recoverable |
+| **Overpayment** | Money that arrived above the ask is named on the receipt, in Books, on the printed day close and in the CSV — and still counted at the ask |
+| Day close on A4 | One A4 sheet with fixed columns and a footer; one page proved by a PDF page count |
+| Customer sheet | A one-page A4 sheet at paper size (code at 95mm, wordmark, what they pay / who holds it) |
+| The limits lesson | A panel behind More that says what slip cannot do, beside the short guide |
+| Keyboard & reader | Every money path by keyboard, blocked actions stay focusable, each sale announced once |
 
 ## Live
 
@@ -114,11 +117,18 @@ NWC, 19 further languages, iOS App Store build, thermal printing, kiosk, peer sy
   bot-detection script that slip's own CSP refuses (see `DECISIONS.md` D-15) — so a
   hash check must be done against the pages.dev copy or a repo build.
 
-Redeploy (from THOR, with `CF_FAMILY_OPS_TOKEN` in the environment):
+Ship a new version from `master` (from THOR; the credentials live in
+`/root/.hermes/cf-credentials.env`):
 
 ```bash
-npm run build && npx wrangler pages deploy dist --project-name slip --branch main
+SLIP_NOTE="<one line for the changelog>" bash scripts/deploy.sh patch
 ```
+
+It bumps the patch version, builds, deploys, then **verifies both the Pages origin and
+slip.giveabit.io report the new version** — a deploy that cannot say its own version has failed.
+Commit the version files afterwards: `git add CHANGELOG.md package.json package-lock.json`.
+Do not export `CLOUDFLARE_API_TOKEN` before running it: the script only reads the credentials file
+when that variable is unset, and otherwise fails on a missing account id.
 
 Cost: $0. Pages free tier, existing giveabit.io zone, no new zone, no paid feature.
 
@@ -126,7 +136,14 @@ Cost: $0. Pages free tier, existing giveabit.io zone, no new zone, no paid featu
 
 | Doc | For |
 |---|---|
-| [`docs/MERCHANT_GUIDE.md`](docs/MERCHANT_GUIDE.md) | a shop owner: get your xpub, add a counter, hand it to staff, back up |
+| [`docs/MERCHANT_GUIDE.md`](docs/MERCHANT_GUIDE.md) | a shop owner: get your xpub, add a counter, hand it to staff, lock the till, back up |
+| [`docs/MERCHANT-TRIAL-LTC.md`](docs/MERCHANT-TRIAL-LTC.md) | the trial to run before taking real money, printer or no printer |
+| [`docs/FEATURE-MAP.md`](docs/FEATURE-MAP.md) | every capability with its honest status and the file it lives in |
+| [`docs/NAV-MAP.md`](docs/NAV-MAP.md) | what is reachable from where, and why the tabs are these tabs |
+| [`docs/NEXT-TEN.md`](docs/NEXT-TEN.md) | what is actually open, each with a "done when" line |
+| [`docs/RESUME-2026-11-10.md`](docs/RESUME-2026-11-10.md) | the session log, newest first — start here |
+| [`docs/KIMI-HANDOFF.md`](docs/KIMI-HANDOFF.md) | the handoff to whoever works the next session |
+| [`docs/EDUCATION.md`](docs/EDUCATION.md) | the generated card pack behind the in-app manual |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | a developer: module map, the rules that shaped it, how it is tested |
 | [`docs/DESIGN-DECISIONS.md`](docs/DESIGN-DECISIONS.md) | why it works the way it does — every decision from D-33 onward |
 | [`docs/DESIGN-UPGRADE-BRIEF.md`](docs/DESIGN-UPGRADE-BRIEF.md) | the design pass: direction, checklist, plan, and the master prompt |
@@ -145,8 +162,17 @@ Cost: $0. Pages free tier, existing giveabit.io zone, no new zone, no paid featu
 ```bash
 npm ci
 npm run dev        # http://localhost:5173
-npm test           # vitest
+npm test           # vitest — 640 passing
 npm run build      # → dist/index.html (single file) + dist/SHA256SUMS
+npm run manual     # rebuild, then photograph every documented panel (2×) for the in-app manual
+npm run docs:education   # rewrite docs/EDUCATION.md from the manual entries
+```
+
+Browser suites need the built file served, not the dev server:
+
+```bash
+npx vite preview --port 4183 --strictPort --host 127.0.0.1 &
+node tests/e2e/run-all.mjs "http://127.0.0.1:4183/"   # 18 suites
 ```
 
 `npm run build` prints the size and SHA-256 of `dist/index.html`. Verify a downloaded

@@ -20,6 +20,8 @@ do they get".
 | Reassigning the day's takings to another counter | switching counters requires the till PIN | a shared PIN collapses this to nothing — give each person their own moment at the counter |
 | Claiming a shift never happened | hash-chained shift log, printable day sheet | the device owner can rewrite the whole chain (no server, no signature) |
 | Reading the merchant's other counters | all counters are visible to whoever holds the device | out of scope: use one device per counter, or a backup + wipe |
+| A passer-by opening the till while the counter is unattended | till lock: a 4–8 digit PIN, PBKDF2-SHA256 (120k iterations, salted), gating the **whole** app on open and after N quiet minutes | a curtain, not encryption — the books stay readable to anyone with the device and developer tools. The PIN is never stored and cannot be reset; recovery is the encrypted backup on a fresh device |
+| A staff member using the lock as an excuse not to hand over the PIN | the handoff rules stay separate (`pin.ts`): a named holder changes counters, and the lock only governs who can open the app | a shop that shares one PIN has one accountability, not two |
 
 ## 3. Malware / a compromised device
 

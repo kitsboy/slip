@@ -1,6 +1,6 @@
 # What is actually open
 
-Rewritten 2026-11-12, at v0.31.58. The old list was written at v0.31.25 and had drifted: five of its
+Rewritten 2026-11-12, at v0.31.59. The old list was written at v0.31.25 and had drifted: five of its
 ten items had shipped by the time anyone read it again, and one pointed at a file that does not exist.
 A list that lies is worse than no list, because the next person trusts it.
 

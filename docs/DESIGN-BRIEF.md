@@ -11,7 +11,7 @@ static address / Lightning address); every sale pays directly into the merchant'
 wallet. The tool can **never** hold, move, refund or recover money. Its whole safety
 story is that it cannot spend.
 
-It ships as **one HTML file** (`dist/index.html`, ~574 KB raw / ~150 KB gzip), CSP
+It ships as **one HTML file** (`dist/index.html`, ~777 KB raw / ~229 KB gzip), CSP
 hash-pinned, with zero network before a sale. Merchants open it by double-click or from
 Cloudflare Pages. Target user: other merchants who install it themselves.
 

@@ -67,11 +67,16 @@ is covered by tests. Nothing on this page is aspirational.
 | Parked tabs | Up to five half-built sales parked and resumed; no address is reserved until charged | live | `core/tabs.ts` |
 | Repeat last sale | One tap to reload the previous order | live | `core/tabs.ts` |
 | Install prompt | "Add to device" only when the browser offers a real prompt; says so when already installed | live | `ui/Install.tsx` |
+| Installable app | A real manifest + wordmark icons on black; Chromium reports zero installability errors, tested through CDP | live | `public/manifest.webmanifest`, `scripts/make-icons.mjs`, `tests/e2e/installable.mjs` |
+| **Till lock** | A 4–8 digit PIN (PBKDF2-SHA256, 120k iterations, salt only — the PIN is never stored) locks the whole app on open and after N quiet minutes; the screen says it is a curtain, not encryption | live | `core/lock.ts`, `ui/Lock.tsx`, `ui/Settings.tsx` |
+| **Overpayment note** | What arrived above the ask is recorded and named — receipt, Books row, printed day close, printed receipt, CSV — while the sale still counts at the ask and no total moves | live | `core/orders.ts`, `core/history.ts`, `ui/History.tsx` |
+| Day close on A4 | The day's takings as one A4 sheet (fixed columns, footer, one page proved by PDF page count) | live | `ui/History.tsx` |
+| Customer sheet | The manual's counter QR opens a one-page A4 sheet at paper size — wordmark, shop name, code at 95mm, what you pay / who holds it / your receipt | live | `ui/Manual.tsx`, `ui/print.ts` |
+| The limits lesson | A panel behind More that says what slip cannot do, in the shopkeeper's words, beside the short guide | live | `ui/Limits.tsx` |
+| Keyboard and screen reader | Every money path reachable without a mouse, blocked actions stay focusable, sales announced once | live | `ui/Till.tsx`, `ui/Wizard.tsx` |
 | **Silent Payments** | `sp1…`/`tsp1…` validated and shown with a BIP-21 QR; every sale recorded as a manual confirmation, because detection needs a scan key slip will never hold | live (display + manual) | `core/silentpay.ts`, `ui/SilentPay.tsx` |
 | **Fedimint** | request mode against a federation | planned — needs a federation + gateway to test against | — |
-
 | **Multi-language** | translation as data | planned | — |
-
 ## The three rules that make every row above safe
 
 1. **No spend path.** There is no key material in the app that could move a coin. A total bug can
@@ -80,9 +85,22 @@ is covered by tests. Nothing on this page is aspirational.
    screen, and each one is a tested state rather than a label someone typed.
 3. **No silent network.** Every request is to an endpoint the merchant chose or the public default
    named in Settings — and the footer counts requests from the app itself.
-| Plain-language layer | every panel | a plain sentence on screen, the exact term behind a switch (`<Tech>`), developer panels grouped under `<Advanced>` | D-79 |
-| Three-step first screen | hero, Sell | "Add your wallet · Ring up the sale · They pay you", one orange action | D-79 |
-| Next-step strip | Sell | reads the device (no wallet / ready / trading) and names the one useful action | D-79 |
-| "Show technical names" | Settings → Plain language | brings back xpub, LNURL, mempool, descriptor, BIP-85; nothing is ever deleted | D-79 || Glossary in plain words | Learn | ten everyday terms, each meaning one sentence; exact names behind the technical switch | D-80 |
-| Try before you paste | hero | "See it with pretend sales" opens the demo in a new tab | D-80 || Demo covers every pipe | ?demo=1 | prices, Lightning invoice + settlement, day stamp, explorer — all answered locally; nothing leaves the device | D-81 || The demo tells the truth | ?demo=1 | no invented balances, split legs registered, simulated stamp labelled, pretend invoice labelled | D-82 || Which wallet do you use? | Setup → Wallets, wizard | eight guides, Lightning-only wallets routed to the Lightning card | D-84 |
-| Text size and spacing | Setup → Settings | `normal/large`, `comfortable/compact`, applied to `<html>` | D-84 |
+
+## Decisions carried into the UI
+
+| Decision | Where it shows | What it settled |
+|---|---|---|
+| D-79 plain language | every panel | one plain sentence on screen, the exact term behind a switch (`<Tech>`), developer panels grouped under `<Advanced>` |
+| D-79 three-step first screen | hero, Sell | "Add your wallet · Ring up the sale · They pay you" — one orange action |
+| D-79 next-step strip | Sell | reads the device (no wallet / ready / trading) and names the one useful action |
+| D-79 show technical names | Settings → Plain language | brings back xpub, LNURL, mempool, descriptor, BIP-85; nothing is ever deleted |
+| D-80 glossary | Learn | everyday terms, each meaning one sentence; exact names behind the technical switch |
+| D-80 try before you paste | hero | "See it with pretend sales" opens the demo in a new tab |
+| D-81 demo covers every pipe | `?demo=1` | prices, Lightning invoice + settlement, day stamp, explorer all answered locally; nothing leaves the device |
+| D-82 the demo tells the truth | `?demo=1` | no invented balances, split legs registered, simulated stamp labelled, pretend invoice labelled |
+| D-83 a blocked action stays focusable | Till, wizard | `aria-disabled`, not `disabled`, so a keyboard reaches the action and hears why |
+| D-84 which wallet do you use | Setup → Wallets | eight guides, Lightning-only wallets routed to the Lightning card |
+| D-84 text size and spacing | Setup → Settings | `normal/large`, `comfortable/compact`, applied to `<html>` |
+| A till you can leave | Settings → Till lock | a PIN locks the whole app, not a drawer; the copy says it is a curtain, not encryption |
+| A sale above the ask | receipt, Books, day close, CSV | named in words; the totals stay at the amount asked for |
+
