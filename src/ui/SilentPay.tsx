@@ -143,7 +143,7 @@ export default function SilentPay() {
       {shown && (
         <div className="mt-3 flex flex-wrap items-start gap-3">
           <div
-            className="h-48 w-48 rounded-lg bg-white p-1"
+            className="qr-pocket h-48 w-48"
             dangerouslySetInnerHTML={{ __html: renderQrSvg(shown.uri, { scale: 5, margin: 2 }) }}
           />
           <div className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">

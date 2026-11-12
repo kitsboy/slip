@@ -2915,6 +2915,22 @@ html[data-skin='v2'] .v2-dialog-actions {
   gap: 8px;
   margin-top: 12px;
 }
+/* A QR pocket owns the size; the SVG fills it. A code drawn at its own pixel size inside a fixed box paints
+   wider than the box and crosses whatever sits beside it — the failure this rule exists to prevent. Never
+   crop a code: scale it, so every module survives. */
+.qr-pocket {
+  display: block;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #fff;
+  padding: 6px;
+}
+.qr-pocket > svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 /* The limits panel in More: one row, then a reading panel. The lesson is long, so the row is the only
    thing on the page; everything else waits behind it. */
 html[data-skin='v2'] .v2-limits-row {

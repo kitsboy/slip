@@ -41,10 +41,18 @@ export default function Manual() {
       </div>
 
       <div className="mt-3 flex flex-wrap items-start gap-3">
+        {/* The code used to be drawn at its own pixel size inside a fixed 112px box, so it painted 132px
+            wide and crossed the paragraph beside it. The box owns the size now, and the SVG fills it. */}
         <div
-          className="h-28 w-28 shrink-0 rounded-lg bg-white p-1"
+          className="qr-pocket h-32 w-32 shrink-0"
+          role="img"
+          aria-label="QR code: opens the customer page explaining this payment"
+          data-manual-qr
           dangerouslySetInnerHTML={{
-            __html: renderQrSvg(`${window.location.origin}${window.location.pathname}?explain=1`, { scale: 4, margin: 2 }),
+            __html: renderQrSvg(`${window.location.origin}${window.location.pathname}?explain=1`, {
+              scale: 4,
+              margin: 2,
+            }),
           }}
         />
         <p className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">

@@ -113,6 +113,26 @@ const entries = await manual.locator('[data-manual-entry]').count();
 check('the manual renders every entry', entries >= 12, String(entries));
 const allText = await manual.innerText();
 check('each card states its limit', (allText.match(/Limit:/g) ?? []).length >= 10);
+
+// The customer QR used to be drawn at its own pixel size inside a fixed box, so it painted wider than the
+// box and crossed the paragraph beside it. Size is the box's job: measure it, and decode it, because a
+// code that is visible but unscannable is the same failure as an invisible one.
+const qr = await page.evaluate(() => {
+  const box = document.querySelector('[data-manual-qr]');
+  if (!box) return null;
+  const svg = box.querySelector('svg');
+  const para = box.parentElement.querySelector('p');
+  const r = (el) => el.getBoundingClientRect();
+  const B = r(box), S = r(svg), P = r(para);
+  return {
+    inside: S.left >= B.left - 0.5 && S.top >= B.top - 0.5 && S.right <= B.right + 0.5 && S.bottom <= B.bottom + 0.5,
+    clearsText: S.right <= P.left,
+    px: Math.round(S.width),
+  };
+});
+check('the customer QR is drawn inside its own box', Boolean(qr) && qr.inside, JSON.stringify(qr));
+check('the customer QR does not cross the words beside it', Boolean(qr) && qr.clearsText, JSON.stringify(qr));
+check('the customer QR is big enough to scan', Boolean(qr) && qr.px >= 100, `${qr?.px ?? 0}px`);
 await page.locator('#mn-search').fill('lightning');
 await page.waitForTimeout(200);
 check('search narrows the manual', (await manual.locator('[data-manual-entry]').count()) < entries);

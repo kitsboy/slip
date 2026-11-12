@@ -138,7 +138,7 @@ export default function Verify() {
         {chosen && (
           <div className="mt-2 flex items-start gap-2">
             <div
-              className="h-36 w-36 shrink-0 rounded-lg bg-white p-1"
+              className="qr-pocket h-36 w-36 shrink-0"
               dangerouslySetInnerHTML={{ __html: renderQrSvg(formatProof(chosen), { scale: 4, margin: 2 }) }}
             />
             <div className="min-w-0 flex-1 text-[11px] text-muted">
