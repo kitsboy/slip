@@ -21,6 +21,7 @@ import SilentPay from './ui/SilentPay';
 import InfoVideo from './ui/InfoVideo';
 import HowItWorks from './ui/HowItWorks';
 import Cannot from './ui/Cannot';
+import Limits from './ui/Limits';
 import LearnSearch from './ui/LearnSearch';
 import NextStep from './ui/NextStep';
 import Tech, { Advanced } from './ui/Tech';
@@ -489,6 +490,7 @@ export default function App() {
               why="Watching, pairing, proving, a real test"
               active={activeSection === 'more'}
             >
+              <Limits />
               <Verify />
               <Advanced>
                 <SelfTest />

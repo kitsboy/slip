@@ -85,8 +85,35 @@ check(
   await page.evaluate(() => document.activeElement?.tagName + '#' + (document.activeElement?.id ?? '')),
 );
 
+// ── 3b. The lesson behind More: reachable, closable, and it gives focus back ─────────────────────
+await page.goto(`${BASE}?cb=${Date.now()}#more`, { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(700);
+const limitsRow = page.locator('[data-limits-open]');
+check('the limits lesson is offered in More', (await limitsRow.count()) === 1);
+await limitsRow.first().click();
+const lesson = page.locator('[role="dialog"]');
+await lesson.waitFor({ timeout: 5000 });
+check('it opens as a dialog, not a page jump', (await lesson.count()) === 1);
+check('the limits are stated in it', /cannot move your money/.test(await lesson.innerText()));
+// Headings are uppercased in CSS, and innerText returns text as rendered — compare case-blind.
+const lessonText = (await lesson.innerText()).toLowerCase();
+check(
+  'the short guide is in the same panel',
+  lessonText.includes('putting it on a phone') && lessonText.includes('the first ten minutes'),
+);
+const noOverflowX = await lesson.evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
+check('nothing runs off the side of the panel', noOverflowX);
+await page.keyboard.press('Escape');
+await page.waitForTimeout(250);
+check('Esc closes it', (await page.locator('[role="dialog"]').count()) === 0);
+check('focus returns to the row that opened it', await page.evaluate(() => Boolean(document.activeElement?.closest('[data-limits-open]'))));
+
 // ── 4. Nothing on the screen is nameless ──────────────────────────────────────────────────────────
-const nameless = await page.evaluate(() =>
+// A fresh tab, so this reads one settled screen rather than whatever the earlier sale left mid-render.
+const clean = await browser.newPage();
+await clean.goto(`${BASE}?cb=${Date.now()}&demo=1#sell`, { waitUntil: 'domcontentloaded' });
+await clean.waitForTimeout(900);
+const nameless = await clean.evaluate(() =>
   [...document.querySelectorAll('button, a')]
     .filter((el) => {
       const text = (el.getAttribute('aria-label') || el.innerText || el.getAttribute('title') || '').trim();
@@ -94,6 +121,7 @@ const nameless = await page.evaluate(() =>
     })
     .map((el) => el.className.slice(0, 30)),
 );
+await clean.close();
 check('every button and link has a name a screen reader can say', nameless.length === 0, nameless.join(' | '));
 
 check('no runtime errors from slip', errs.length === 0, errs.join(' | '));

@@ -2915,6 +2915,61 @@ html[data-skin='v2'] .v2-dialog-actions {
   gap: 8px;
   margin-top: 12px;
 }
+/* The limits panel in More: one row, then a reading panel. The lesson is long, so the row is the only
+   thing on the page; everything else waits behind it. */
+html[data-skin='v2'] .v2-limits-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--v2-line);
+  border-radius: 10px;
+  background: var(--v2-sunk);
+  color: var(--v2-ink);
+  font-size: 14px;
+  text-align: left;
+}
+html[data-skin='v2'] .v2-limits-row:hover {
+  background: var(--v2-raised);
+}
+html[data-skin='v2'] .v2-limits-row-go {
+  color: var(--v2-ink-2);
+  font-size: 16px;
+}
+html[data-skin='v2'] .v2-limits-lead {
+  font-size: 15px;
+  color: var(--v2-ink);
+}
+html[data-skin='v2'] .v2-limits-h {
+  margin-top: 16px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--v2-ink-2);
+}
+html[data-skin='v2'] .v2-limits-list {
+  display: grid;
+  gap: 6px;
+  margin-top: 6px;
+  padding-left: 18px;
+  list-style: disc;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--v2-ink-2);
+}
+html[data-skin='v2'] .v2-limits-tail {
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1px solid var(--v2-line);
+  font-size: 13px;
+  color: var(--v2-ink-2);
+}
+
 /* A size modifier for the small copy button inside a code card. */
 html[data-skin='v2'] .v2-btn-m {
   min-height: 44px;

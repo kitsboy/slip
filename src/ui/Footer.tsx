@@ -84,7 +84,7 @@ export default function Footer() {
           {' · no accounts · no analytics · no telemetry'}
         </p>
         <p className="v2-foot-promise">
-          <a className="v2-foot-link" href="#cannot">
+          <a className="v2-foot-link" href="#limits">
             What slip cannot do
           </a>
           {' · the limits, stated before you need them'}
