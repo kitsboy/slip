@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.57** — 2026-11-12T03:18:14Z — `b910fdaedd4a` — The customer QR opens a printable A4 sheet, with the code at 92mm
+
 - **v0.31.56** — 2026-11-12T02:34:10Z — `2241f2b6a50e` — The customer QR fits its box now, and so do the proof and Lightning codes
 
 - **v0.31.55** — 2026-11-12T02:13:16Z — `60c3fb76264c` — The limits and the short guide now live together behind More
