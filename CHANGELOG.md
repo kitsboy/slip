@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.59** — 2026-11-12T08:13:35Z — `0069cb9c506a` — The till can be locked with a PIN, and a sale that arrives over the ask now says so
+
 - **v0.31.58** — 2026-11-12T04:43:51Z — `9c6c17edb736` — The customer sheet is centred, set properly, and carries the slip wordmark
 
 - **v0.31.57** — 2026-11-12T03:18:14Z — `b910fdaedd4a` — The customer QR opens a printable A4 sheet, with the code at 92mm
