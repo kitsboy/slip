@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.55** — 2026-11-12T02:13:16Z — `60c3fb76264c` — The limits and the short guide now live together behind More
+
 - **v0.31.54** — 2026-11-11T21:20:40Z — `99990e98a66b` — The home-screen icon is the slip wordmark on black
 
 - **v0.31.53** — 2026-11-11T21:02:51Z — `76f3800f686a` — slip can be installed to a home screen now, with its own icon
