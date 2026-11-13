@@ -90,11 +90,18 @@ await page.waitForTimeout(200);
 check('confirming the match clears the refusal', (await page.locator('[data-finish-blocker]').count()) === 0);
 
 await page.getByRole('button', { name: 'Finish setup' }).click();
-await page.waitForSelector('h1');
+// Wait for the till's own control, not for an `h1`: the setup screens have headings too, so an `h1`
+// resolves while setup is still tearing down and the two checks below read a page mid-swap — which is
+// exactly how this suite went red on a slower CI runner while passing here three times in a row.
+const reachedTill = await page
+  .waitForSelector('#tl-charge', { timeout: 15000 })
+  .then(() => true)
+  .catch(() => false);
+await page.waitForTimeout(200);
 const after = await page.locator('body').innerText();
 // What matters is that the shop can now take money: the till and its one control are on the page. The
 // old check looked for a panel heading that a later redesign moved behind the Setup tab.
-check('finishing leaves a till that can take money', await page.locator('#tl-charge').count() === 1, after.slice(0, 200));
+check('finishing leaves a till that can take money', reachedTill, after.slice(0, 200));
 check('onboarding is remembered', /run setup again/i.test(after));
 
 // The counter created during setup is real and usable.
