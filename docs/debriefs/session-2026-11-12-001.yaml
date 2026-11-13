@@ -1,0 +1,61 @@
+session_id: session-2026-11-12-001
+date: "2026-11-12"
+status: final
+summary:
+  purpose: "Ship the two honesty gaps the owner approved (till lock, overpayment note), bring every document back to the truth, then review the app and turn the review into a written queue."
+  outcomes:
+    - "v0.31.59 is live on both the Pages origin and slip.giveabit.io: the till lock and the overpayment note, verified against the live DOM."
+    - "Till lock: 4-8 digit PIN, PBKDF2-SHA256 (120k, salted), the PIN never stored; a whole-app gate that engages on every page load and after N quiet minutes."
+    - "Overpayment: receivedAtoms recorded on observation, overpaidBy() names the excess above 1%, shown on receipt, Books row, printed receipt, printed day close and CSV; totals stay at the amount asked for."
+    - "640 unit tests and 18 browser suites pass; two new suites (lock, overpaid) are registered in run-all.mjs."
+    - "Twelve documents corrected: README claimed 436 tests, seven suites, 485 KB and 'no selling screen yet'; FEATURE-MAP had six rows glued together; PRIVACY still said 'when the payment engine lands'; KIMI-HANDOFF stopped at v0.31.25."
+    - "A red CI was found during the review (wizard failed on the runner, passed locally 3/3) and fixed by waiting for #tl-charge instead of h1; CI green on both runs."
+    - "docs/NEXT-TEN.md now carries a Part 2 proposal queue of ten items, ordered by cost of skipping."
+architectural_decisions:
+  - id: AD-005
+    decision: "The till lock is a whole-app gate: App.tsx returns <Lock> before the shell, and a shop holding a PIN starts locked on every page load."
+    rationale: "A lock that leaves the header, tabs and books reachable is theatre. Starting locked unconditionally is the only version a shopkeeper can rely on without thinking about it."
+    status: agreed
+  - id: AD-006
+    decision: "An overpayment is a note, not a status. Totals count the amount asked for; the excess is named in words in five places."
+    rationale: "The merchant has the money, so the sale is complete. A status would have shown a finished sale as unfinished, and a second tolerance (different from the 1% short rule) is a number nobody can explain."
+    status: agreed
+  - id: AD-007
+    decision: "The lock stores a salt and a PBKDF2-SHA256 hash (120k iterations) and never the PIN; the screen says it is a curtain, not encryption, and that a forgotten PIN is recovered only from the backup file."
+    rationale: "Labelling a curtain a vault teaches the person relying on it the wrong thing, and their next decision made on that belief is worse."
+    status: agreed
+  - id: AD-008
+    decision: "Browser suites wait on a state-defining control (the till's #tl-charge), never on a heading that exists in more than one state."
+    rationale: "The wizard suite waited on h1, which the setup screens also have, so it read a page mid-swap on a slower runner. Local speed hid it for three runs."
+    status: agreed
+open_questions:
+  - id: OQ-006
+    question: "Do we build the first three queue items (persistent storage, dated backup nudge, visible save failure) as one ship?"
+    context: "All three are under an hour and none is a visible feature. Owner asked for them to be written into the roadmap at session close; the go was not given yet."
+    priority: high
+    status: open
+  - id: OQ-007
+    question: "Two counters, one shop: build a pairing-code merge at close, or say plainly on the site that two counters keep two tills?"
+    context: "Queue item 2.8. Both answers are honest; one costs a design note, the other costs a sentence. Not decided."
+    priority: medium
+    status: open
+  - id: OQ-008
+    question: "Does the browser agree to persistent storage on Cam's phone?"
+    context: "navigator.storage.persist() is not called anywhere today. The answer differs by browser and by install state, so it must be read on a device, not assumed."
+    priority: high
+    status: open
+  - id: OQ-009
+    question: "Is the 44-48px tap-target band worth work, or should the audit be re-scoped?"
+    context: "164 controls sit between the 44px floor and the 48px money-path floor. Nothing is under 44."
+    priority: low
+    status: open
+session_notes:
+  deprecated_items:
+    - "docs/NEXT-TEN.md section numbering changed to 1.x / 2.x; older notes saying '§7-8' now read as Part 1 items 1.7-1.8."
+  corrections_to_prior_sessions:
+    - "The 2026-11-09 debrief and README both quoted stale suite counts (8, then 7, then 436 unit tests). The measured numbers at v0.31.59 are 640 unit tests + 1 skipped and 18 browser suites."
+    - "An earlier worry that two tabs on one shop lose sales is false: every ledger write reads before writing (measured 40 -> 41 -> 42)."
+  other:
+    - "vision_analyze returned 401 on every call this session, so the lock screen, the sheet and the new manual cards have been verified by DOM geometry and pixel measurement only, never seen."
+    - "Wire budget is 229 KB of a 230 KB target; the next feature ship must include a diet (queue item 2.9)."
+    - "deploy.sh only reads /root/.hermes/cf-credentials.env when CLOUDFLARE_API_TOKEN is unset; a stale export fails the deploy with a missing account id. Cost two attempts."

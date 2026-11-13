@@ -1,5 +1,42 @@
 # Kimi handoff
 
+## 2026-11-12 (later) — the review, a red CI, and the queue
+
+Live stays **v0.31.59**; nothing in this pass changed the till. Two commits on `master`, both pushed,
+**CI green on both runs**.
+
+**A red CI, found by looking rather than by being told.** The docs-only commit came back `failure`:
+`wizard` failed on the runner while passing here three runs in a row. It waited for `h1` after "Finish
+setup", and the setup screens have headings too — so the wait resolved mid-swap and the next two checks
+read a page that was still tearing down. Now it waits for `#tl-charge`, the control that actually means
+the till is up, with a 15s budget and a clear failure (`a346d9d`).
+
+**The roadmap is written down.** `docs/NEXT-TEN.md` is now in two parts: Part 1 is what the build cannot
+yet do (unchanged), Part 2 is the proposal queue from this review, ordered by cost of skipping, each with
+a "done when". The first three, marked *do first, small*:
+
+1. `navigator.storage.persist()` — never called today. Everything a shop owns is in localStorage, and a
+   browser evicts site data under disk pressure. Ask, then say the answer in Settings.
+2. A **dated backup nudge** on the day close — the `.slip` file is the only recovery for a lost phone, a
+   wiped browser, or a forgotten lock PIN, and no screen ever says when it was last taken.
+3. A **visible failure when a write fails** — `save()` is a bare `setItem`; a full disk throws inside a
+   click handler and the sale looks taken. No `try/catch`, no quota handling anywhere.
+
+Then: per-day receipt numbers, "yesterday was never closed", the customer-held record, print-on-payment,
+the two-counter decision, a bundle diet, and the 44–48px tap targets.
+
+**A hypothesis tested and falsified** — record it so nobody re-opens it: two tabs on the same shop do
+not lose sales. Every ledger write calls `load()` first; a sale in each tab gave 40 → 41 → 42. Keep that
+read-modify-write shape.
+
+**Section numbering changed** in `docs/NEXT-TEN.md`: items are now `1.1`–`1.9` and `2.1`–`2.10`. Old
+notes that say "§1–3" mean Part 1 items 1.1–1.3.
+
+**Next session, on Cam's word:** items 2.1–2.3 as one small ship (no visible feature, all under an hour),
+then 2.4.
+
+---
+
 ## 2026-11-12 — a lock on the till, a word for an overpayment, and docs that were lying
 
 Live is **v0.31.59** on both the Pages origin and `slip.giveabit.io`, verified against the live DOM
@@ -55,7 +92,7 @@ Short version:
 
 Camera on a real phone · a funded sale on a real chain (the LTC faucet is behind Turnstile) · a stranger
 running `docs/MERCHANT-TRIAL-LTC.md` · a real device install · the A4 close on paper. See
-`docs/NEXT-TEN.md` §1–3, §7–8. **No feature written today changes any of those.**
+`docs/NEXT-TEN.md` Part 1, items 1.1–1.3 and 1.7–1.8. **No feature written today changes any of those.**
 
 ---
 
