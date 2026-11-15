@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.61** — 2026-11-15T23:22:11Z — `658f98fcc80c` — deploy
+
 - **v0.31.60** — 2026-11-15T16:04:52Z — `d3c930cc0a4e` — deploy
 
 - **v0.31.59** — 2026-11-12T08:13:35Z — `0069cb9c506a` — The till can be locked with a PIN, and a sale that arrives over the ask now says so
