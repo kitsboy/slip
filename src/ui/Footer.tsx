@@ -36,8 +36,9 @@ export default function Footer() {
           <p className="v2-foot-kicker">Nothing phones home</p>
           <RequestCounter hero />
           <p className="v2-foot-note">
-            slip ships no analytics, no fonts from anywhere else, no CDN, no cookies and no account.
-            That count is your own browser&apos;s log, not our word for it.
+            slip itself ships no analytics, no fonts from elsewhere, no CDN, no cookies and no account.
+            Should a counter from the page&apos;s host ever appear here, this read-out shows it — your
+            own browser&apos;s log, not our word for it.
           </p>
         </section>
 
@@ -81,7 +82,7 @@ export default function Footer() {
               </a>
             </>
           )}
-          {' · no accounts · no analytics · no telemetry'}
+          {' · no accounts · no telemetry of your shop'}
         </p>
         <p className="v2-foot-promise">
           <a className="v2-foot-link" href="#limits">
