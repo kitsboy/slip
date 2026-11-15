@@ -14,7 +14,12 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createRepository, deriveForAccount, statusOf, type CounterAccount } from '../core/accounts';
+import {
+  createRepository,
+  deriveForAccount,
+  statusOf,
+  type CounterAccount,
+} from '../core/accounts';
 import { createLedger, type LedgerRepository } from '../core/ledger';
 import {
   applyStatus,
@@ -26,8 +31,22 @@ import {
   statusFromObservation,
   type Invoice,
 } from '../core/orders';
-import { TEMPLATES, categories, searchItems, templateItems, type CatalogItem } from '../core/catalog';
-import { computeTotals, fiatToAtoms, formatCoinAmount, formatFiat, formatSats, parseFiat, parseRate } from '../core/money';
+import {
+  TEMPLATES,
+  categories,
+  searchItems,
+  templateItems,
+  type CatalogItem,
+} from '../core/catalog';
+import {
+  computeTotals,
+  fiatToAtoms,
+  formatCoinAmount,
+  formatFiat,
+  formatSats,
+  parseFiat,
+  parseRate,
+} from '../core/money';
 import { loadSettings } from '../core/settings';
 import { fetchAddressActivity, targetFor } from '../core/providers/esplora';
 import { paymentUri, renderQrSvg } from '../core/qr';
@@ -35,7 +54,16 @@ import { cancelInvoice, takingsToday } from '../core/orders';
 import { formatProof, type ReceiptProof } from '../core/proof';
 import { fetchRate, requireFresh, type RateQuote } from '../core/providers/rates';
 import { publishToDisplay, openCustomerDisplay } from './CustomerDisplay';
-import { closeTab, park, repeatable, tabLabel, tabSubtotalMinor, toTabLine, type ParkedTab, type RepeatSale } from '../core/tabs';
+import {
+  closeTab,
+  park,
+  repeatable,
+  tabLabel,
+  tabSubtotalMinor,
+  toTabLine,
+  type ParkedTab,
+  type RepeatSale,
+} from '../core/tabs';
 import FreshnessRing from './FreshnessRing';
 import Explain from './Explain';
 import { openPrintable } from './print';
@@ -48,6 +76,7 @@ import { resumeOpenSale } from '../core/resume-sale';
 import { shortcutAllowed } from '../core/digit-guard';
 import AddressText from './AddressText';
 import { store as appStore } from '../core/storage';
+import { isQuotaError, isWriteFailed } from '../core/save-state';
 import AwaitingStrip from './AwaitingStrip';
 import OpenTill, { type OpenShift } from './OpenTill';
 import ScanToCart from './ScanToCart';
@@ -193,7 +222,9 @@ export default function Till() {
     }
     const log = repo.shifts();
     const today = new Date().toISOString().slice(0, 10);
-    const events = log.events.filter((e) => e.accountId === account.id && e.at.slice(0, 10) === today);
+    const events = log.events.filter(
+      (e) => e.accountId === account.id && e.at.slice(0, 10) === today,
+    );
     const last = events[events.length - 1];
     if (!last || (last.kind !== 'open' && last.kind !== 'handoff')) {
       setShift(null);
@@ -399,7 +430,9 @@ export default function Till() {
     if (!invoice) return;
     const check = document.getElementById('tl-check');
     check?.focus({ preventScroll: true });
-    document.querySelector('#tl-pay .v2-qr, #tl-pay .v2-split-codes')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    document
+      .querySelector('#tl-pay .v2-qr, #tl-pay .v2-split-codes')
+      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }, [invoice?.id, receipt?.id]);
 
   const totals = useMemo(() => {
@@ -410,7 +443,8 @@ export default function Till() {
       quantity: BigInt(l.quantity),
     }));
     const customMinor = custom.trim() ? parseFiatSafe(custom, settings.currency) : null;
-    if (customMinor !== null) lines.push({ unitMinor: customMinor, priceCurrency: 'FIAT' as const, quantity: 1n });
+    if (customMinor !== null)
+      lines.push({ unitMinor: customMinor, priceCurrency: 'FIAT' as const, quantity: 1n });
     if (lines.length === 0) return null;
 
     try {
@@ -418,7 +452,9 @@ export default function Till() {
       return computeTotals({
         currency: settings.currency,
         lines,
-        ...(settings.taxBps > 0 ? { tax: { rateBps: BigInt(settings.taxBps), inclusive: settings.taxInclusive } } : {}),
+        ...(settings.taxBps > 0
+          ? { tax: { rateBps: BigInt(settings.taxBps), inclusive: settings.taxInclusive } }
+          : {}),
         ...(rateMinor !== undefined ? { rateMinorPerCoin: rateMinor } : {}),
       });
     } catch {
@@ -430,7 +466,10 @@ export default function Till() {
     if (!totals || !rate.trim()) return null;
     try {
       const rateMinor = parseRate(rate, settings.currency);
-      return fiatToAtoms({ minor: totals.roundedTotalMinor, currency: settings.currency }, rateMinor);
+      return fiatToAtoms(
+        { minor: totals.roundedTotalMinor, currency: settings.currency },
+        rateMinor,
+      );
     } catch {
       return null;
     }
@@ -443,13 +482,18 @@ export default function Till() {
   function addLine(item: CatalogItem) {
     setCart((lines) => {
       const existing = lines.find((l) => l.item.id === item.id);
-      if (existing) return lines.map((l) => (l.item.id === item.id ? { ...l, quantity: l.quantity + 1 } : l));
+      if (existing)
+        return lines.map((l) => (l.item.id === item.id ? { ...l, quantity: l.quantity + 1 } : l));
       return [...lines, { item, quantity: 1 }];
     });
   }
 
   function removeLine(id: string) {
-    setCart((lines) => lines.map((l) => (l.item.id === id ? { ...l, quantity: l.quantity - 1 } : l)).filter((l) => l.quantity > 0));
+    setCart((lines) =>
+      lines
+        .map((l) => (l.item.id === id ? { ...l, quantity: l.quantity - 1 } : l))
+        .filter((l) => l.quantity > 0),
+    );
   }
 
   function saveTabs(next: ParkedTab[]) {
@@ -524,7 +568,11 @@ export default function Till() {
     // the screen can say how old it is instead of implying it is fresh.
     try {
       const trimmed = rate.trim();
-      if (trimmed) appStore().setItem('rate:last', JSON.stringify({ value: trimmed, at: new Date().toISOString() }));
+      if (trimmed)
+        appStore().setItem(
+          'rate:last',
+          JSON.stringify({ value: trimmed, at: new Date().toISOString() }),
+        );
     } catch {
       /* private mode: the rate simply is not remembered */
     }
@@ -536,7 +584,9 @@ export default function Till() {
     const payee = tipJar && staffId ? (wallets.find((w) => w.id === staffId) ?? wallet) : wallet;
     if (!payee || !totals || chargeSats === null) return;
     if (compareStopped) {
-      setStatus('The addresses did not match. Open Setup and check address 0/0. slip will not take a sale until they match.');
+      setStatus(
+        'The addresses did not match. Open Setup and check address 0/0. slip will not take a sale until they match.',
+      );
       return;
     }
 
@@ -557,9 +607,10 @@ export default function Till() {
 
     // Split: a percentage of this sale is billed to a second wallet, with its own address.
     // Both legs are ordinary invoices, so both obey the index rule.
-    const leg2Wallet = split && splitWalletId && splitWalletId !== payee.id
-      ? wallets.find((w) => w.id === splitWalletId)
-      : null;
+    const leg2Wallet =
+      split && splitWalletId && splitWalletId !== payee.id
+        ? wallets.find((w) => w.id === splitWalletId)
+        : null;
     const pct = (() => {
       const n = Number(splitPercent);
       if (!Number.isInteger(n) || n <= 0 || n >= 100) return 0n;
@@ -622,7 +673,9 @@ export default function Till() {
         rateMinorPerCoin: parseRate(rate, settings.currency),
         lines,
         buildAddress: (index) => deriveForAccount(payee, index),
-        note: tipJar ? `tip jar${staffId ? ` for ${settings.staff.find((s) => s.walletId === staffId)?.name ?? ''}` : ''}` : '',
+        note: tipJar
+          ? `tip jar${staffId ? ` for ${settings.staff.find((s) => s.walletId === staffId)?.name ?? ''}` : ''}`
+          : '',
       });
       // The address is about to reach a payer, so the index is burned now — not at
       // creation, so an abandoned cart never consumes one.
@@ -642,7 +695,8 @@ export default function Till() {
           wallet: leg2Wallet,
           book: ledger.book(leg2Wallet.id),
           amountAtoms: leg2Atoms,
-          amountMinor: totals.roundedTotalMinor - (totals.roundedTotalMinor * primaryAtoms) / chargeSats,
+          amountMinor:
+            totals.roundedTotalMinor - (totals.roundedTotalMinor * primaryAtoms) / chargeSats,
           currency: settings.currency,
           rateMinorPerCoin: parseRate(rate, settings.currency),
           buildAddress: (index) => deriveForAccount(leg2Wallet, index),
@@ -680,7 +734,18 @@ export default function Till() {
         shop: settings.businessName,
       });
     } catch (e) {
-      setStatus(e instanceof Error ? e.message : 'could not create the invoice');
+      // A failed write re-throws from the guarded store. The invoice never reached the screen
+      // (the write precedes the "waiting" display), so the sale is not shown as recorded — but
+      // the sale is not lost either: it stays in the cart, and a clear warning explains why.
+      if (isWriteFailed()) {
+        setStatus(
+          isQuotaError(e)
+            ? 'this device is full — the sale is NOT recorded. Free space or leave private mode, then charge again. It is still in the cart.'
+            : 'this device refused to store the sale — NOT recorded. It is still in the cart; charge again once it saves.',
+        );
+      } else {
+        setStatus(e instanceof Error ? e.message : 'could not create the invoice');
+      }
     }
   }
 
@@ -702,7 +767,10 @@ export default function Till() {
         setCheckedAt(Date.now());
         const next = statusFromObservation(target, { activity });
         const observed = activity.chainReceivedAtoms + activity.mempoolReceivedAtoms;
-        const updated = completeIfConfirmed({ ...applyStatus(target, next), receivedAtoms: observed });
+        const updated = completeIfConfirmed({
+          ...applyStatus(target, next),
+          receivedAtoms: observed,
+        });
         // A cue is a courtesy, never evidence: nothing about the invoice changes here.
         const cue = cueForTransition(target.status, updated.status);
         if (cue) announceOnce(updated.id, cue, { enabled: settings.assist.soundOnPayment });
@@ -735,30 +803,39 @@ export default function Till() {
           // receipt for half a payment.
           try {
             const secondAccount = wallets.find((w) => w.id === leg2.walletId);
-            const secondTarget = secondAccount ? targetFor(secondAccount.networkId, settings.explorerUrl) : null;
+            const secondTarget = secondAccount
+              ? targetFor(secondAccount.networkId, settings.explorerUrl)
+              : null;
             if (secondTarget) {
               const secondActivity = await fetchAddressActivity(secondTarget, leg2.address);
               const secondNext = statusFromObservation(leg2, { activity: secondActivity });
               const secondUpdated = completeIfConfirmed({
                 ...applyStatus(leg2, secondNext),
-                receivedAtoms: secondActivity.chainReceivedAtoms + secondActivity.mempoolReceivedAtoms,
+                receivedAtoms:
+                  secondActivity.chainReceivedAtoms + secondActivity.mempoolReceivedAtoms,
               });
               ledger.putInvoice(secondUpdated);
               setLeg2(secondUpdated);
               if (secondUpdated.status !== 'complete') {
-                setStatus(`${updated.walletLabel} is in. ${secondUpdated.walletLabel} is still waiting. The sale is not paid.`);
+                setStatus(
+                  `${updated.walletLabel} is in. ${secondUpdated.walletLabel} is still waiting. The sale is not paid.`,
+                );
                 return;
               }
             }
           } catch {
-            setStatus(`${updated.walletLabel} is in. ${leg2.walletLabel} could not be checked, so this sale is not paid.`);
+            setStatus(
+              `${updated.walletLabel} is in. ${leg2.walletLabel} could not be checked, so this sale is not paid.`,
+            );
             return;
           }
         }
         if (updated.status === 'complete') {
           // The day's anchor depends on the day digest, which is computed elsewhere; a receipt
           // made before the day is stamped carries a dash, and says so.
-          const anchor = ledger.load().anchors.find((a) => a.date === updated.createdAt.slice(0, 10));
+          const anchor = ledger
+            .load()
+            .anchors.find((a) => a.date === updated.createdAt.slice(0, 10));
           setProof({
             id: updated.id,
             address: updated.address,
@@ -822,7 +899,12 @@ export default function Till() {
       const repo = createRepository(appStore());
       const account = repo.active();
       if (!account) throw new Error('no counter chosen yet');
-      await repo.recordShift('return', account, shift?.staff ?? null, 'till closed from the counter');
+      await repo.recordShift(
+        'return',
+        account,
+        shift?.staff ?? null,
+        'till closed from the counter',
+      );
       loadShift();
       window.dispatchEvent(new Event('slip:data-changed'));
     } catch (e) {
@@ -846,7 +928,12 @@ export default function Till() {
     const account = repo.active();
     if (!account) return;
     try {
-      await repo.recordShift('open', account, repo.currentStaff() ?? 'unassigned', 'opened by the first sale of the day');
+      await repo.recordShift(
+        'open',
+        account,
+        repo.currentStaff() ?? 'unassigned',
+        'opened by the first sale of the day',
+      );
       loadShift();
       window.dispatchEvent(new Event('slip:data-changed'));
     } catch {
@@ -864,7 +951,10 @@ export default function Till() {
       const el = event.target as HTMLElement | null;
       const typing =
         el !== null &&
-        (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
+        (el.tagName === 'INPUT' ||
+          el.tagName === 'TEXTAREA' ||
+          el.tagName === 'SELECT' ||
+          el.isContentEditable);
       if (event.key === 'Escape') {
         if (document.querySelector('[role="dialog"], [role="menu"]')) return;
         if (!invoice || receipt) return;
@@ -949,7 +1039,9 @@ export default function Till() {
     if (invoice.note !== 'rehearsal') ledger.putInvoice(updated);
     setInvoice(updated);
     if (leg2 && leg2.status !== 'complete') {
-      setStatus(`${updated.walletLabel} is marked by you. ${leg2.walletLabel} is still waiting. The sale is not paid.`);
+      setStatus(
+        `${updated.walletLabel} is marked by you. ${leg2.walletLabel} is still waiting. The sale is not paid.`,
+      );
       publishToDisplay({
         kind: 'status',
         uri: paymentUri('bitcoin', {
@@ -1078,15 +1170,16 @@ export default function Till() {
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="eyebrow">Payment</p>
           <span className={`chip ${pending ? 'border-warn text-warn' : 'chip-good'}`}>
-            {invoice.status === 'awaiting' ? 'waiting for payment' : invoice.status === 'seen' ? 'seen on its way — not confirmed yet' : invoice.status}
+            {invoice.status === 'awaiting'
+              ? 'waiting for payment'
+              : invoice.status === 'seen'
+                ? 'seen on its way — not confirmed yet'
+                : invoice.status}
           </span>
         </div>
         <h2 className="panel-title mt-1">Pay exactly</h2>
         <p
-          className={[
-            'figure mt-1 text-[2.5rem] font-bold leading-none tabular-nums',
-            'v2-engrave',
-          ]
+          className={['figure mt-1 text-[2.5rem] font-bold leading-none tabular-nums', 'v2-engrave']
             .filter(Boolean)
             .join(' ')}
         >
@@ -1095,12 +1188,14 @@ export default function Till() {
         {<span className="v2-rule" aria-hidden />}
         {(wallet?.source === 'xpub' || wallet?.source === 'descriptor') && (
           <p className="mt-1 text-sm text-ink">
-            HD wallet. Address #{invoice.index ?? 0} comes from your public code. Each sale gets the next one. slip cannot spend it.
+            HD wallet. Address #{invoice.index ?? 0} comes from your public code. Each sale gets the
+            next one. slip cannot spend it.
           </p>
         )}
         {leg2 && (
           <p className="v2-wait-line mt-1 text-base text-ink" data-split-wait>
-            {waitingLine} The second leg is {leg2.walletLabel}. A split sale is one sale: the receipt appears when both legs are paid.
+            {waitingLine} The second leg is {leg2.walletLabel}. A split sale is one sale: the
+            receipt appears when both legs are paid.
           </p>
         )}
         <p className="mt-1 text-sm text-secondary">
@@ -1119,7 +1214,10 @@ export default function Till() {
             <div className="v2-split-big" data-split-big={bigLeg}>
               <p className="v2-split-who">{shown.walletLabel}</p>
               <div className="v2-qr">
-                <div className="v2-qr-box" dangerouslySetInnerHTML={{ __html: qrSvg(legUri(shown), 8) }} />
+                <div
+                  className="v2-qr-box"
+                  dangerouslySetInnerHTML={{ __html: qrSvg(legUri(shown), 8) }}
+                />
               </div>
               <p className="v2-split-wait">{legWords(shown)}</p>
               <p className="text-base text-ink">
@@ -1132,80 +1230,115 @@ export default function Till() {
               </button>
             </div>
           ) : (
-          <div className="v2-split-codes">
-            <article>
-              <button type="button" className="v2-code-btn" onClick={() => setBigLeg(1)} aria-label={`Show ${invoice.walletLabel} large`}>
-                <p className="text-sm text-ink">{invoice.walletLabel} · {formatCoinAmount(invoice.amountAtoms, coinOf(invoice.walletId))}</p>
-                <div className="v2-qr">
-                  <div className="v2-qr-box" dangerouslySetInnerHTML={{ __html: qrSvg(uri, 8) }} />
-                </div>
-                <p>{legWords(invoice)}</p>
-              </button>
-            </article>
-            <article data-split-leg="2">
-              <button type="button" className="v2-code-btn" onClick={() => setBigLeg(2)} aria-label={`Show ${leg2.walletLabel} large`}>
-                <p className="text-sm text-ink">{leg2.walletLabel} · {formatCoinAmount(leg2.amountAtoms, coinOf(leg2.walletId))}</p>
-                <div className="v2-qr">
-                  <div className="v2-qr-box" dangerouslySetInnerHTML={{ __html: qrSvg(legUri(leg2), 8) }} />
-                </div>
-                <p>{legWords(leg2)}</p>
-              </button>
-            </article>
-            <p className="v2-split-hint">Tap a code to fill the screen.</p>
-          </div>
+            <div className="v2-split-codes">
+              <article>
+                <button
+                  type="button"
+                  className="v2-code-btn"
+                  onClick={() => setBigLeg(1)}
+                  aria-label={`Show ${invoice.walletLabel} large`}
+                >
+                  <p className="text-sm text-ink">
+                    {invoice.walletLabel} ·{' '}
+                    {formatCoinAmount(invoice.amountAtoms, coinOf(invoice.walletId))}
+                  </p>
+                  <div className="v2-qr">
+                    <div
+                      className="v2-qr-box"
+                      dangerouslySetInnerHTML={{ __html: qrSvg(uri, 8) }}
+                    />
+                  </div>
+                  <p>{legWords(invoice)}</p>
+                </button>
+              </article>
+              <article data-split-leg="2">
+                <button
+                  type="button"
+                  className="v2-code-btn"
+                  onClick={() => setBigLeg(2)}
+                  aria-label={`Show ${leg2.walletLabel} large`}
+                >
+                  <p className="text-sm text-ink">
+                    {leg2.walletLabel} · {formatCoinAmount(leg2.amountAtoms, coinOf(leg2.walletId))}
+                  </p>
+                  <div className="v2-qr">
+                    <div
+                      className="v2-qr-box"
+                      dangerouslySetInnerHTML={{ __html: qrSvg(legUri(leg2), 8) }}
+                    />
+                  </div>
+                  <p>{legWords(leg2)}</p>
+                </button>
+              </article>
+              <p className="v2-split-hint">Tap a code to fill the screen.</p>
+            </div>
           )
         ) : (
-        <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:items-start">
-          <div className={`relative shrink-0 rounded-2xl bg-white p-4 v2-qr`}>
-            <div
-              className="v2-qr-box"
-              dangerouslySetInnerHTML={{ __html: qrSvg(uri, 8) }}
-            />
-            <span aria-hidden className="pointer-events-none absolute -left-1 -top-1 h-4 w-4 border-l-2 border-t-2 border-accent" />
-            <span aria-hidden className="pointer-events-none absolute -right-1 -top-1 h-4 w-4 border-r-2 border-t-2 border-accent" />
-            <span aria-hidden className="pointer-events-none absolute -bottom-1 -left-1 h-4 w-4 border-b-2 border-l-2 border-accent" />
-            <span aria-hidden className="pointer-events-none absolute -bottom-1 -right-1 h-4 w-4 border-b-2 border-r-2 border-accent" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs leading-relaxed text-muted">
-              Scan with any Bitcoin wallet, or copy the address. slip is watching this address on{' '}
-              <span className="text-ink">{invoice.walletLabel}</span>.
-            </p>
-            <p className="mt-2 break-all rounded-lg border border-line bg-bg p-2 font-mono text-[11px]">
-              <AddressText address={invoice.address} />
-            </p>
-            <button
-              type="button"
-              onClick={() => void navigator.clipboard?.writeText(invoice.address)}
-              className="mt-2 rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
-            >
-              copy address
-            </button>
+          <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:items-start">
+            <div className={`relative shrink-0 rounded-2xl bg-white p-4 v2-qr`}>
+              <div className="v2-qr-box" dangerouslySetInnerHTML={{ __html: qrSvg(uri, 8) }} />
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -left-1 -top-1 h-4 w-4 border-l-2 border-t-2 border-accent"
+              />
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -right-1 -top-1 h-4 w-4 border-r-2 border-t-2 border-accent"
+              />
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -bottom-1 -left-1 h-4 w-4 border-b-2 border-l-2 border-accent"
+              />
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -bottom-1 -right-1 h-4 w-4 border-b-2 border-r-2 border-accent"
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs leading-relaxed text-muted">
+                Scan with any Bitcoin wallet, or copy the address. slip is watching this address on{' '}
+                <span className="text-ink">{invoice.walletLabel}</span>.
+              </p>
+              <p className="mt-2 break-all rounded-lg border border-line bg-bg p-2 font-mono text-[11px]">
+                <AddressText address={invoice.address} />
+              </p>
+              <button
+                type="button"
+                onClick={() => void navigator.clipboard?.writeText(invoice.address)}
+                className="mt-2 rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
+              >
+                copy address
+              </button>
 
-            <p className="mt-3 text-xs leading-relaxed text-warn">
-              · Pay the exact amount, on the <span className="text-ink">{wallet?.networkId}</span> network.
-              {!online && <span className="text-bad"> · Offline: detection paused, money is not lost.</span>}
-            </p>
-            <p className="mt-1 text-[11px] text-muted">
-              {invoice.index === null
-                ? 'This wallet has ONE fixed address; it is reused for every sale.'
-                : `Address #${invoice.index} for this sale. Do not pay it twice.`}
-            </p>
-            <details className="mt-2 text-[11px] leading-relaxed text-muted">
-              <summary className="cursor-pointer">The rest of the small print</summary>
-              <ul className="mt-1 space-y-1">
-                <li>· A different amount cannot be matched to this sale.</li>
-                <li>· An invoice is good for 15 minutes; a late payment is judged, not assumed.</li>
-              </ul>
-            </details>
+              <p className="mt-3 text-xs leading-relaxed text-warn">
+                · Pay the exact amount, on the <span className="text-ink">{wallet?.networkId}</span>{' '}
+                network.
+                {!online && (
+                  <span className="text-bad"> · Offline: detection paused, money is not lost.</span>
+                )}
+              </p>
+              <p className="mt-1 text-[11px] text-muted">
+                {invoice.index === null
+                  ? 'This wallet has ONE fixed address; it is reused for every sale.'
+                  : `Address #${invoice.index} for this sale. Do not pay it twice.`}
+              </p>
+              <details className="mt-2 text-[11px] leading-relaxed text-muted">
+                <summary className="cursor-pointer">The rest of the small print</summary>
+                <ul className="mt-1 space-y-1">
+                  <li>· A different amount cannot be matched to this sale.</li>
+                  <li>
+                    · An invoice is good for 15 minutes; a late payment is judged, not assumed.
+                  </li>
+                </ul>
+              </details>
 
-            <p className="mt-2 text-[11px] text-muted">
-              {formatFiat({ minor: invoice.amountMinor, currency: invoice.currency })} at the rate you
-              entered
-              {invoice.rateAt ? ` · rate read ${invoice.rateAt.slice(11, 16)} UTC` : ''}
-            </p>
+              <p className="mt-2 text-[11px] text-muted">
+                {formatFiat({ minor: invoice.amountMinor, currency: invoice.currency })} at the rate
+                you entered
+                {invoice.rateAt ? ` · rate read ${invoice.rateAt.slice(11, 16)} UTC` : ''}
+              </p>
+            </div>
           </div>
-        </div>
         )}
 
         <div className="mt-4 flex flex-wrap gap-2">
@@ -1217,11 +1350,7 @@ export default function Till() {
           >
             Check now
           </button>
-          <button
-            type="button"
-            onClick={() => void markPaid()}
-            className="btn btn-ghost"
-          >
+          <button type="button" onClick={() => void markPaid()} className="btn btn-ghost">
             I have the money (manual)
           </button>
           <button
@@ -1233,7 +1362,6 @@ export default function Till() {
           </button>
         </div>
 
-
         {status && <p className="mt-2 text-[11px] text-muted">{status}</p>}
       </section>
     );
@@ -1241,9 +1369,12 @@ export default function Till() {
 
   // --- receipt --------------------------------------------------------------
   if (receipt) {
-    const proofUri = paymentUri('bitcoin', { address: receipt.address, amountSats: receipt.amountAtoms });
+    const proofUri = paymentUri('bitcoin', {
+      address: receipt.address,
+      amountSats: receipt.amountAtoms,
+    });
     return (
-              <section className="v2-receipt">
+      <section className="v2-receipt">
         {/* The same news, spoken. 'Marked paid by you' and 'seen on chain' are different claims, and a
             screen-reader user must hear which one it is — not just that something finished. */}
         <p className="sr-only" role="status" aria-live="polite" data-sale-announcer>
@@ -1282,7 +1413,9 @@ export default function Till() {
           {
             <span className="shrink-0">
               <Badge
-                kind={receipt.note === 'rehearsal' ? 'simulated' : receipt.manual ? 'manual' : 'good'}
+                kind={
+                  receipt.note === 'rehearsal' ? 'simulated' : receipt.manual ? 'manual' : 'good'
+                }
                 word={
                   receipt.note === 'rehearsal'
                     ? 'rehearsal'
@@ -1307,7 +1440,8 @@ export default function Till() {
         </h2>
         {receipt.index !== null && (
           <p className={`mt-2 text-sm font-semibold text-ink v2-next-address`}>
-            This sale was address #{receipt.index}. Next sale uses address #{ledger.book(receipt.walletId).next}.
+            This sale was address #{receipt.index}. Next sale uses address #
+            {ledger.book(receipt.walletId).next}.
           </p>
         )}
 
@@ -1316,10 +1450,7 @@ export default function Till() {
             .filter(Boolean)
             .join(' ')}
         >
-          <div
-            className="v2-receipt-qr"
-            dangerouslySetInnerHTML={{ __html: qrSvg(proofUri, 5) }}
-          />
+          <div className="v2-receipt-qr" dangerouslySetInnerHTML={{ __html: qrSvg(proofUri, 5) }} />
           <div className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
             <p className="break-all font-mono">
               <AddressText address={receipt.address} />
@@ -1344,8 +1475,8 @@ export default function Till() {
             <strong className="text-ink">More arrived than the ask.</strong> The source reports{' '}
             {formatSats(receipt.receivedAtoms ?? 0n)} at this address —{' '}
             {formatSats(overpaidBy(receipt.amountAtoms, receipt.receivedAtoms))} over the{' '}
-            {formatSats(receipt.amountAtoms)} asked for. The sale still counts; the extra is at the same
-            address. Worth checking the customer meant it.
+            {formatSats(receipt.amountAtoms)} asked for. The sale still counts; the extra is at the
+            same address. Worth checking the customer meant it.
           </p>
         )}
 
@@ -1368,19 +1499,28 @@ export default function Till() {
         )}
 
         <div className="mt-6 flex flex-wrap items-center gap-2 pb-1">
-          <button type="button" id="tl-next" onClick={() => void finish()} className={`btn btn-primary v2-charge`}>
+          <button
+            type="button"
+            id="tl-next"
+            onClick={() => void finish()}
+            className={`btn btn-primary v2-charge`}
+          >
             Next sale
           </button>
           <button
             type="button"
-            onClick={() => printReceipt(receipt, proof, settings.businessName, settings.receiptFooter)}
+            onClick={() =>
+              printReceipt(receipt, proof, settings.businessName, settings.receiptFooter)
+            }
             className="btn btn-secondary"
           >
             Print receipt
           </button>
           <button
             type="button"
-            onClick={() => printReceipt(receipt, proof, settings.businessName, settings.receiptFooter, 'a4')}
+            onClick={() =>
+              printReceipt(receipt, proof, settings.businessName, settings.receiptFooter, 'a4')
+            }
             className="btn btn-secondary"
           >
             Print on A4
@@ -1399,7 +1539,9 @@ export default function Till() {
 
   return (
     <section className="mt-6 panel" data-panel="till">
-      <div className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1${wallets.length === 0 ? ' v2-open-status' : ''}`}>
+      <div
+        className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1${wallets.length === 0 ? ' v2-open-status' : ''}`}
+      >
         <p className="eyebrow">Till</p>
         <span className={`badge ${online ? 'badge-pending' : 'badge-bad'} v2-watch`}>
           {online ? 'Watching for payments' : 'Offline — not watching'}
@@ -1442,549 +1584,623 @@ export default function Till() {
 
       {wallets.length === 0 ? (
         <p className="mt-3 rounded-lg border border-warn p-3 text-xs text-warn">
-          Tell slip where to send the money first — under <span className="font-semibold">Setup → Wallets</span>.
+          Tell slip where to send the money first — under{' '}
+          <span className="font-semibold">Setup → Wallets</span>.
         </p>
       ) : (
         <>
           {/* On a shop laptop the counter is two panes: choose and ring up on the left, the money
               and the Charge press on the right, held in place while the list scrolls (D-83). */}
-          <div className={`lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-6 v2-two`}>
-          <div className={`min-w-0 v2-sale`}>
-          <div className={`mt-3 grid gap-2 sm:grid-cols-2 v2-wallet-row`}>
-            <label className="block" htmlFor="tl-wallet">
-              <span className="eyebrow">Which wallet gets the money</span>
-              <select
-                id="tl-wallet"
-                value={walletId}
-                onChange={(e) => setWalletId(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
-              >
-                {wallets.map((w) => (
-                  <option key={w.id} value={w.id} disabled={statusOf(w) !== 'ready'}>
-                    {w.label}
-                    {w.networkId === 'btc-mainnet' ? '' : ` · ${w.networkId}`}
-                    {statusOf(w) !== 'ready' ? ' (not checked yet)' : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          {items.length === 0 && (
-            <div className="mt-3 rounded-lg border border-line p-3">
-              <p className="text-xs text-muted">No items yet. Start from a template:</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {TEMPLATES.map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => {
-                      ledger.replaceItems(templateItems(t.id));
-                      reload();
-                    }}
-                    className="rounded-lg border border-accent px-3 py-2 text-xs text-accent"
+          <div
+            className={`lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-6 v2-two`}
+          >
+            <div className={`min-w-0 v2-sale`}>
+              <div className={`mt-3 grid gap-2 sm:grid-cols-2 v2-wallet-row`}>
+                <label className="block" htmlFor="tl-wallet">
+                  <span className="eyebrow">Which wallet gets the money</span>
+                  <select
+                    id="tl-wallet"
+                    value={walletId}
+                    onChange={(e) => setWalletId(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
                   >
-                    {t.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {items.length > 0 && (
-            <>
-              {(tabs.length > 0 || repeatable(lastSale)) && (
-            <div className="mt-3 flex flex-wrap items-center gap-1" data-tabs={tabs.length}>
-              {tabs.map((tab) => (
-                <span key={tab.id} className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-[11px]">
-                  <button
-                    type="button"
-                    onClick={() => resumeTab(tab)}
-                    className="text-muted hover:text-ink"
-                    title={`Resume ${tabLabel(tab)}`}
-                  >
-                    {tabLabel(tab)} · {formatFiat({ minor: tabSubtotalMinor(tab), currency: settings.currency })}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => saveTabs(closeTab(tabs, tab.id))}
-                    aria-label={`Close ${tabLabel(tab)}`}
-                    className="text-[11px] text-muted hover:text-bad"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-              {repeatable(lastSale) && (
-                <button
-                  type="button"
-                  onClick={repeatLast}
-                  className="rounded-full border border-accent px-2 py-1 text-xs text-accent"
-                >
-                  repeat last
-                </button>
-              )}
-            </div>
-          )}
-
-          <div className={`mt-3 flex flex-wrap gap-1 v2-cats`}>
-                {cats.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setCategory(c)}
-                    tabIndex={2}
-                    className={`rounded-full border px-3 text-[11px] ${category === c ? 'border-accent text-accent' : 'border-line text-muted'}`}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-              <div className={`mt-2 flex flex-wrap items-start gap-2 v2-find`}>
-                {notice && (
-                  <p className="v2-notice w-full text-base text-ink" data-cancelled>
-                    {notice}
-                  </p>
-                )}
-                <input
-                  id="tl-search"
-                  tabIndex={1}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key !== 'Enter') return;
-                    e.preventDefault();
-                    const first = visible[0];
-                    if (first) addLine(first);
-                    window.setTimeout(() => {
-                      const charge = document.getElementById('tl-charge') as HTMLButtonElement | null;
-                      if (charge && !charge.disabled) charge.focus();
-                      else document.getElementById('tl-rate')?.focus();
-                    }, 0);
-                  }}
-                  placeholder="search items"
-                  aria-label="Search items"
-                  className="min-w-0 flex-1 rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
-                />
-                <ScanToCart
-                  items={items}
-                  currency={settings.currency}
-                  onPick={addLine}
-                  onAmount={(raw) => {
-                    setCustom(raw);
-                    setStatus('amount from the scan is in the custom field — check it, then charge');
-                  }}
-                />
-              </div>
-              {items.length > 0 && visible.length === 0 && (
-                // A search that matches nothing used to leave blank space where the shelf should be:
-                // the till looked broken rather than empty-handed. Say what was searched for, and
-                // offer the one thing that helps — everything back on the shelf.
-                <div className="mt-3 rounded-lg border border-line p-3" data-catalog-empty>
-                  <p className="text-xs text-muted">
-                    Nothing on the shelf matches &ldquo;{query}&rdquo;. Search checks the item name and
-                    its note.
-                  </p>
-                  <button type="button" onClick={() => setQuery('')} className="btn btn-secondary mt-2 text-xs">
-                    Show everything
-                  </button>
-                </div>
-              )}
-              <div className={`mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 v2-catalog`}>
-                {visible.map((i) => {
-                  const inCart = cart.find((l) => l.item.id === i.id);
-                  return (
-                    <button
-                      key={i.id}
-                      type="button"
-                      tabIndex={3}
-                      onClick={() => addLine(i)}
-                      className={`relative flex min-h-24 flex-col justify-between rounded-xl border border-line bg-surface-2 p-3 text-left transition hover:border-accent active:scale-[0.98] v2-tile`}
-                    >
-                      {inCart && (
-                        <span
-                          className="absolute right-2 top-2 rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-bg"
-                          aria-label={`${inCart.quantity} in the cart`}
-                        >
-                          ×{inCart.quantity}
-                        </span>
-                      )}
-                      <span className="block" aria-hidden>
-                        <ItemMark id={i.id} emoji={i.emoji} />
-                      </span>
-                      <span className="mt-2 block text-sm font-semibold leading-tight">{i.name}</span>
-                      <span className="figure mt-1 block text-sm tabular-nums text-secondary">
-                        {i.priceCurrency === 'SATS'
-                          ? formatSats(i.priceMinor)
-                          : formatFiat({ minor: i.priceMinor, currency: settings.currency })}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          )}
-
-          <details className="v2-tools" open>
-            {<summary>Tools</summary>}
-            {(
-              <label className="v2-price mt-2 block" htmlFor="tl-rate">
-                <span className="eyebrow">What one {wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth</span>
-                <span className="v2-price-in">
-                  <input
-                    id="tl-rate"
-                    tabIndex={4}
-                    value={rate}
-                    onChange={(e) => setRate(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key !== 'Enter') return;
-                      e.preventDefault();
-                      const charge = document.getElementById('tl-charge') as HTMLButtonElement | null;
-                      if (charge && !charge.disabled) charge.focus();
-                    }}
-                    inputMode="decimal"
-                    placeholder="60000.00"
-                    aria-label={`What one ${wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth (${settings.currency})`}
-                  />
-                  <span className="v2-unit" aria-hidden>{settings.currency}</span>
-                </span>
-              </label>
-            )}
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
-            <label className="block" htmlFor="tl-custom">
-              <span className="eyebrow">Custom amount ({settings.currency}) — added to the items</span>
-              <span className="v2-custom-in">
-                <input
-                  id="tl-custom"
-                  value={custom}
-                  onChange={(e) => setCustom(e.target.value)}
-                  inputMode="decimal"
-                  placeholder="12.50"
-                  className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
-                />
-                {<span className="v2-unit" aria-hidden>{settings.currency}</span>}
-              </span>
-              <button
-                type="button"
-                onClick={() => setPadOpen(true)}
-                className="btn btn-secondary mt-1 w-full sm:hidden"
-              >
-                Use the keypad
-              </button>
-            </label>
-            <div className="flex items-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setCustom('');
-                  setCart([]);
-                  setTipJar(true);
-                  setCategory('All');
-                }}
-                aria-pressed={tipJar}
-                className={`btn btn-secondary${tipJar ? ' v2-on' : ''}`}
-              >
-                Tip jar
-              </button>
-              {(cart.length > 0 || custom.trim() !== '') && (
-                <>
-                  <button
-                    type="button"
-                    onClick={parkCurrent}
-                    className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
-                  >
-                    park sale
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCart([])}
-                    className="rounded-lg border border-line px-3 py-2 text-xs text-muted"
-                  >
-                    clear cart
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {tipJar && settings.staff.length > 0 && (
-            <label className="mt-2 block" htmlFor="tl-staff">
-              <span className="eyebrow">Whose tips are these</span>
-              <select
-                id="tl-staff"
-                value={staffId}
-                onChange={(e) => setStaffId(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
-              >
-                <option value="">the shop&apos;s wallet</option>
-                {settings.staff
-                  .filter((s) => wallets.some((w) => w.id === s.walletId))
-                  .map((s) => (
-                    <option key={s.walletId} value={s.walletId}>
-                      {s.name} — their own wallet
-                    </option>
-                  ))}
-              </select>
-            </label>
-          )}
-
-          <label className="mt-2 flex items-start gap-2 text-xs" htmlFor="tl-split">
-            <input
-              id="tl-split"
-              type="checkbox"
-              checked={split}
-              onChange={(e) => setSplit(e.target.checked)}
-              className="mt-0.5"
-            />
-            <span>
-              Split this sale across two wallets
-              <span className="mt-0.5 block text-[11px] text-muted">
-                Each leg gets its own address and its own QR. The receipt waits for both.
-              </span>
-            </span>
-          </label>
-          {split && (
-            <div className="mt-2 grid gap-2 sm:grid-cols-2">
-              <label className="block" htmlFor="tl-split-wallet">
-                <span className="eyebrow">Second wallet</span>
-                <select
-                  id="tl-split-wallet"
-                  value={splitWalletId}
-                  onChange={(e) => setSplitWalletId(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
-                >
-                  <option value="">— choose —</option>
-                  {wallets
-                    .filter((w) => w.id !== walletId)
-                    .map((w) => (
-                      <option key={w.id} value={w.id}>
+                    {wallets.map((w) => (
+                      <option key={w.id} value={w.id} disabled={statusOf(w) !== 'ready'}>
                         {w.label}
+                        {w.networkId === 'btc-mainnet' ? '' : ` · ${w.networkId}`}
+                        {statusOf(w) !== 'ready' ? ' (not checked yet)' : ''}
                       </option>
                     ))}
-                </select>
-              </label>
-              <label className="block" htmlFor="tl-split-pct">
-                <span className="eyebrow">Percent to the second wallet</span>
-                <input
-                  id="tl-split-pct"
-                  value={splitPercent}
-                  onChange={(e) => setSplitPercent(e.target.value)}
-                  inputMode="numeric"
-                  className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+                  </select>
+                </label>
+              </div>
+              {items.length === 0 && (
+                <div className="mt-3 rounded-lg border border-line p-3">
+                  <p className="text-xs text-muted">No items yet. Start from a template:</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {TEMPLATES.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => {
+                          ledger.replaceItems(templateItems(t.id));
+                          reload();
+                        }}
+                        className="rounded-lg border border-accent px-3 py-2 text-xs text-accent"
+                      >
+                        {t.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {items.length > 0 && (
+                <>
+                  {(tabs.length > 0 || repeatable(lastSale)) && (
+                    <div className="mt-3 flex flex-wrap items-center gap-1" data-tabs={tabs.length}>
+                      {tabs.map((tab) => (
+                        <span
+                          key={tab.id}
+                          className="inline-flex items-center gap-1 rounded-full border border-line px-2 py-1 text-[11px]"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => resumeTab(tab)}
+                            className="text-muted hover:text-ink"
+                            title={`Resume ${tabLabel(tab)}`}
+                          >
+                            {tabLabel(tab)} ·{' '}
+                            {formatFiat({
+                              minor: tabSubtotalMinor(tab),
+                              currency: settings.currency,
+                            })}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => saveTabs(closeTab(tabs, tab.id))}
+                            aria-label={`Close ${tabLabel(tab)}`}
+                            className="text-[11px] text-muted hover:text-bad"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                      {repeatable(lastSale) && (
+                        <button
+                          type="button"
+                          onClick={repeatLast}
+                          className="rounded-full border border-accent px-2 py-1 text-xs text-accent"
+                        >
+                          repeat last
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  <div className={`mt-3 flex flex-wrap gap-1 v2-cats`}>
+                    {cats.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setCategory(c)}
+                        tabIndex={2}
+                        className={`rounded-full border px-3 text-[11px] ${category === c ? 'border-accent text-accent' : 'border-line text-muted'}`}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                  <div className={`mt-2 flex flex-wrap items-start gap-2 v2-find`}>
+                    {notice && (
+                      <p className="v2-notice w-full text-base text-ink" data-cancelled>
+                        {notice}
+                      </p>
+                    )}
+                    <input
+                      id="tl-search"
+                      tabIndex={1}
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key !== 'Enter') return;
+                        e.preventDefault();
+                        const first = visible[0];
+                        if (first) addLine(first);
+                        window.setTimeout(() => {
+                          const charge = document.getElementById(
+                            'tl-charge',
+                          ) as HTMLButtonElement | null;
+                          if (charge && !charge.disabled) charge.focus();
+                          else document.getElementById('tl-rate')?.focus();
+                        }, 0);
+                      }}
+                      placeholder="search items"
+                      aria-label="Search items"
+                      className="min-w-0 flex-1 rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+                    />
+                    <ScanToCart
+                      items={items}
+                      currency={settings.currency}
+                      onPick={addLine}
+                      onAmount={(raw) => {
+                        setCustom(raw);
+                        setStatus(
+                          'amount from the scan is in the custom field — check it, then charge',
+                        );
+                      }}
+                    />
+                  </div>
+                  {items.length > 0 && visible.length === 0 && (
+                    // A search that matches nothing used to leave blank space where the shelf should be:
+                    // the till looked broken rather than empty-handed. Say what was searched for, and
+                    // offer the one thing that helps — everything back on the shelf.
+                    <div className="mt-3 rounded-lg border border-line p-3" data-catalog-empty>
+                      <p className="text-xs text-muted">
+                        Nothing on the shelf matches &ldquo;{query}&rdquo;. Search checks the item
+                        name and its note.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setQuery('')}
+                        className="btn btn-secondary mt-2 text-xs"
+                      >
+                        Show everything
+                      </button>
+                    </div>
+                  )}
+                  <div
+                    className={`mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 v2-catalog`}
+                  >
+                    {visible.map((i) => {
+                      const inCart = cart.find((l) => l.item.id === i.id);
+                      return (
+                        <button
+                          key={i.id}
+                          type="button"
+                          tabIndex={3}
+                          onClick={() => addLine(i)}
+                          className={`relative flex min-h-24 flex-col justify-between rounded-xl border border-line bg-surface-2 p-3 text-left transition hover:border-accent active:scale-[0.98] v2-tile`}
+                        >
+                          {inCart && (
+                            <span
+                              className="absolute right-2 top-2 rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-bg"
+                              aria-label={`${inCart.quantity} in the cart`}
+                            >
+                              ×{inCart.quantity}
+                            </span>
+                          )}
+                          <span className="block" aria-hidden>
+                            <ItemMark id={i.id} emoji={i.emoji} />
+                          </span>
+                          <span className="mt-2 block text-sm font-semibold leading-tight">
+                            {i.name}
+                          </span>
+                          <span className="figure mt-1 block text-sm tabular-nums text-secondary">
+                            {i.priceCurrency === 'SATS'
+                              ? formatSats(i.priceMinor)
+                              : formatFiat({ minor: i.priceMinor, currency: settings.currency })}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              <details className="v2-tools" open>
+                {<summary>Tools</summary>}
+                {
+                  <label className="v2-price mt-2 block" htmlFor="tl-rate">
+                    <span className="eyebrow">
+                      What one {wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth
+                    </span>
+                    <span className="v2-price-in">
+                      <input
+                        id="tl-rate"
+                        tabIndex={4}
+                        value={rate}
+                        onChange={(e) => setRate(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key !== 'Enter') return;
+                          e.preventDefault();
+                          const charge = document.getElementById(
+                            'tl-charge',
+                          ) as HTMLButtonElement | null;
+                          if (charge && !charge.disabled) charge.focus();
+                        }}
+                        inputMode="decimal"
+                        placeholder="60000.00"
+                        aria-label={`What one ${wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'} is worth (${settings.currency})`}
+                      />
+                      <span className="v2-unit" aria-hidden>
+                        {settings.currency}
+                      </span>
+                    </span>
+                  </label>
+                }
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  <label className="block" htmlFor="tl-custom">
+                    <span className="eyebrow">
+                      Custom amount ({settings.currency}) — added to the items
+                    </span>
+                    <span className="v2-custom-in">
+                      <input
+                        id="tl-custom"
+                        value={custom}
+                        onChange={(e) => setCustom(e.target.value)}
+                        inputMode="decimal"
+                        placeholder="12.50"
+                        className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+                      />
+                      {
+                        <span className="v2-unit" aria-hidden>
+                          {settings.currency}
+                        </span>
+                      }
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPadOpen(true)}
+                      className="btn btn-secondary mt-1 w-full sm:hidden"
+                    >
+                      Use the keypad
+                    </button>
+                  </label>
+                  <div className="flex items-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustom('');
+                        setCart([]);
+                        setTipJar(true);
+                        setCategory('All');
+                      }}
+                      aria-pressed={tipJar}
+                      className={`btn btn-secondary${tipJar ? ' v2-on' : ''}`}
+                    >
+                      Tip jar
+                    </button>
+                    {(cart.length > 0 || custom.trim() !== '') && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={parkCurrent}
+                          className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
+                        >
+                          park sale
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCart([])}
+                          className="rounded-lg border border-line px-3 py-2 text-xs text-muted"
+                        >
+                          clear cart
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {tipJar && settings.staff.length > 0 && (
+                  <label className="mt-2 block" htmlFor="tl-staff">
+                    <span className="eyebrow">Whose tips are these</span>
+                    <select
+                      id="tl-staff"
+                      value={staffId}
+                      onChange={(e) => setStaffId(e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+                    >
+                      <option value="">the shop&apos;s wallet</option>
+                      {settings.staff
+                        .filter((s) => wallets.some((w) => w.id === s.walletId))
+                        .map((s) => (
+                          <option key={s.walletId} value={s.walletId}>
+                            {s.name} — their own wallet
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                )}
+
+                <label className="mt-2 flex items-start gap-2 text-xs" htmlFor="tl-split">
+                  <input
+                    id="tl-split"
+                    type="checkbox"
+                    checked={split}
+                    onChange={(e) => setSplit(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  <span>
+                    Split this sale across two wallets
+                    <span className="mt-0.5 block text-[11px] text-muted">
+                      Each leg gets its own address and its own QR. The receipt waits for both.
+                    </span>
+                  </span>
+                </label>
+                {split && (
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    <label className="block" htmlFor="tl-split-wallet">
+                      <span className="eyebrow">Second wallet</span>
+                      <select
+                        id="tl-split-wallet"
+                        value={splitWalletId}
+                        onChange={(e) => setSplitWalletId(e.target.value)}
+                        className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+                      >
+                        <option value="">— choose —</option>
+                        {wallets
+                          .filter((w) => w.id !== walletId)
+                          .map((w) => (
+                            <option key={w.id} value={w.id}>
+                              {w.label}
+                            </option>
+                          ))}
+                      </select>
+                    </label>
+                    <label className="block" htmlFor="tl-split-pct">
+                      <span className="eyebrow">Percent to the second wallet</span>
+                      <input
+                        id="tl-split-pct"
+                        value={splitPercent}
+                        onChange={(e) => setSplitPercent(e.target.value)}
+                        inputMode="numeric"
+                        className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+                      />
+                    </label>
+                  </div>
+                )}
+              </details>
+
+              {rateBusy && !rateNote && !rateFailed && (
+                // The loading state of the price line. A price source that is slow is not a broken till,
+                // and silence in this spot used to read as one.
+                <p
+                  className="mt-1 flex items-center gap-2 text-[11px] text-muted"
+                  role="status"
+                  data-rate-busy
+                >
+                  <span className="v2-beat" aria-hidden />
+                  <span>Asking the price source… you can still type a rate in Tools.</span>
+                </p>
+              )}
+              {rateNote && (
+                <p className="mt-1 flex items-center gap-2 text-[11px] text-muted">
+                  {quote && settings.assist.freshnessRings && (
+                    <FreshnessRing fetchedAt={quote.fetchedAt} />
+                  )}
+                  <span>{rateNote}</span>
+                </p>
+              )}
+              {rateFailed && (
+                <Failure
+                  coin={wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'}
+                  kind={
+                    rateFailed === 'offline' || /network|fetch|offline/i.test(rateFailed)
+                      ? 'network'
+                      : 'rate'
+                  }
+                  what="The price service did not answer, so slip has no rate to price this sale with."
+                  safe="Nothing was taken. A rate is only a number for the receipt — no money moves on it."
+                  next="Type the rate yourself in Tools, or open Setup and point slip at a different price source."
+                  detail={rateFailed}
                 />
-              </label>
+              )}
+              {sweepNote && sweepNote !== 'nothing was open to check' && (
+                <p className="mt-1 text-[11px] text-muted">Open sales: {sweepNote}</p>
+              )}
             </div>
-          )}
 
-          </details>
+            <div className={`lg:sticky lg:top-20 v2-held`}>
+              {cart.length > 0 && (
+                <ul className="mt-3 space-y-1">
+                  {cart.map((l) => (
+                    <li
+                      key={l.item.id}
+                      className="flex items-center gap-2 rounded-lg border border-line px-2 py-1.5 text-sm"
+                    >
+                      <span className="flex-1">{l.item.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeLine(l.item.id)}
+                        className="grid h-9 w-9 place-items-center rounded-lg border border-line text-base text-secondary"
+                        aria-label={`One fewer ${l.item.name}`}
+                      >
+                        −
+                      </button>
+                      <span className="figure w-6 text-center tabular-nums">{l.quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => addLine(l.item)}
+                        className="grid h-9 w-9 place-items-center rounded-lg border border-line text-base text-secondary"
+                        aria-label={`One more ${l.item.name}`}
+                      >
+                        +
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUndone({ item: l.item, quantity: l.quantity });
+                          setCart((lines) => lines.filter((x) => x.item.id !== l.item.id));
+                        }}
+                        className={`grid h-9 w-9 place-items-center rounded-lg border border-line text-base text-secondary v2-qremove`}
+                        aria-label={`Remove ${l.item.name} entirely`}
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
 
-          {rateBusy && !rateNote && !rateFailed && (
-            // The loading state of the price line. A price source that is slow is not a broken till,
-            // and silence in this spot used to read as one.
-            <p className="mt-1 flex items-center gap-2 text-[11px] text-muted" role="status" data-rate-busy>
-              <span className="v2-beat" aria-hidden />
-              <span>Asking the price source… you can still type a rate in Tools.</span>
-            </p>
-          )}
-          {rateNote && (
-            <p className="mt-1 flex items-center gap-2 text-[11px] text-muted">
-              {quote && settings.assist.freshnessRings && <FreshnessRing fetchedAt={quote.fetchedAt} />}
-              <span>{rateNote}</span>
-            </p>
-          )}
-          {rateFailed && (
-            <Failure
-              coin={wallet?.coin === 'ltc' ? 'Litecoin' : 'Bitcoin'}
-              kind={rateFailed === 'offline' || /network|fetch|offline/i.test(rateFailed) ? 'network' : 'rate'}
-              what="The price service did not answer, so slip has no rate to price this sale with."
-              safe="Nothing was taken. A rate is only a number for the receipt — no money moves on it."
-              next="Type the rate yourself in Tools, or open Setup and point slip at a different price source."
-              detail={rateFailed}
-            />
-          )}
-          {sweepNote && sweepNote !== 'nothing was open to check' && (
-            <p className="mt-1 text-[11px] text-muted">Open sales: {sweepNote}</p>
-          )}
-
-
-          </div>
-
-          <div className={`lg:sticky lg:top-20 v2-held`}>
-          {cart.length > 0 && (
-            <ul className="mt-3 space-y-1">
-              {cart.map((l) => (
-                <li key={l.item.id} className="flex items-center gap-2 rounded-lg border border-line px-2 py-1.5 text-sm">
-                  <span className="flex-1">{l.item.name}</span>
+              {undone && (
+                <p
+                  className="mt-2 flex items-center gap-3 rounded-lg border border-line bg-surface px-3 py-2 text-xs"
+                  role="status"
+                >
+                  <span className="flex-1">
+                    {undone.item.name} removed — {undone.quantity} ×{' '}
+                    {formatFiat({ minor: undone.item.priceMinor, currency: settings.currency })}
+                  </span>
                   <button
                     type="button"
-                    onClick={() => removeLine(l.item.id)}
-                    className="grid h-9 w-9 place-items-center rounded-lg border border-line text-base text-secondary"
-                    aria-label={`One fewer ${l.item.name}`}
-                  >
-                    −
-                  </button>
-                  <span className="figure w-6 text-center tabular-nums">{l.quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => addLine(l.item)}
-                    className="grid h-9 w-9 place-items-center rounded-lg border border-line text-base text-secondary"
-                    aria-label={`One more ${l.item.name}`}
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
+                    className="btn btn-secondary px-2 py-1 text-xs"
                     onClick={() => {
-                      setUndone({ item: l.item, quantity: l.quantity });
-                      setCart((lines) => lines.filter((x) => x.item.id !== l.item.id));
+                      setCart((lines) => {
+                        const existing = lines.find((l) => l.item.id === undone.item.id);
+                        return existing
+                          ? lines.map((l) =>
+                              l.item.id === undone.item.id
+                                ? { ...l, quantity: l.quantity + undone.quantity }
+                                : l,
+                            )
+                          : [...lines, { item: undone.item, quantity: undone.quantity }];
+                      });
+                      setUndone(null);
                     }}
-                    className={`grid h-9 w-9 place-items-center rounded-lg border border-line text-base text-secondary v2-qremove`}
-                    aria-label={`Remove ${l.item.name} entirely`}
+                  >
+                    Undo
+                  </button>
+                  <button
+                    type="button"
+                    className="text-muted"
+                    onClick={() => setUndone(null)}
+                    aria-label="Dismiss"
                   >
                     ×
                   </button>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {undone && (
-            <p className="mt-2 flex items-center gap-3 rounded-lg border border-line bg-surface px-3 py-2 text-xs" role="status">
-              <span className="flex-1">
-                {undone.item.name} removed — {undone.quantity} × {formatFiat({ minor: undone.item.priceMinor, currency: settings.currency })}
-              </span>
-              <button
-                type="button"
-                className="btn btn-secondary px-2 py-1 text-xs"
-                onClick={() => {
-                  setCart((lines) => {
-                    const existing = lines.find((l) => l.item.id === undone.item.id);
-                    return existing
-                      ? lines.map((l) => (l.item.id === undone.item.id ? { ...l, quantity: l.quantity + undone.quantity } : l))
-                      : [...lines, { item: undone.item, quantity: undone.quantity }];
-                  });
-                  setUndone(null);
-                }}
-              >
-                Undo
-              </button>
-              <button type="button" className="text-muted" onClick={() => setUndone(null)} aria-label="Dismiss">
-                ×
-              </button>
-            </p>
-          )}
-          {totals && (
-            <div className="mt-3 rounded-xl border border-line bg-surface p-3" data-totals>
-              <p className="eyebrow">The customer pays</p>
-              <p className="figure mt-1 text-[2.25rem] font-bold leading-none tabular-nums">
-                {formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })}
-              </p>
-              <p className="mt-1 text-sm text-secondary">
-                <Explain id="charge">
-                  {chargeSats === null ? 'set a price first' : formatSats(chargeSats)}
-                </Explain>
-              </p>
-              <p className="mt-2 text-xs text-muted">
-                {formatFiat({ minor: totals.subtotalMinor, currency: settings.currency })} +{' '}
-                {formatFiat({ minor: totals.taxMinor, currency: settings.currency })} tax
-                {split
-                  ? ` · ${splitPercent}% to ${wallets.find((w) => w.id === splitWalletId)?.label ?? '—'}`
-                  : ''}
-              </p>
-              {(
-                <p className="v2-rate-line">
-                  Price used: {rate.trim() === '' ? 'not set' : `${rate} ${settings.currency}`}
                 </p>
               )}
-            </div>
-          )}
+              {totals && (
+                <div className="mt-3 rounded-xl border border-line bg-surface p-3" data-totals>
+                  <p className="eyebrow">The customer pays</p>
+                  <p className="figure mt-1 text-[2.25rem] font-bold leading-none tabular-nums">
+                    {formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })}
+                  </p>
+                  <p className="mt-1 text-sm text-secondary">
+                    <Explain id="charge">
+                      {chargeSats === null ? 'set a price first' : formatSats(chargeSats)}
+                    </Explain>
+                  </p>
+                  <p className="mt-2 text-xs text-muted">
+                    {formatFiat({ minor: totals.subtotalMinor, currency: settings.currency })} +{' '}
+                    {formatFiat({ minor: totals.taxMinor, currency: settings.currency })} tax
+                    {split
+                      ? ` · ${splitPercent}% to ${wallets.find((w) => w.id === splitWalletId)?.label ?? '—'}`
+                      : ''}
+                  </p>
+                  {
+                    <p className="v2-rate-line">
+                      Price used: {rate.trim() === '' ? 'not set' : `${rate} ${settings.currency}`}
+                    </p>
+                  }
+                </div>
+              )}
 
-          {/* The bar stays at thumb height on a phone: the shopkeeper never scrolls to find the
+              {/* The bar stays at thumb height on a phone: the shopkeeper never scrolls to find the
               button that takes the money. */}
-          <div className={`charge-bar mt-3 flex flex-wrap items-center gap-2 v2-rail`}>
-            {(
-              <p className="v2-figure">
-                {totals && chargeSats !== null ? (
-                  <>
-                    <span className="v2-sats" aria-hidden>≈ {formatSats(chargeSats)}</span>
-                    <span className="v2-fiat">{formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })}</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="v2-sats">0 sats</span>
-                    <span className="v2-fiat">0.00 {settings.currency}</span>
-                  </>
-                )}
-              </p>
-            )}
-            {(
-              <p className="v2-rate-line">
-                {rate.trim() === '' ? 'Bitcoin price not set' : `${rate} ${settings.currency} per Bitcoin`}
-              </p>
-            )}
-            {/* Refused is not the same as absent. A disabled button cannot be reached by a keyboard or
+              <div className={`charge-bar mt-3 flex flex-wrap items-center gap-2 v2-rail`}>
+                {
+                  <p className="v2-figure">
+                    {totals && chargeSats !== null ? (
+                      <>
+                        <span className="v2-sats" aria-hidden>
+                          ≈ {formatSats(chargeSats)}
+                        </span>
+                        <span className="v2-fiat">
+                          {formatFiat({
+                            minor: totals.roundedTotalMinor,
+                            currency: settings.currency,
+                          })}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="v2-sats">0 sats</span>
+                        <span className="v2-fiat">0.00 {settings.currency}</span>
+                      </>
+                    )}
+                  </p>
+                }
+                {
+                  <p className="v2-rate-line">
+                    {rate.trim() === ''
+                      ? 'Bitcoin price not set'
+                      : `${rate} ${settings.currency} per Bitcoin`}
+                  </p>
+                }
+                {/* Refused is not the same as absent. A disabled button cannot be reached by a keyboard or
                 announced by a screen reader, so the one control that takes the money would simply not
                 exist for those users — and the reason it is refused would be invisible to them. It stays
                 focusable and says why (D-83). */}
-            <button
-              type="button"
-              id="tl-charge"
-              onClick={() => {
-                if (!wallet || !totals || chargeSats === null || compareStopped) return;
-                charge();
-              }}
-              aria-disabled={!wallet || !totals || chargeSats === null || compareStopped || undefined}
-              aria-describedby={
-                !wallet || !totals || chargeSats === null || compareStopped ? 'tl-charge-blocker' : undefined
-              }
-              className={`btn btn-primary flex-1 sm:flex-none v2-charge${
-                !wallet || !totals || chargeSats === null || compareStopped ? ' v2-blocked' : ''
-              }`}
-            >
-              {settings.assist.rehearsal ? 'Rehearse' : 'Charge'}
-              {totals && chargeSats !== null ? ` ${formatSats(chargeSats)}` : ''}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const opened = openCustomerDisplay();
-                setStatus(opened ? 'customer screen opened' : 'your browser blocked the second window — allow pop-ups for slip');
-              }}
-              className="btn btn-secondary"
-            >
-              Customer screen
-            </button>
-            <span className="text-[11px] text-muted">
-              today on this wallet: <span className="figure">{formatSats(walletTakings)}</span>
-            </span>
-            {/* A greyed button with no reason is a dead end. Say what is missing, and where. */}
-            {(!wallet || !totals || chargeSats === null || compareStopped) && (
-              <div className="w-full" id="tl-charge-blocker" data-charge-blocker>
-                {compareStopped ? (
-                  <Failure
-                    kind="chain"
-                    what="The first address slip builds from this wallet does not match the one your wallet shows for address 0/0."
-                    safe="Nothing was taken and nothing was sent. slip is watch-only, so a wrong match cannot move money — it can only mislabel a payment."
-                    next="Open Setup, Wallets, and check that the wallet you added is the one you meant. There is no skip."
-                  />
-                ) : !wallet ? (
-                  <Failure
-                    kind="wallet"
-                    what="No wallet is attached to this till, so slip has no address to show a customer."
-                    safe="Nothing was taken. With no wallet there is nothing to pay and nothing to lose."
-                    next="Open Setup, then Wallets, and paste a public wallet code — an xpub, a descriptor or a Lightning address."
-                  />
-                ) : (
-                  <p className="text-xs text-warn">
-                    {!totals
-                      ? 'Add an item or type an amount first.'
-                      : 'Set what one Bitcoin is worth first.'}
-                  </p>
+                <button
+                  type="button"
+                  id="tl-charge"
+                  onClick={() => {
+                    if (!wallet || !totals || chargeSats === null || compareStopped) return;
+                    charge();
+                  }}
+                  aria-disabled={
+                    !wallet || !totals || chargeSats === null || compareStopped || undefined
+                  }
+                  aria-describedby={
+                    !wallet || !totals || chargeSats === null || compareStopped
+                      ? 'tl-charge-blocker'
+                      : undefined
+                  }
+                  className={`btn btn-primary flex-1 sm:flex-none v2-charge${
+                    !wallet || !totals || chargeSats === null || compareStopped ? ' v2-blocked' : ''
+                  }`}
+                >
+                  {settings.assist.rehearsal ? 'Rehearse' : 'Charge'}
+                  {totals && chargeSats !== null ? ` ${formatSats(chargeSats)}` : ''}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const opened = openCustomerDisplay();
+                    setStatus(
+                      opened
+                        ? 'customer screen opened'
+                        : 'your browser blocked the second window — allow pop-ups for slip',
+                    );
+                  }}
+                  className="btn btn-secondary"
+                >
+                  Customer screen
+                </button>
+                <span className="text-[11px] text-muted">
+                  today on this wallet: <span className="figure">{formatSats(walletTakings)}</span>
+                </span>
+                {/* A greyed button with no reason is a dead end. Say what is missing, and where. */}
+                {(!wallet || !totals || chargeSats === null || compareStopped) && (
+                  <div className="w-full" id="tl-charge-blocker" data-charge-blocker>
+                    {compareStopped ? (
+                      <Failure
+                        kind="chain"
+                        what="The first address slip builds from this wallet does not match the one your wallet shows for address 0/0."
+                        safe="Nothing was taken and nothing was sent. slip is watch-only, so a wrong match cannot move money — it can only mislabel a payment."
+                        next="Open Setup, Wallets, and check that the wallet you added is the one you meant. There is no skip."
+                      />
+                    ) : !wallet ? (
+                      <Failure
+                        kind="wallet"
+                        what="No wallet is attached to this till, so slip has no address to show a customer."
+                        safe="Nothing was taken. With no wallet there is nothing to pay and nothing to lose."
+                        next="Open Setup, then Wallets, and paste a public wallet code — an xpub, a descriptor or a Lightning address."
+                      />
+                    ) : (
+                      <p className="text-xs text-warn">
+                        {!totals
+                          ? 'Add an item or type an amount first.'
+                          : 'Set what one Bitcoin is worth first.'}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-          </div>
-          {status && <p className="mt-2 text-[11px] text-bad">{status}</p>}
-          </div>
+              {status && <p className="mt-2 text-[11px] text-bad">{status}</p>}
+            </div>
           </div>
 
           <AmountPad
@@ -2014,13 +2230,15 @@ function printReceipt(
   footer: string,
   page: 'roll' | 'a4' = 'roll',
 ): void {
-  const esc = (s: string) => s.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]!);
+  const esc = (s: string) =>
+    s.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c]!);
   const at = (invoice.confirmedAt ?? invoice.createdAt).slice(0, 16).replace('T', ' ');
-  const status = invoice.note === 'rehearsal'
-    ? 'REHEARSAL — nothing was charged'
-    : invoice.manual
-      ? 'Marked paid by you'
-      : 'Paid — seen on chain';
+  const status =
+    invoice.note === 'rehearsal'
+      ? 'REHEARSAL — nothing was charged'
+      : invoice.manual
+        ? 'Marked paid by you'
+        : 'Paid — seen on chain';
   const overpaid = overpaidBy(invoice.amountAtoms, invoice.receivedAtoms);
   const observed = invoice.manual
     ? 'slip did not observe a payment. This is a record of what you marked.'
@@ -2042,8 +2260,9 @@ function printReceipt(
 <p class="note">${observed}</p>
 ${proof ? `<p class="note">Proof</p><code>${esc(formatProof(proof))}</code>` : ''}
 <div class="foot">${esc(footer || 'Thank you')}<br>slip · watch-only · no keys, no server</div>`;
-  const html = page === 'a4'
-    ? `<!doctype html><title>receipt ${esc(invoice.id)}</title>
+  const html =
+    page === 'a4'
+      ? `<!doctype html><title>receipt ${esc(invoice.id)}</title>
 <style>
   @page { size: A4; margin: 18mm }
   html, body { margin: 0; background: #fff; color: #000 }
@@ -2064,7 +2283,7 @@ ${proof ? `<p class="note">Proof</p><code>${esc(formatProof(proof))}</code>` : '
   .foot { margin-top: 28px; padding-top: 10px; border-top: 1px solid #000; font: 13px/1.45 ui-monospace, Menlo, monospace }
 </style>
 <div class="page"><div class="rule"></div>${body}</div>`
-    : `<!doctype html><title>receipt ${esc(invoice.id)}</title>
+      : `<!doctype html><title>receipt ${esc(invoice.id)}</title>
 <style>
   @page { size: 80mm auto; margin: 4mm }
   body { width: 72mm; font: 16px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; color: #000; background: #fff; margin: 0 }
@@ -2084,7 +2303,11 @@ ${proof ? `<p class="note">Proof</p><code>${esc(formatProof(proof))}</code>` : '
   .foot { margin-top: 8px; border-top: 1px dotted #000; padding-top: 8px }
 </style>
 <div class="tear" aria-hidden="true"></div>${body}`;
-  openPrintable(html, page === 'a4' ? 'slip-receipt-a4' : 'slip-receipt', page === 'a4' ? 'width=840,height=1120' : 'width=380,height=620');
+  openPrintable(
+    html,
+    page === 'a4' ? 'slip-receipt-a4' : 'slip-receipt',
+    page === 'a4' ? 'width=840,height=1120' : 'width=380,height=620',
+  );
 }
 
 function parseFiatSafe(text: string, currency: string): bigint | null {

@@ -12,15 +12,36 @@
 
 import { useState } from 'react';
 import { CURRENCIES } from '../core/currencies';
-import { ASSIST_GROUPS, ASSIST_LABELS, loadSettings, sanitizeSettings, saveSettings, type AssistOptions } from '../core/settings';
+import {
+  ASSIST_GROUPS,
+  ASSIST_LABELS,
+  loadSettings,
+  sanitizeSettings,
+  saveSettings,
+  type AssistOptions,
+} from '../core/settings';
 import { printCounterCard } from './counterCard';
 import { buildLabel } from '../core/buildinfo';
 import { createRepository, SHIFT_STORAGE_KEY, STORAGE_KEY } from '../core/accounts';
 import { SETTINGS_KEY } from '../core/settings';
 import { store as appStore } from '../core/storage';
-import { hashPin, LOCK_CHOICES, LOCK_NOW_EVENT, newSalt, sanitizePin, verifyPin } from '../core/lock';
+import { persistState, recheckPersistence } from '../core/persist';
+import {
+  hashPin,
+  LOCK_CHOICES,
+  LOCK_NOW_EVENT,
+  newSalt,
+  sanitizePin,
+  verifyPin,
+} from '../core/lock';
 
 const COMMON = ['USD', 'CAD', 'EUR', 'GBP', 'AUD', 'JPY', 'CHF', 'MXN', 'KWD', 'VND'];
+
+const PERSIST_LABEL: Record<'kept' | 'not-guaranteed' | 'unknown', string> = {
+  kept: 'kept',
+  'not-guaranteed': 'not guaranteed',
+  unknown: 'unknown',
+};
 
 export default function Settings() {
   const store = appStore();
@@ -33,7 +54,9 @@ export default function Settings() {
   const [explorerUrl, setExplorerUrl] = useState(loaded.settings.explorerUrl);
   const [rateEndpoint, setRateEndpoint] = useState(loaded.settings.rateEndpoint);
   const [autoRate, setAutoRate] = useState(loaded.settings.autoRate);
-  const [staff, setStaff] = useState<{ name: string; walletId: string }[]>([...loaded.settings.staff]);
+  const [staff, setStaff] = useState<{ name: string; walletId: string }[]>([
+    ...loaded.settings.staff,
+  ]);
   const [assist, setAssist] = useState<AssistOptions>({ ...loaded.settings.assist });
   const [signature, setSignature] = useState(loaded.settings.signature);
   const [textSize, setTextSize] = useState<'normal' | 'large'>(loaded.settings.textSize);
@@ -52,8 +75,11 @@ export default function Settings() {
   const [pinConfirmField, setPinConfirmField] = useState('');
   const [pinCurrent, setPinCurrent] = useState('');
   const [pinBusy, setPinBusy] = useState(false);
+  const [persist, setPersist] = useState(() => persistState(appStore()));
 
-  function save(pin: { pinSalt?: string | null; pinHash?: string | null; lockAfterMinutes?: number } = {}) {
+  function save(
+    pin: { pinSalt?: string | null; pinHash?: string | null; lockAfterMinutes?: number } = {},
+  ) {
     const { settings, warnings } = sanitizeSettings({
       businessName,
       currency,
@@ -137,7 +163,12 @@ export default function Settings() {
     }
     const repo = createRepository(store);
     // Record the wipe FIRST: an audit trail that ends before the deletion is the whole point.
-    await repo.recordShift('account-added', null, null, 'DEVICE WIPED by the owner — all local data cleared');
+    await repo.recordShift(
+      'account-added',
+      null,
+      null,
+      'DEVICE WIPED by the owner — all local data cleared',
+    );
 
     store.removeItem(STORAGE_KEY);
     store.removeItem(SHIFT_STORAGE_KEY);
@@ -251,7 +282,9 @@ export default function Settings() {
       </div>
 
       <label className="mt-3 block" htmlFor="st-explorer">
-        <span className="eyebrow">Who checks the network for us (leave empty for the free public one)</span>
+        <span className="eyebrow">
+          Who checks the network for us (leave empty for the free public one)
+        </span>
         <input
           id="st-explorer"
           value={explorerUrl}
@@ -299,8 +332,8 @@ export default function Settings() {
       <div className="mt-3 rounded-lg border border-line p-2">
         <span className="eyebrow">Staff tip jars</span>
         <p className="mt-1 text-[11px] leading-relaxed text-muted">
-          A named person can take tips into their own wallet. Only public wallet material is stored —
-          slip still cannot spend a sat.
+          A named person can take tips into their own wallet. Only public wallet material is stored
+          — slip still cannot spend a sat.
         </p>
         {staff.length > 0 && (
           <ul className="mt-2 space-y-1">
@@ -308,7 +341,8 @@ export default function Settings() {
               <li key={s.walletId} className="flex items-center gap-2 text-[11px]">
                 <span className="flex-1">
                   {s.name} →{' '}
-                  {wallets.find((w) => w.id === s.walletId)?.label ?? 'a wallet that no longer exists'}
+                  {wallets.find((w) => w.id === s.walletId)?.label ??
+                    'a wallet that no longer exists'}
                 </span>
                 <button
                   type="button"
@@ -352,7 +386,10 @@ export default function Settings() {
             type="button"
             onClick={() => {
               if (newStaff.trim().length < 2 || !newStaffWallet) return;
-              setStaff((cur) => [...cur.filter((x) => x.walletId !== newStaffWallet), { name: newStaff.trim().slice(0, 40), walletId: newStaffWallet }]);
+              setStaff((cur) => [
+                ...cur.filter((x) => x.walletId !== newStaffWallet),
+                { name: newStaff.trim().slice(0, 40), walletId: newStaffWallet },
+              ]);
               setNewStaff('');
               setNewStaffWallet('');
             }}
@@ -374,20 +411,23 @@ export default function Settings() {
           className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
         />
         <span className="mt-1 block text-[11px] text-muted">
-          Rides on the BIP-21 label a customer’s wallet already shows — never a logo across the till.
+          Rides on the BIP-21 label a customer’s wallet already shows — never a logo across the
+          till.
         </span>
       </label>
 
       <div className="mt-4 rounded-lg border border-line p-2" data-panel="assist">
         <span className="eyebrow">Assistance</span>
         <p className="mt-1 text-[11px] leading-relaxed text-muted">
-          Every switch here adds words or widgets to the screen. A busy counter can turn them all off;
-          a first week can leave them on. Nothing here changes what slip does with money.
+          Every switch here adds words or widgets to the screen. A busy counter can turn them all
+          off; a first week can leave them on. Nothing here changes what slip does with money.
         </p>
         {ASSIST_GROUPS.map((group) => (
           <div key={group.id} className="mt-3" data-assist-group={group.id}>
             <div className="flex flex-wrap items-baseline gap-2">
-              <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">{group.label}</h4>
+              <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                {group.label}
+              </h4>
               <span className="text-[11px] text-muted/80">{group.why}</span>
             </div>
             <ul className="mt-1 space-y-2">
@@ -402,7 +442,9 @@ export default function Settings() {
                   />
                   <label htmlFor={`as-${key}`} className="text-xs">
                     {ASSIST_LABELS[key].title}
-                    <span className="mt-0.5 block text-[11px] leading-relaxed text-muted">{ASSIST_LABELS[key].why}</span>
+                    <span className="mt-0.5 block text-[11px] leading-relaxed text-muted">
+                      {ASSIST_LABELS[key].why}
+                    </span>
                   </label>
                 </li>
               ))}
@@ -445,7 +487,11 @@ export default function Settings() {
         <p
           role="status"
           className={`mt-3 rounded-lg border p-2 text-xs ${
-            note.kind === 'ok' ? 'border-good text-good' : note.kind === 'warn' ? 'border-warn text-warn' : 'border-bad text-bad'
+            note.kind === 'ok'
+              ? 'border-good text-good'
+              : note.kind === 'warn'
+                ? 'border-warn text-warn'
+                : 'border-bad text-bad'
           }`}
         >
           {note.text}
@@ -457,10 +503,10 @@ export default function Settings() {
       <div data-till-lock>
         <p className="eyebrow">Till lock</p>
         <p className="mt-1 text-xs leading-relaxed text-muted">
-          A PIN keeps a passer-by out of the day's takings when the phone is left on the counter. It is{' '}
-          <span className="text-ink">not encryption</span> — the books live in this browser, and anyone
-          with the device and its own tools can read them. Forgotten PIN? Restore your backup file on a
-          fresh device.
+          A PIN keeps a passer-by out of the day's takings when the phone is left on the counter. It
+          is <span className="text-ink">not encryption</span> — the books live in this browser, and
+          anyone with the device and its own tools can read them. Forgotten PIN? Restore your backup
+          file on a fresh device.
         </p>
 
         {pinHash ? (
@@ -474,7 +520,10 @@ export default function Settings() {
                   const minutes = Number(e.target.value);
                   setLockAfter(minutes);
                   save({ lockAfterMinutes: minutes });
-                  setNote({ kind: 'ok', text: `the till will lock ${minutes === 0 ? 'only when you press Lock now' : `after ${minutes} quiet minutes`}` });
+                  setNote({
+                    kind: 'ok',
+                    text: `the till will lock ${minutes === 0 ? 'only when you press Lock now' : `after ${minutes} quiet minutes`}`,
+                  });
                 }}
                 className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
               >
@@ -521,7 +570,9 @@ export default function Settings() {
             </label>
           </div>
         ) : (
-          <p className="mt-2 text-xs text-muted">No PIN yet. The till opens to anyone who picks it up.</p>
+          <p className="mt-2 text-xs text-muted">
+            No PIN yet. The till opens to anyone who picks it up.
+          </p>
         )}
 
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -565,11 +616,60 @@ export default function Settings() {
 
       <hr className="divider my-5" />
 
+      <div data-persist-status>
+        <p className="eyebrow">Keeping the books on this device</p>
+        <p className="mt-1 text-xs leading-relaxed text-muted">
+          Browsers drop a site's data when the phone is short of space — iOS is the keenest — so
+          slip asks the browser to keep this shop. The answer is{' '}
+          <span className="text-ink">{PERSIST_LABEL[persist?.answer ?? 'unknown']}</span>
+          {persist?.answer === 'kept' && (
+            <>
+              . That is a promise, not a lock: browsers can still evict in an emergency, and it
+              means nothing on another device. Your{' '}
+              <span className="text-ink">.slip backup file</span> is the only copy that outlives
+              this one.
+            </>
+          )}
+          {persist?.answer === 'not-guaranteed' && (
+            <>
+              . The store is not confirmed safe — take a{' '}
+              <a className="underline" href="#backup">
+                backup
+              </a>{' '}
+              today, not when a browser evicts it.
+            </>
+          )}
+          {persist?.answer === 'unknown' && (
+            <>
+              . This browser does not say (or private mode answered nothing). Rely on a{' '}
+              <a className="underline" href="#backup">
+                backup
+              </a>{' '}
+              regardless.
+            </>
+          )}
+        </p>
+        <button
+          type="button"
+          onClick={async () => {
+            setPersist(await recheckPersistence(appStore()));
+            window.dispatchEvent(new Event('slip:data-changed'));
+          }}
+          className="btn btn-secondary mt-2 px-2 py-1 text-xs"
+          id="st-persist-recheck"
+        >
+          Ask again
+        </button>
+      </div>
+
+      <hr className="divider my-5" />
+
       <p className="eyebrow">Danger zone</p>
       <p className="mt-1 text-xs leading-relaxed text-muted">
-        Wiping removes every counter, the PIN hash and the shift log from <span className="text-ink">this
-        device</span>. It cannot touch your money, because slip never had any — but if you have no
-        backup, the counter list is gone for good. The wipe is written into the log first.
+        Wiping removes every counter, the PIN hash and the shift log from{' '}
+        <span className="text-ink">this device</span>. It cannot touch your money, because slip
+        never had any — but if you have no backup, the counter list is gone for good. The wipe is
+        written into the log first.
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <input

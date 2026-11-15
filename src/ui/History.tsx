@@ -14,8 +14,15 @@ import { createLedger } from '../core/ledger';
 import { createRepository } from '../core/accounts';
 import { closeReport, dayClose, daysWithSales, salesCsv, type SaleRow } from '../core/history';
 import { findSales } from '../core/findsale';
-import { METHOD_LABEL, checkRefund, makeRefund, refundedSoFar, type RefundMethod } from '../core/refunds';
+import {
+  METHOD_LABEL,
+  checkRefund,
+  makeRefund,
+  refundedSoFar,
+  type RefundMethod,
+} from '../core/refunds';
 import { loadSettings } from '../core/settings';
+import { lastBackupAt } from '../core/backup';
 import { formatCoinAmount } from '../core/money';
 import { ScanField } from './Scan';
 import { escapeHtml, openPrintable } from './print';
@@ -28,6 +35,18 @@ const COIN_WORD = { btc: 'Bitcoin', ltc: 'Litecoin' } as const;
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+/** Plain number for "how long since the last `.slip` file". Hours < 1 read as "today". */
+function backupNudgeText(at: string | null): string {
+  if (!at) return 'never — take one now';
+  const then = new Date(at).getTime();
+  if (Number.isNaN(then)) return 'today';
+  const hours = (Date.now() - then) / 3_600_000;
+  if (hours < 1) return 'today';
+  const days = Math.floor(hours / 24);
+  if (days < 1) return 'today';
+  return `${days} ${days === 1 ? 'day' : 'days'} ago`;
 }
 
 export default function History() {
@@ -54,10 +73,16 @@ export default function History() {
 
   // Which chain each wallet takes, so the books never add Litecoin atoms to Bitcoin atoms.
   const coinOf = useCallback(
-    (walletId: string) => createRepository(appStore()).load().accounts.find((a) => a.id === walletId)?.coin ?? 'btc',
+    (walletId: string) =>
+      createRepository(appStore())
+        .load()
+        .accounts.find((a) => a.id === walletId)?.coin ?? 'btc',
     [],
   );
-  const close = useMemo(() => dayClose(data.invoices, data.refunds, date, coinOf), [data, date, coinOf]);
+  const close = useMemo(
+    () => dayClose(data.invoices, data.refunds, date, coinOf),
+    [data, date, coinOf],
+  );
   const mixed = close.coins.length > 1;
   /** The counter's coin, used wherever one number has to stand for the day. */
   const dayCoin = close.coins[0] ?? 'btc';
@@ -89,6 +114,15 @@ export default function History() {
   const [reason, setReason] = useState('');
   const [reference, setReference] = useState('');
   const [note, setNote] = useState<{ kind: 'ok' | 'warn' | 'bad'; text: string } | null>(null);
+
+  // The backup nudge. The `.slip` file is the only recovery for a lost phone or a forgotten
+  // PIN, so the day close says how old it is (or that it has never been taken) out loud.
+  const [backupAt, setBackupAt] = useState<string | null>(() => lastBackupAt(appStore()));
+  useEffect(() => {
+    const onChanged = () => setBackupAt(lastBackupAt(appStore()));
+    window.addEventListener('slip:data-changed', onChanged);
+    return () => window.removeEventListener('slip:data-changed', onChanged);
+  }, []);
 
   const invoiceFor = (row: SaleRow) => data.invoices.find((i) => i.id === row.id)!;
 
@@ -147,7 +181,8 @@ export default function History() {
       const lines: string[] = [];
       const walk = (el: HTMLElement) => {
         const hasText = [...el.childNodes].some(
-          (child) => child.nodeType === Node.TEXT_NODE && (child.textContent ?? '').trim().length > 0,
+          (child) =>
+            child.nodeType === Node.TEXT_NODE && (child.textContent ?? '').trim().length > 0,
         );
         if (hasText || el.children.length === 0) {
           const line = el.innerText.replace(/\s+/g, ' ').trim();
@@ -167,7 +202,10 @@ export default function History() {
       .filter((node): node is HTMLElement => node instanceof HTMLElement)
       .map((node) => readProse(node))
       .filter((bit) => bit.length > 0);
-    const words = bits.join('\n\n').replace(/[ \t]+\n/g, '\n').trim();
+    const words = bits
+      .join('\n\n')
+      .replace(/[ \t]+\n/g, '\n')
+      .trim();
     const html =
       `<!doctype html><title>Books</title>` +
       '<style>body{background:#fff;color:#000;font:16px/1.45 ui-monospace,monospace;margin:16px}pre{white-space:pre-wrap;margin:0}</style>' +
@@ -298,7 +336,13 @@ export default function History() {
       </p>
 
       {/* The day's line before its detail: the number a shopkeeper came for, and what it is made of. */}
-      <div className={`mt-3 rounded-xl border border-line bg-surface p-3 v2-slip v2-slip-tear`} data-today-line data-books-sheet data-cancelled-count={close.cancelledCount} data-cancelled-atoms={close.cancelledAtoms.toString()}>
+      <div
+        className={`mt-3 rounded-xl border border-line bg-surface p-3 v2-slip v2-slip-tear`}
+        data-today-line
+        data-books-sheet
+        data-cancelled-count={close.cancelledCount}
+        data-cancelled-atoms={close.cancelledAtoms.toString()}
+      >
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="eyebrow">{date === todayIso ? 'Today' : 'That day'}</p>
           <p className="text-[11px] text-muted">
@@ -320,22 +364,21 @@ export default function History() {
               </p>
             ))}
             <p className="mt-2 text-[11px] leading-relaxed text-muted">
-              This day has two coins, so it has two totals. They are never added together — a Litecoin
-              litoshi is not a Bitcoin satoshi, and one number for both would be true of neither.
+              This day has two coins, so it has two totals. They are never added together — a
+              Litecoin litoshi is not a Bitcoin satoshi, and one number for both would be true of
+              neither.
             </p>
           </div>
         ) : (
-          <p
-            className="figure v2-engrave mt-1 text-[2rem] font-bold leading-none tabular-nums"
-          >
+          <p className="figure v2-engrave mt-1 text-[2rem] font-bold leading-none tabular-nums">
             {formatCoinAmount(close.netAtoms, close.coins[0] ?? 'btc')}
           </p>
         )}
         {<span className="v2-rule v2-rule-tight" aria-hidden />}
         {close.cancelledCount > 0 && (
           <p className="mt-1 text-xs text-muted" data-cancelled>
-            {close.cancelledCount} {close.cancelledCount === 1 ? 'sale was' : 'sales were'} started and cancelled —{' '}
-            {perCoin((t) => t.cancelledAtoms)} was never taken
+            {close.cancelledCount} {close.cancelledCount === 1 ? 'sale was' : 'sales were'} started
+            and cancelled — {perCoin((t) => t.cancelledAtoms)} was never taken
           </p>
         )}
         {close.count > 0 &&
@@ -347,20 +390,29 @@ export default function History() {
                 {formatCoinAmount(t.byRail.onchain, coin)} on-chain ·{' '}
                 {formatCoinAmount(t.byRail.lightning, coin)} Lightning ·{' '}
                 {formatCoinAmount(t.byRail.manual, coin)} marked by hand
-                {t.refundedAtoms > 0n ? ` · ${formatCoinAmount(t.refundedAtoms, coin)} refunded` : ''}
+                {t.refundedAtoms > 0n
+                  ? ` · ${formatCoinAmount(t.refundedAtoms, coin)} refunded`
+                  : ''}
               </p>
             );
           })}
         {close.count === 0 && close.cancelledCount > 0 && (
           <p className="mt-3 text-sm text-ink" data-empty-drawer>
-            Nothing was taken. The drawer is empty. Cancelled lines are listed below, and they are not in this total.
+            Nothing was taken. The drawer is empty. Cancelled lines are listed below, and they are
+            not in this total.
           </p>
         )}
         {close.count === 0 && close.cancelledCount === 0 && (
-          <p className="mt-3 text-sm text-ink">No sales on this day yet. Ring one up on Sell, and it lands here.</p>
+          <p className="mt-3 text-sm text-ink">
+            No sales on this day yet. Ring one up on Sell, and it lands here.
+          </p>
         )}
         {date !== todayIso && (
-          <button type="button" className="btn btn-secondary mt-2 px-2 py-1 text-xs" onClick={() => setDate(todayIso)}>
+          <button
+            type="button"
+            className="btn btn-secondary mt-2 px-2 py-1 text-xs"
+            onClick={() => setDate(todayIso)}
+          >
             Show today
           </button>
         )}
@@ -411,8 +463,8 @@ export default function History() {
       </div>
 
       <p className="mt-2 text-[11px] text-muted" data-books-observed>
-        Observed by slip: <span className="figure">{perCoin((t) => t.observedAtoms)}</span> · confirmed
-        by a human: <span className="figure">{perCoin((t) => t.manualAtoms)}</span>
+        Observed by slip: <span className="figure">{perCoin((t) => t.observedAtoms)}</span> ·
+        confirmed by a human: <span className="figure">{perCoin((t) => t.manualAtoms)}</span>
       </p>
 
       <div className="mt-2 flex flex-wrap gap-2">
@@ -450,7 +502,16 @@ export default function History() {
           Print on A4
         </button>
       </div>
-      <Blocker show={close.count === 0}>Nothing sold on this day yet, so there is no sheet to close and no CSV to download.</Blocker>
+      <Blocker show={close.count === 0}>
+        Nothing sold on this day yet, so there is no sheet to close and no CSV to download.
+      </Blocker>
+
+      <p className="mt-2 text-[11px] text-muted" data-backup-nudge>
+        Last backup: {backupNudgeText(backupAt)} —{' '}
+        <a className="underline" href="#backup">
+          back up now
+        </a>
+      </p>
 
       {note && (
         <p
@@ -481,94 +542,106 @@ export default function History() {
         </p>
       ) : (
         <>
-        <ul className="mt-3 space-y-1">
-          {visibleRows.map((row) => (
-            <li key={row.id} className="rounded-lg border border-line p-2" data-sale-row>
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <span className="text-xs">
-                  {row.at.slice(11, 16)} · {row.walletLabel}
-                  {row.note ? ` · ${row.note}` : ''}
-                </span>
-                <span className="figure text-xs">{formatCoinAmount(row.netAtoms, row.coin)}</span>
-              </div>
-              <p className="mt-0.5 text-[11px] text-muted">
-                <span className="chip mr-1">{row.rail}</span>
-                {row.manual ? 'manual confirmation · ' : ''}
-                {row.refundedAtoms > 0n ? `refunded ${formatCoinAmount(row.refundedAtoms, row.coin)} · ` : ''}
-                {row.overpaidAtoms > 0n ? ` · over by ${formatCoinAmount(row.overpaidAtoms, row.coin)}` : ''}
-                {row.id}
-              </p>
-              {row.refundedAtoms < row.atoms && (
-                <button
-                  type="button"
-                  onClick={() => startRefund(row)}
-                  className="mt-1 rounded border border-line px-2 text-xs text-muted hover:text-ink"
-                >
-                  refund
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-        <Sheet open={refunding !== null} onClose={() => setRefunding(null)} title="Record a refund">
-          <label className="block" htmlFor="rf-atoms">
-            <span className="eyebrow">Amount to refund</span>
-            <input
-              id="rf-atoms"
-              value={atoms}
-              onChange={(e) => setAtoms(e.target.value)}
-              inputMode="numeric"
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
-            />
-          </label>
-          <div className="mt-2 grid gap-2 sm:grid-cols-2">
-            <label className="block" htmlFor="rf-method">
-              <span className="eyebrow">How it went back</span>
-              <select
-                id="rf-method"
-                value={method}
-                onChange={(e) => setMethod(e.target.value as RefundMethod)}
-                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-xs outline-none focus:border-accent"
-              >
-                {(Object.keys(METHOD_LABEL) as RefundMethod[]).map((m) => (
-                  <option key={m} value={m}>
-                    {METHOD_LABEL[m]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block" htmlFor="rf-ref">
-              <span className="eyebrow">Reference (txid, name)</span>
+          <ul className="mt-3 space-y-1">
+            {visibleRows.map((row) => (
+              <li key={row.id} className="rounded-lg border border-line p-2" data-sale-row>
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="text-xs">
+                    {row.at.slice(11, 16)} · {row.walletLabel}
+                    {row.note ? ` · ${row.note}` : ''}
+                  </span>
+                  <span className="figure text-xs">{formatCoinAmount(row.netAtoms, row.coin)}</span>
+                </div>
+                <p className="mt-0.5 text-[11px] text-muted">
+                  <span className="chip mr-1">{row.rail}</span>
+                  {row.manual ? 'manual confirmation · ' : ''}
+                  {row.refundedAtoms > 0n
+                    ? `refunded ${formatCoinAmount(row.refundedAtoms, row.coin)} · `
+                    : ''}
+                  {row.overpaidAtoms > 0n
+                    ? ` · over by ${formatCoinAmount(row.overpaidAtoms, row.coin)}`
+                    : ''}
+                  {row.id}
+                </p>
+                {row.refundedAtoms < row.atoms && (
+                  <button
+                    type="button"
+                    onClick={() => startRefund(row)}
+                    className="mt-1 rounded border border-line px-2 text-xs text-muted hover:text-ink"
+                  >
+                    refund
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+          <Sheet
+            open={refunding !== null}
+            onClose={() => setRefunding(null)}
+            title="Record a refund"
+          >
+            <label className="block" htmlFor="rf-atoms">
+              <span className="eyebrow">Amount to refund</span>
               <input
-                id="rf-ref"
-                value={reference}
-                onChange={(e) => setReference(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-[11px] outline-none focus:border-accent"
+                id="rf-atoms"
+                value={atoms}
+                onChange={(e) => setAtoms(e.target.value)}
+                inputMode="numeric"
+                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
               />
             </label>
-          </div>
-          <label className="mt-2 block" htmlFor="rf-reason">
-            <span className="eyebrow">Reason</span>
-            <input
-              id="rf-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="wrong order"
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-xs outline-none focus:border-accent"
-            />
-          </label>
-          <div className="mt-2 flex gap-2">
-            <button type="button" onClick={saveRefund} className="btn btn-primary">
-              record refund
-            </button>
-            <button type="button" onClick={() => setRefunding(null)} className="btn btn-secondary">
-              cancel
-            </button>
-          </div>
-          <p className="mt-2 text-sm text-warn">
-            slip cannot send money anywhere. This records a refund you made yourself.
-          </p>
-        </Sheet>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <label className="block" htmlFor="rf-method">
+                <span className="eyebrow">How it went back</span>
+                <select
+                  id="rf-method"
+                  value={method}
+                  onChange={(e) => setMethod(e.target.value as RefundMethod)}
+                  className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-xs outline-none focus:border-accent"
+                >
+                  {(Object.keys(METHOD_LABEL) as RefundMethod[]).map((m) => (
+                    <option key={m} value={m}>
+                      {METHOD_LABEL[m]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block" htmlFor="rf-ref">
+                <span className="eyebrow">Reference (txid, name)</span>
+                <input
+                  id="rf-ref"
+                  value={reference}
+                  onChange={(e) => setReference(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-[11px] outline-none focus:border-accent"
+                />
+              </label>
+            </div>
+            <label className="mt-2 block" htmlFor="rf-reason">
+              <span className="eyebrow">Reason</span>
+              <input
+                id="rf-reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="wrong order"
+                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-xs outline-none focus:border-accent"
+              />
+            </label>
+            <div className="mt-2 flex gap-2">
+              <button type="button" onClick={saveRefund} className="btn btn-primary">
+                record refund
+              </button>
+              <button
+                type="button"
+                onClick={() => setRefunding(null)}
+                className="btn btn-secondary"
+              >
+                cancel
+              </button>
+            </div>
+            <p className="mt-2 text-sm text-warn">
+              slip cannot send money anywhere. This records a refund you made yourself.
+            </p>
+          </Sheet>
         </>
       )}
 
@@ -577,13 +650,20 @@ export default function History() {
           <p className="eyebrow">Cancelled on this day</p>
           <ul className="mt-1 space-y-1">
             {cancelledRows.map((inv) => (
-              <li key={inv.id} className="rounded-lg border border-dashed border-line p-2 opacity-80" data-sale-row data-cancelled={inv.id}>
+              <li
+                key={inv.id}
+                className="rounded-lg border border-dashed border-line p-2 opacity-80"
+                data-sale-row
+                data-cancelled={inv.id}
+              >
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span className="text-xs">
                     {inv.createdAt.slice(11, 16)} · {inv.walletLabel}
                     {inv.note ? ` · ${inv.note}` : ''}
                   </span>
-                  <span className="figure text-xs line-through opacity-60">{formatCoinAmount(inv.amountAtoms, coinOf(inv.walletId))}</span>
+                  <span className="figure text-xs line-through opacity-60">
+                    {formatCoinAmount(inv.amountAtoms, coinOf(inv.walletId))}
+                  </span>
                 </div>
                 <p className="mt-0.5 text-[11px] text-muted">
                   <span className="chip mr-1">cancelled</span>
@@ -598,11 +678,18 @@ export default function History() {
       <ScanField
         label="Scan a receipt"
         onScan={(text) => {
-          setNote({ kind: 'ok', text: `scanned: ${text.slice(0, 60)}${text.length > 60 ? '…' : ''}` });
+          setNote({
+            kind: 'ok',
+            text: `scanned: ${text.slice(0, 60)}${text.length > 60 ? '…' : ''}`,
+          });
           const id = text.split('|')[1];
           const row = close.rows.find((r) => r.id === id);
           if (row) startRefund(row);
-          else setNote({ kind: 'warn', text: 'that receipt is not on this day — pick its date above' });
+          else
+            setNote({
+              kind: 'warn',
+              text: 'that receipt is not on this day — pick its date above',
+            });
         }}
       />
     </section>

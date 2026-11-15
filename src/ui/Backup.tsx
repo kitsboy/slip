@@ -9,7 +9,13 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createRepository, type CounterAccount } from '../core/accounts';
-import { createBackup, describeBackup, passphraseStrength, restoreBackup } from '../core/backup';
+import {
+  createBackup,
+  describeBackup,
+  passphraseStrength,
+  recordBackupTaken,
+  restoreBackup,
+} from '../core/backup';
 import ConfirmButton from './ConfirmButton';
 import { exportLogLines, staffSummary, verifyLog, type ShiftLog } from '../core/shifts';
 import { LEDGER_KEY } from '../core/ledger';
@@ -52,7 +58,9 @@ export default function Backup() {
     setAccounts(repo.load().accounts);
     const shifts = repo.shifts();
     setLog(shifts);
-    void verifyLog(shifts).then((r) => setVerified({ ok: r.ok, ...(r.reason ? { reason: r.reason } : {}) }));
+    void verifyLog(shifts).then((r) =>
+      setVerified({ ok: r.ok, ...(r.reason ? { reason: r.reason } : {}) }),
+    );
   }, []);
 
   useEffect(() => {
@@ -99,6 +107,9 @@ export default function Backup() {
       a.download = `slip-backup-${new Date().toISOString().slice(0, 10)}.slip`;
       a.click();
       URL.revokeObjectURL(url);
+      recordBackupTaken(appStore());
+      // Let the History day-close nudge learn the fresh backup date immediately.
+      window.dispatchEvent(new Event('slip:data-changed'));
       setNote({
         kind: 'ok',
         text: `backup written (${(text.length / 1024).toFixed(1)} KB, encrypted). Keep it somewhere you would keep a bank statement.`,
@@ -144,11 +155,18 @@ export default function Backup() {
       }
       const repo = createRepository(appStore());
       const env = repo.load();
-      repo.save({ ...env, accounts: state.accounts, activeAccountId: state.activeAccountId ?? null });
+      repo.save({
+        ...env,
+        accounts: state.accounts,
+        activeAccountId: state.activeAccountId ?? null,
+      });
       // The PIN travels with the backup: a restored till with no PIN would silently drop
       // the hand-off protection the merchant thinks they still have.
       repo.setPin(state.pinHash ?? null);
-      appStore().setItem('slip.shifts.v1', JSON.stringify(state.shifts ?? { version: 1, events: [] }));
+      appStore().setItem(
+        'slip.shifts.v1',
+        JSON.stringify(state.shifts ?? { version: 1, events: [] }),
+      );
       // Restore the books too, and say so when the file predates them rather than pretending
       // the history came back.
       const hadLedger = state.ledger !== undefined && state.ledger !== null;
@@ -203,9 +221,7 @@ export default function Backup() {
           className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
         />
       </label>
-      {strength && !strength.ok && (
-        <p className="mt-1 text-[11px] text-warn">{strength.reason}</p>
-      )}
+      {strength && !strength.ok && <p className="mt-1 text-[11px] text-warn">{strength.reason}</p>}
       {strength?.ok && <p className="mt-1 text-[11px] text-good">passphrase is usable</p>}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -255,7 +271,9 @@ export default function Backup() {
           }}
         />
         {accounts.length === 0 && (
-          <span className="text-[11px] text-muted">add a counter first — there is nothing to back up</span>
+          <span className="text-[11px] text-muted">
+            add a counter first — there is nothing to back up
+          </span>
         )}
       </div>
 
@@ -263,8 +281,8 @@ export default function Backup() {
         <div className="mt-3 rounded-lg border border-warn p-3">
           <p className="text-xs text-warn">
             Backup from {pending.createdAt.slice(0, 10)} ({(pending.bytes / 1024).toFixed(1)} KB).
-            Restoring <span className="text-ink">replaces</span> the counters on this device. Enter the
-            passphrase above, then confirm.
+            Restoring <span className="text-ink">replaces</span> the counters on this device. Enter
+            the passphrase above, then confirm.
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             <ConfirmButton
@@ -298,7 +316,11 @@ export default function Backup() {
         <p
           role="status"
           className={`mt-3 rounded-lg border p-2 text-xs ${
-            note.kind === 'ok' ? 'border-good text-good' : note.kind === 'warn' ? 'border-warn text-warn' : 'border-bad text-bad'
+            note.kind === 'ok'
+              ? 'border-good text-good'
+              : note.kind === 'warn'
+                ? 'border-warn text-warn'
+                : 'border-bad text-bad'
           }`}
         >
           {note.text}
@@ -311,7 +333,9 @@ export default function Backup() {
         <h3 className="text-sm font-semibold">Staff &amp; shift log</h3>
         {verified && (
           <span className={`chip ${verified.ok ? 'chip-good' : 'border-bad text-bad'}`}>
-            {verified.ok ? `chain intact · ${lines.length} events` : `chain broken · ${verified.reason ?? ''}`}
+            {verified.ok
+              ? `chain intact · ${lines.length} events`
+              : `chain broken · ${verified.reason ?? ''}`}
           </span>
         )}
       </div>
@@ -351,8 +375,8 @@ export default function Backup() {
       <p className="mt-3 text-[11px] leading-relaxed text-muted">
         The log is tamper-<span className="text-ink">evident</span>, not tamper-proof: each entry
         carries the hash of the one before it, so an edited or reordered line is detectable. Someone
-        holding the device can still rewrite the whole chain — there is no server and no signature to
-        prevent that, and claiming otherwise would be a lie.
+        holding the device can still rewrite the whole chain — there is no server and no signature
+        to prevent that, and claiming otherwise would be a lie.
       </p>
     </section>
   );

@@ -43,10 +43,12 @@ import Wizard from './ui/Wizard';
 import DemoBanner from './ui/DemoBanner';
 import Footer from './ui/Footer';
 import Watcher from './ui/Watcher';
+import SaveWarning from './ui/SaveWarning';
 import { buildLabel } from './core/buildinfo';
 import { formatSats } from './core/money';
 import { isOnboarded } from './core/settings';
 import { isDemo, store as appStore } from './core/storage';
+import { ensurePersistentStorage } from './core/persist';
 import { TABS, resolveHash, type Section, type Tab } from './core/tabs.router';
 
 /**
@@ -120,6 +122,9 @@ export default function App() {
   useEffect(() => {
     const reload = () => setShop(loadSettings(appStore()));
     window.addEventListener('slip:settings-changed', reload);
+    // Ask the browser once to keep this shop's data. Never awaited: the request must not gate
+    // first paint, and a browser that needs a user gesture simply records "unknown/not asked".
+    void ensurePersistentStorage(appStore());
     return () => window.removeEventListener('slip:settings-changed', reload);
   }, []);
   const assist = shop.settings.assist;
@@ -159,7 +164,12 @@ export default function App() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   // Live, device-read counts for the tab bar. Not decoration: each one is something to do.
-  const [shellCounts, setShellCounts] = useState<{ waiting: number; wallets: number; openAtoms: bigint | null; sold: boolean }>({
+  const [shellCounts, setShellCounts] = useState<{
+    waiting: number;
+    wallets: number;
+    openAtoms: bigint | null;
+    sold: boolean;
+  }>({
     waiting: 0,
     wallets: 0,
     openAtoms: null,
@@ -192,7 +202,9 @@ export default function App() {
           .filter((invoice) => invoice.status === 'awaiting' || invoice.status === 'seen')
           .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
         setShellCounts({
-          waiting: invoices.filter((invoice) => invoice.status !== 'complete' && invoice.status !== 'expired').length,
+          waiting: invoices.filter(
+            (invoice) => invoice.status !== 'complete' && invoice.status !== 'expired',
+          ).length,
           wallets: accounts.length,
           sold: invoices.some((invoice) => invoice.status === 'complete'),
           // A sale that is still waiting is a customer standing there. It stays reachable.
@@ -264,8 +276,7 @@ export default function App() {
     if (navTick === 0) return;
     const { section, panel } = resolveHash(window.location.hash);
     const el = panel
-      ? (document.querySelector(`[data-panel="${panel}"]`) ??
-        document.getElementById(section))
+      ? (document.querySelector(`[data-panel="${panel}"]`) ?? document.getElementById(section))
       : document.getElementById(section);
     el?.scrollIntoView?.({ block: 'start' });
   }, [navTick]);
@@ -304,6 +315,7 @@ export default function App() {
   return (
     <div className="flex min-h-full flex-col" data-section={activeSection}>
       <Watcher />
+      <SaveWarning />
       <header className="v2-head sticky top-0 z-20">
         {isDemo && <DemoBanner />}
         {
@@ -312,7 +324,11 @@ export default function App() {
               <a href="#learn" className="chip hover:text-ink" aria-label="Help and the manual">
                 <span aria-hidden>?</span>
               </a>
-              <button type="button" onClick={() => setWizardOpen(true)} className="chip hover:text-ink">
+              <button
+                type="button"
+                onClick={() => setWizardOpen(true)}
+                className="chip hover:text-ink"
+              >
                 {onboarded ? 'run setup again' : 'start setup'}
               </button>
               <button
@@ -338,7 +354,11 @@ export default function App() {
           </div>
         }
         {menuOpen && (
-          <div className="mx-auto w-full max-w-3xl px-5 pb-3" role="menu" aria-label="Appearance and about">
+          <div
+            className="mx-auto w-full max-w-3xl px-5 pb-3"
+            role="menu"
+            aria-label="Appearance and about"
+          >
             <div className="panel v2-menu p-3">
               <p className="eyebrow">Appearance</p>
               <div className="mt-2 grid gap-1">
@@ -360,7 +380,9 @@ export default function App() {
                     }}
                     className="v2-menu-row"
                   >
-                    <span aria-hidden className="w-4">{glyph}</span>
+                    <span aria-hidden className="w-4">
+                      {glyph}
+                    </span>
                     <span className="flex-1">{label}</span>
                     {theme === value && <span className="v2-menu-inuse">in use</span>}
                   </button>
@@ -369,11 +391,20 @@ export default function App() {
 
               <div className="mt-2 flex flex-wrap items-center gap-3 border-t border-line pt-2 text-xs text-muted">
                 {!onboarded && (
-                  <a href="?demo=1" target="_blank" rel="noreferrer noopener" className="underline decoration-dotted hover:text-ink">
+                  <a
+                    href="?demo=1"
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="underline decoration-dotted hover:text-ink"
+                  >
                     Open the pretend shop
                   </a>
                 )}
-                <a href="#learn" className="underline decoration-dotted hover:text-ink" onClick={() => setMenuOpen(false)}>
+                <a
+                  href="#learn"
+                  className="underline decoration-dotted hover:text-ink"
+                  onClick={() => setMenuOpen(false)}
+                >
                   Help and the manual
                 </a>
                 <span className="figure ml-auto">{buildLabel()}</span>
@@ -416,47 +447,61 @@ export default function App() {
                 /* A shop that has set up does not need to be sold the product again. The pitch
                    collapses to one line, and the till is the first thing on the screen. */
                 <>
-                <div className="flex flex-wrap items-end justify-between gap-3" data-hero="compact">
-                  <div className="min-w-0">
-                    {/* No eyebrow here: a shop that is already trading does not need to be told
+                  <div
+                    className="flex flex-wrap items-end justify-between gap-3"
+                    data-hero="compact"
+                  >
+                    <div className="min-w-0">
+                      {/* No eyebrow here: a shop that is already trading does not need to be told
                         again what it is looking at. */}
-                    {!shellCounts.sold && (
-                    <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
-                      A till that pays you, not a bank.
-                    </h1>
-                    )}
+                      {!shellCounts.sold && (
+                        <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
+                          A till that pays you, not a bank.
+                        </h1>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <InfoVideo
+                        src="videos/01-intro.mp4"
+                        poster="videos/01-intro.jpg"
+                        title="What slip is"
+                        seconds={12}
+                        label="What is slip? — 12s"
+                      />
+                      <a href="#learn" className="chip hover:text-ink">
+                        How it works
+                      </a>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <InfoVideo
-                      src="videos/01-intro.mp4"
-                      poster="videos/01-intro.jpg"
-                      title="What slip is"
-                      seconds={12}
-                      label="What is slip? — 12s"
-                    />
-                    <a href="#learn" className="chip hover:text-ink">
-                      How it works
-                    </a>
-                  </div>
-                </div>
-                {/* Still there for the day a new member of staff starts — folded, not removed. */}
-                <details className="mt-2" data-hero-howto>
-                  <summary className="cursor-pointer text-xs text-muted">How it works, in three steps</summary>
-                  <HowItWorks onboarded={onboarded} onStart={() => setWizardOpen(true)} />
-                </details>
+                  {/* Still there for the day a new member of staff starts — folded, not removed. */}
+                  <details className="mt-2" data-hero-howto>
+                    <summary className="cursor-pointer text-xs text-muted">
+                      How it works, in three steps
+                    </summary>
+                    <HowItWorks onboarded={onboarded} onStart={() => setWizardOpen(true)} />
+                  </details>
                 </>
               ) : (
                 <div className="v2-start">
                   <h1 className="v2-start-title">A till that pays you, not a bank.</h1>
                   <p className="v2-start-line">
-                    Your customer pays with Bitcoin. Every sale lands in your own wallet. slip cannot
-                    hold or move a penny.
+                    Your customer pays with Bitcoin. Every sale lands in your own wallet. slip
+                    cannot hold or move a penny.
                   </p>
                   <div className="v2-start-actions">
-                    <button type="button" onClick={() => setWizardOpen(true)} className="btn btn-primary">
+                    <button
+                      type="button"
+                      onClick={() => setWizardOpen(true)}
+                      className="btn btn-primary"
+                    >
                       Set up my shop
                     </button>
-                    <a className="btn btn-secondary" href="?demo=1" target="_blank" rel="noreferrer noopener">
+                    <a
+                      className="btn btn-secondary"
+                      href="?demo=1"
+                      target="_blank"
+                      rel="noreferrer noopener"
+                    >
                       See it with pretend sales
                     </a>
                   </div>
@@ -475,7 +520,6 @@ export default function App() {
                   </div>
                 </div>
               )}
-
             </section>
 
             <Group
@@ -557,10 +601,10 @@ export default function App() {
               <Cannot />
               <Tech>
                 <p className="mt-6 max-w-2xl text-xs leading-relaxed text-muted">
-                  slip never holds money, never asks for a seed phrase, and has no server, account or
-                  API key behind it. You paste public wallet material once — an xpub, a descriptor, a
-                  Silent Payments address or a Lightning address — and every sale is paid directly to
-                  you.
+                  slip never holds money, never asks for a seed phrase, and has no server, account
+                  or API key behind it. You paste public wallet material once — an xpub, a
+                  descriptor, a Silent Payments address or a Lightning address — and every sale is
+                  paid directly to you.
                 </p>
 
                 <ul className="mt-3 flex flex-wrap gap-2">
@@ -594,9 +638,9 @@ export default function App() {
             </Group>
 
             <p className="mt-6 rounded-xl border border-line p-4 text-sm leading-relaxed text-muted">
-              Everything on this page is live and covered by tests. slip cannot hold, move, refund or
-              recover money: there is no key here to do it with. What it can do is show an address,
-              watch it, and tell you honestly what it saw.
+              Everything on this page is live and covered by tests. slip cannot hold, move, refund
+              or recover money: there is no key here to do it with. What it can do is show an
+              address, watch it, and tell you honestly what it saw.
             </p>
           </main>
         </>
@@ -675,7 +719,9 @@ function Group({
       hidden={!active}
     >
       <div className="flex flex-wrap items-baseline gap-2 border-b border-line pb-1">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">{label}</h2>
+        <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+          {label}
+        </h2>
         <span className="text-[11px] text-muted/80">{why}</span>
       </div>
       {id === 'learn' && document.documentElement.dataset.skin === 'v2' ? (

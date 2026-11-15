@@ -115,23 +115,117 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * Bitcoin merchant might pick precisely because it feels on-topic.
  */
 const COMMON_PASSPHRASES: readonly string[] = [
-  'password', 'password1', 'password123', 'password1234', 'password12345', 'passphrase',
-  '123456', '1234567', '12345678', '123456789', '1234567890', '12345', '1234',
-  '111111', '000000', '121212', '654321', '666666', '123123', '112233',
-  'qwerty', 'qwerty123', 'qwertyuiop', 'azerty', 'abc123', 'abcd1234', 'a1b2c3',
-  'letmein', 'welcome', 'welcome1', 'admin', 'admin123', 'root', 'toor',
-  'iloveyou', 'monkey', 'dragon', 'sunshine', 'princess', 'football', 'baseball',
-  'master', 'shadow', 'superman', 'trustno1', 'starwars', 'whatever',
-  'bitcoin', 'bitcoin123', 'btc', 'btc123', 'satoshi', 'satoshi123', 'nakamoto',
-  'lightning', 'lightning123', 'wallet', 'wallet123', 'blockchain', 'crypto',
-  'crypto123', 'hodl', 'hodl123', 'to the moon', 'tothemoon', 'moon', 'moon123',
-  'nostr', 'nostr123', 'xpub', 'xpub123', 'seed', 'seedphrase', 'mnemonic',
-  'slip', 'slip123', 'slipbackup', 'giveabit', 'giveabit123',
-  'shop', 'shop123', 'store', 'store123', 'till', 'till123', 'merchant',
-  'coffee', 'coffee123', 'beer', 'beer123', 'pizza', 'pizza123',
-  'secret', 'secret123', 'changeme', 'default', 'test', 'test123', 'testing',
-  'temp1234', 'temp12345', 'temp123456', 'asdfghjkl', 'zxcvbnm', '1q2w3e4r',
-  '1qaz2wsx', 'qazwsx', 'q1w2e3r4', 'zaq12wsx', 'password!', 'letmein123',
+  'password',
+  'password1',
+  'password123',
+  'password1234',
+  'password12345',
+  'passphrase',
+  '123456',
+  '1234567',
+  '12345678',
+  '123456789',
+  '1234567890',
+  '12345',
+  '1234',
+  '111111',
+  '000000',
+  '121212',
+  '654321',
+  '666666',
+  '123123',
+  '112233',
+  'qwerty',
+  'qwerty123',
+  'qwertyuiop',
+  'azerty',
+  'abc123',
+  'abcd1234',
+  'a1b2c3',
+  'letmein',
+  'welcome',
+  'welcome1',
+  'admin',
+  'admin123',
+  'root',
+  'toor',
+  'iloveyou',
+  'monkey',
+  'dragon',
+  'sunshine',
+  'princess',
+  'football',
+  'baseball',
+  'master',
+  'shadow',
+  'superman',
+  'trustno1',
+  'starwars',
+  'whatever',
+  'bitcoin',
+  'bitcoin123',
+  'btc',
+  'btc123',
+  'satoshi',
+  'satoshi123',
+  'nakamoto',
+  'lightning',
+  'lightning123',
+  'wallet',
+  'wallet123',
+  'blockchain',
+  'crypto',
+  'crypto123',
+  'hodl',
+  'hodl123',
+  'to the moon',
+  'tothemoon',
+  'moon',
+  'moon123',
+  'nostr',
+  'nostr123',
+  'xpub',
+  'xpub123',
+  'seed',
+  'seedphrase',
+  'mnemonic',
+  'slip',
+  'slip123',
+  'slipbackup',
+  'giveabit',
+  'giveabit123',
+  'shop',
+  'shop123',
+  'store',
+  'store123',
+  'till',
+  'till123',
+  'merchant',
+  'coffee',
+  'coffee123',
+  'beer',
+  'beer123',
+  'pizza',
+  'pizza123',
+  'secret',
+  'secret123',
+  'changeme',
+  'default',
+  'test',
+  'test123',
+  'testing',
+  'temp1234',
+  'temp12345',
+  'temp123456',
+  'asdfghjkl',
+  'zxcvbnm',
+  '1q2w3e4r',
+  '1qaz2wsx',
+  'qazwsx',
+  'q1w2e3r4',
+  'zaq12wsx',
+  'password!',
+  'letmein123',
 ];
 
 export interface PassphraseVerdict {
@@ -168,7 +262,8 @@ export function passphraseStrength(passphrase: string): PassphraseVerdict {
   if (classes < 3) {
     return {
       ok: false,
-      reason: 'mix at least three of: lowercase, uppercase, digits, symbols — or use 20+ characters',
+      reason:
+        'mix at least three of: lowercase, uppercase, digits, symbols — or use 20+ characters',
     };
   }
   return { ok: true };
@@ -178,7 +273,11 @@ export function passphraseStrength(passphrase: string): PassphraseVerdict {
 // Key derivation
 // ---------------------------------------------------------------------------
 
-async function deriveKey(passphrase: string, salt: Uint8Array, iterations: number): Promise<CryptoKey> {
+async function deriveKey(
+  passphrase: string,
+  salt: Uint8Array,
+  iterations: number,
+): Promise<CryptoKey> {
   const material = await crypto.subtle.importKey(
     'raw',
     encoder.encode(passphrase),
@@ -229,7 +328,9 @@ function parseEnvelope(text: string): BackupEnvelope | { error: string } {
     return { error: 'this backup is missing its salt' };
   }
   if (kdf['alg'] !== KDF_ALG) {
-    return { error: 'this backup uses a key-derivation algorithm this version of slip does not know' };
+    return {
+      error: 'this backup uses a key-derivation algorithm this version of slip does not know',
+    };
   }
 
   const iv = parsed['iv'];
@@ -388,7 +489,8 @@ export async function restoreBackup(text: string, passphrase: string): Promise<R
     } catch {
       return { ok: false, error: 'the backup decrypted but its contents are unreadable' };
     }
-    if (!isRecord(payload)) return { ok: false, error: 'the backup decrypted but its contents are unreadable' };
+    if (!isRecord(payload))
+      return { ok: false, error: 'the backup decrypted but its contents are unreadable' };
 
     const checksum = payload['checksum'];
     const stateJson = payload['stateJson'];
@@ -396,24 +498,67 @@ export async function restoreBackup(text: string, passphrase: string): Promise<R
       return { ok: false, error: 'the backup decrypted but its contents are unreadable' };
     }
     if (checksum.length !== CHECKSUM_HEX_LENGTH) {
-      return { ok: false, error: 'the backup content does not match its checksum — the file is damaged' };
+      return {
+        ok: false,
+        error: 'the backup content does not match its checksum — the file is damaged',
+      };
     }
 
     const actual = await sha256Hex(encoder.encode(stateJson));
     if (actual !== checksum) {
-      return { ok: false, error: 'the backup content does not match its checksum — the file is damaged' };
+      return {
+        ok: false,
+        error: 'the backup content does not match its checksum — the file is damaged',
+      };
     }
 
     let state: unknown;
     try {
       state = JSON.parse(stateJson);
     } catch {
-      return { ok: false, error: 'the backup content does not match its checksum — the file is damaged' };
+      return {
+        ok: false,
+        error: 'the backup content does not match its checksum — the file is damaged',
+      };
     }
 
     return { ok: true, state, createdAt: env.createdAt, version: env.version };
   } catch (e) {
     // Last-resort guard (e.g. crypto unavailable in an insecure context).
     return { ok: false, error: e instanceof Error ? e.message : 'could not read this backup' };
+  }
+}
+
+/** Key the shop's own snapshot times are stored under (installed, backup, etc). */
+const LAST_BACKUP_KEY = 'slip.lastBackup.v1';
+
+/**
+ * When the merchant last saved a `.slip` file. This is the nudge on the day close: the
+ * backup file is the only recovery for a lost phone or a forgotten PIN, so slip says its
+ * age out loud instead of letting it quietly go stale. A shop that never saved is told so
+ * plainly — "never" is a real answer, not an empty string.
+ *
+ * Minimal, typed store contract (avoid a circular import with storage.ts).
+ */
+export interface SnapshotStore {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+}
+
+export function recordBackupTaken(store: SnapshotStore): void {
+  try {
+    store.setItem(LAST_BACKUP_KEY, new Date().toISOString());
+  } catch {
+    // The save-failure banner already tells the truth; a nudge that fails to record its own
+    // date must not turn a good save into a scary one. Swallow — the bookkeeping is best-effort.
+  }
+}
+
+/** ISO timestamp of the last backup, or null when the shop has never saved one. */
+export function lastBackupAt(store: SnapshotStore): string | null {
+  try {
+    return store.getItem(LAST_BACKUP_KEY);
+  } catch {
+    return null;
   }
 }
