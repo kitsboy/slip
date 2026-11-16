@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.62** — 2026-11-16T02:42:49Z — `4790ab273aef` — Reliable per-record save recovery, encrypted unsaved-cart backup, and clearer selling screen
+
 - **v0.31.61** — 2026-11-15T23:22:11Z — `658f98fcc80c` — deploy
 
 - **v0.31.60** — 2026-11-15T16:04:52Z — `d3c930cc0a4e` — deploy
