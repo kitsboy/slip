@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.63** — 2026-11-16T07:23:56Z — `74a412f961dc` — Durable cross-tab shift log, coordinated save recovery and interrupted-witness reset
+
 - **v0.31.62** — 2026-11-16T02:42:49Z — `4790ab273aef` — Reliable per-record save recovery, encrypted unsaved-cart backup, and clearer selling screen
 
 - **v0.31.61** — 2026-11-15T23:22:11Z — `658f98fcc80c` — deploy
