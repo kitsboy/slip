@@ -16,6 +16,10 @@ src/
     pin.ts         PBKDF2 till PIN + hand-off rules
     lock.ts        the till lock: salt + PBKDF2-SHA256 hash, never the PIN; idle policy
     shifts.ts      hash-chained, tamper-EVIDENT shift log
+    shift-store.ts durable IndexedDB witness under Web Locks; browser shift commits
+    storage.ts     guarded writes, per-record recovery, async shift retry/replacement
+    save-state.ts  unresolved write failures and memory-only recovery context
+    persist.ts     browser persistence request and honest status
     qr.ts          BIP-21 URIs + inline SVG QR (decode-verified in tests)
     backup.ts      encrypted .slip file (AES-GCM + PBKDF2)
     buildinfo.ts   version / commit / build time, injected at build
@@ -52,7 +56,7 @@ src/
   one function (`assertNotSecret`) called by every entry point.
 - **A partial build says so on screen**, and a test asserts the sentence survives.
 
-## Data flow of one sale (when the engine lands)
+## Data flow of one sale
 
 ```
 catalog item → computeTotals (money.ts)          → fiat total + tax + tip
@@ -64,6 +68,16 @@ catalog item → computeTotals (money.ts)          → fiat total + tax + tip
 
 Indexes are reserved **at invoice creation**, never on page load, and released if the sale is
 cancelled — that is what makes "no address reuse" true rather than intended.
+
+## Storage and recovery
+
+Most records and synchronous reads use localStorage. Browser shift mutations additionally
+require a durable IndexedDB witness under a drawer-specific Web Lock. Appends, retry,
+restore, wipe and demo exit share this protocol; never write the shift key synchronously.
+Await `retryPendingWrites()` and `clearDemo()`. A prepared/interrupted witness fails closed;
+confirmed wipe must reach explicit replacement before any ordinary append.
+See `SHIFT-CONCURRENCY.md` for the protocol, limits and regressions, and
+`STRUCTURE-MAP.md` for the complete tracked tree and path inventory.
 
 ## Testing
 

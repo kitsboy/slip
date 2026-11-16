@@ -10,9 +10,9 @@ ability to sign anything.
 
 ## Status: shipping — it takes payments and closes the day.
 
-Live is **v0.31.59** on https://slip.giveabit.io. Read `docs/RESUME-2026-11-10.md` first, then
-`docs/NEXT-TEN.md` — rewritten 2026-11-12 and honest about what is open: three items blocked on a human
-thumb or a captcha, three on a shop's hardware, the rest code.
+Live is **v0.31.63** on https://slip.giveabit.io. Start with `docs/RESUME-2026-11-16.md`,
+then `docs/KIMI-HANDOFF.md` and `docs/NEXT-TEN.md`. Saving/recovery and selling-screen
+polish are shipped; camera, funded payments and physical printing still need device checks.
 
 On-chain (BTC/LTC, mainnet and testnets), Lightning via LNURL-pay + LNURL-verify, receipts with
 customer-kept proofs, rent requests, a day book you can stamp, wallet pairing by QR, a watchlist and
@@ -21,7 +21,7 @@ a customer screen. Every rail is labelled with what was actually observed — `s
 
 Still planned: Fedimint (needs a federation to test against), translations, an APK shell.
 
-What exists right now: a single `index.html` (**777 KB raw, 229 KB over the wire**) of strict
+What exists right now: a single `index.html` (run `node scripts/check-budget.mjs` for current sizes) of strict
 TypeScript and React — the ISO 4217 currency table, integer-only money maths, BTC + LTC address
 derivation, SLIP-132 and BIP-380 descriptor parsing, counter accounts with a derivation gate, a
 staff hand-off with a PBKDF2 PIN, a **till lock** that shuts the whole app behind a PIN, a
@@ -32,7 +32,9 @@ Lightning, anchoring, pairing, the watchlist and a customer screen.
 Verified against the official BIP-84 / BIP-86 / SLIP-132 vectors, against **Bitcoin Core's own
 `deriveaddresses`** for every address shape, against an independent Python implementation for the
 money maths, and against stubbed explorers/calendars/LNURL endpoints for every status transition.
-**640 unit tests** and **18 browser suites** run against the built artifact.
+Release v0.31.63 passed **673 unit tests** (one opt-in skipped) and **20 browser suites**
+against the built artifact. Shift writes use Web Locks plus a durable IndexedDB witness;
+unsupported coordination fails closed. See `docs/SHIFT-CONCURRENCY.md`.
 
 Two things are genuinely unproven and are named as such in `docs/NEXT-TEN.md`: the camera has never
 been pointed at a code on a real phone, and no sale has been paid from a real wallet — every sale so
@@ -162,7 +164,7 @@ Cost: $0. Pages free tier, existing giveabit.io zone, no new zone, no paid featu
 ```bash
 npm ci
 npm run dev        # http://localhost:5173
-npm test           # vitest — 640 passing
+npm test           # vitest — read the current count from the output
 npm run build      # → dist/index.html (single file) + dist/SHA256SUMS
 npm run manual     # rebuild, then photograph every documented panel (2×) for the in-app manual
 npm run docs:education   # rewrite docs/EDUCATION.md from the manual entries
@@ -192,4 +194,4 @@ MIT. See `LICENSE`.
 
 slip is open source so a merchant can read exactly what it does with their keys — the answer is
 "nothing". Contributions are welcome: open an issue before anything larger than a fix. Please
-report anything security-shaped privately rather than in a public issue (see `docs/SECURITY.md`).
+report anything security-shaped privately rather than in a public issue (see `SECURITY.md`).

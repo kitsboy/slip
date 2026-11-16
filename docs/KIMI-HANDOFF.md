@@ -1,5 +1,36 @@
 # Kimi handoff
 
+## 2026-11-16 — session close: v0.31.63 shipped, docs and paths reconciled
+
+**Start at `RESUME-2026-11-16.md`**, then `SHIFT-CONCURRENCY.md`,
+`../DEV-RUNBOOK.md` and `STRUCTURE-MAP.md`. Live v0.31.63; implementation `0d25842`,
+release `6d5ca1d`, pushed to origin/master. Exact release CI succeeded:
+https://github.com/kitsboy/slip/actions/runs/43823589262.
+
+First two polish passes shipped in v0.31.62: per-record save recovery, encrypted
+unsaved-cart recovery export, split-save guards and clearer selling screen. v0.31.63
+adds durable IndexedDB shift coordination under Web Locks across append, async retry,
+restore, wipe and demo exit. Interrupted-witness wipe explicitly replaces first.
+Release proof: 673 units passed, one opt-in skipped; 20 browser suites; repeated
+focused concurrency tests; live shifts and demo checks. No device/real-money proof.
+
+**Correction to the November 12 note below:** sequential ledger reloads never proved
+cross-tab atomicity. Chromium reproduced stale localStorage under an exclusive Web
+Lock; transient markers also disappear when a writer closes. Browser shift writes now
+require a durable witness and fail closed when unavailable or interrupted. Normal reads
+remain localStorage; old/noncooperating writers and cross-device sync are outside scope.
+
+Queue 2.1–2.3 is shipped, not next work. 2.4–2.10 and later polish passes remain proposals.
+Camera/install/persistence grant on a phone, physical print, funded payment and an
+unaided merchant trial still need humans/devices. Close old tabs before using this build.
+
+Docs-only closeout: no app redeploy/version bump. Source/docs on THOR `/root/slip`;
+shop data stays on each merchant device. Global handoff `/root/hq/docs/KIMI-HANDOFF.md`;
+knowledge index `/root/MASTER-BRAIN/03-Projects/slip/README.md`.
+Analytics reference (not installed by this pass): https://github.com/plausible/analytics.
+
+---
+
 ## 2026-11-12 (later) — the review, a red CI, and the queue
 
 Live stays **v0.31.59**; nothing in this pass changed the till. Two commits on `master`, both pushed,

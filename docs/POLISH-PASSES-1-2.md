@@ -1,5 +1,9 @@
 # Polish passes 1–2 — saving/recovery and the selling screen
 
+Shipped in v0.31.62; v0.31.63 adds durable shift coordination. The counts below
+are the original polish-release evidence, not the later concurrency-release totals.
+Current state: `RESUME-2026-11-16.md`; concurrency: `SHIFT-CONCURRENCY.md`.
+
 ## Delivered
 
 - Failed writes tracked independently per record. Unrelated writes cannot clear an unresolved warning. Ordinary consumers read disk only; recovery export explicitly accesses pending values.

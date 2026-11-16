@@ -1,0 +1,28 @@
+session_id: session-2026-11-16-001
+date: "2026-11-16"
+status: final
+summary:
+  purpose: "Close saving/recovery and selling-screen releases with Kimi handoff."
+  outcomes:
+    - "v0.31.62 polish and v0.31.63 durable shift coordination released."
+    - "Release head 6d5ca1d: CI 43823589262 succeeded; 673 units passed, one skipped, 20 browser suites passed."
+architectural_decisions:
+  - id: AD-009
+    decision: "Browser shift writes require Web Locks and a durable IndexedDB witness; retry/restore/wipe/demo exit share coordination."
+    rationale: "A renderer can read stale localStorage under a Web Lock; transient markers disappear on writer closure."
+    status: agreed
+  - id: AD-010
+    decision: "Confirmed wipe replaces an interrupted witness before ordinary appends."
+    rationale: "Fail-closed append rejection must not prevent explicit recovery."
+    status: agreed
+open_questions:
+  - id: OQ-010
+    question: "When will real device, funded payment and merchant trial checks be performed?"
+    priority: high
+    status: open
+session_notes:
+  corrections_to_prior_sessions:
+    - "The 2026-11-12 sequential ledger test did not establish concurrent cross-tab safety."
+    - "OQ-006 resolved: persistence, backup date and save guard shipped in v0.31.60. Phone grants remain device-specific."
+  other:
+    - "Only first two polish passes delivered; later passes and roadmap 2.4–2.10 are not authorized by this closeout."

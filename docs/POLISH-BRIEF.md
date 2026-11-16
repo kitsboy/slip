@@ -8,10 +8,11 @@ product constitution are below; do not design without them.*
 
 ## 0. Where slip stands right now (verify, don't assume)
 
-- **Live and shipped:** v0.31.61 on both origins — the Pages origin
+- **Live and shipped:** v0.31.63 on both origins — the Pages origin
   (`https://slip-6d6.pages.dev/`) and the vanity host (`https://slip.giveabit.io/`).
-  Confirm with `curl -s <url> | grep -o 'slip-version" content="[^"]*'`; both must read
-  `v0.31.61` before you claim anything about the running build.
+  Inspect the exact `<meta name="slip-version">` element; its content must read
+  `0.31.63` (no `v` prefix). Do not match version-parser strings embedded in the bundle.
+  Start at `docs/RESUME-2026-11-16.md`: passes 1–2 are shipped, not queued.
 - **Working copy:** `/root/slip`, branch **`master`** on THOR. It is currently green and
   clean. Start from a clean tree.
 - **Load the skill first:** `skill_view(name='slip-product-lane')` — it is the full

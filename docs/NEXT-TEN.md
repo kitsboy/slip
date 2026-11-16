@@ -1,5 +1,19 @@
 # What is actually open
 
+## Current status — 2026-11-16 / v0.31.63
+
+Items **2.1–2.3 shipped in v0.31.60**; their proposal text below is retained as
+acceptance history, not an open task. Persistence is requested and reported, backups
+are dated, and failed writes warn and reject. v0.31.62 hardened per-record recovery
+and polished the selling screen; v0.31.63 coordinated shift appends/retry/restore/wipe
+with a durable IndexedDB witness. Read `RESUME-2026-11-16.md` and
+`SHIFT-CONCURRENCY.md` before work. A sequential ledger reload test never proved
+general cross-tab atomicity. Different devices still do not share books.
+
+Remaining proposal queue: 2.4–2.10. Phone persistence grants and the physical/device
+checks in Part 1 still need real-device evidence. Later receipt/customer-display and
+Books/footer polish passes were not part of the first two delivered passes.
+
 Rewritten 2026-11-12 at v0.31.59, and extended the same day with the review's proposals. The old list
 was written at v0.31.25 and had drifted: five of its ten items had shipped by the time anyone read it
 again, and one pointed at a file that does not exist. A list that lies is worse than no list, because

@@ -5,6 +5,9 @@ is covered by tests. Nothing on this page is aspirational.
 
 | Area | What it does | Status | Code |
 |---|---|---|---|
+| Save recovery | Per-record warnings, conflict-aware async retry, encrypted failed-record/cart recovery export | live, v0.31.62+ | `src/core/storage.ts`, `src/core/save-state.ts`, `src/ui/SaveWarning.tsx` |
+| Durable shift coordination | Web Locks plus IndexedDB witness; retry/restore/wipe/demo exit coordinated; unsupported writes reject | live, v0.31.63 | `src/core/shift-store.ts`, `tests/e2e/shifts.mjs` |
+| Browser persistence | Requests protection, reports the actual answer; backup remains necessary | live | `src/core/persist.ts` |
 | Wallets | xpub, BIP-380 descriptor (multisig included), single public key, plain address. Colour, purpose and note for identification. | live | `core/accounts.ts`, `ui/Counters.tsx` |
 | Derivation gate | A wallet stays disabled until address 0/0 is confirmed against the owner's wallet | live | `core/accounts.ts` |
 | Staff hand-off | Named holder, PBKDF2 PIN, counter switching requires the PIN | live | `core/pin.ts` |

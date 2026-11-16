@@ -8,6 +8,21 @@ you need.
 
 ## 0. The guided path
 
+### Saving safely (v0.31.63)
+
+If slip says a write was not saved, stop taking new payments. Keep the tab open;
+use the warning's Retry control or export an encrypted recovery backup. Exporting
+does not clear the warning. Unsaved-cart notes in that backup are information for
+recovery, not sales automatically added to the books. An unrelated successful save
+does not mean the failed record is safe. Browser storage protection is helpful,
+but is never a substitute for your own backup file.
+
+Close old slip tabs after an update. Shift writes need a browser with working Web
+Locks and IndexedDB; if coordination is unavailable or interrupted, slip refuses
+the write rather than risk replacing another tab's log. Reload and use explicit
+backup restore if needed. Settings wipe deliberately destroys local shop data;
+take a backup first. Two devices still keep separate books.
+
 On the first screen press **set up your shop**. Five screens, about a minute:
 
 1. **Welcome** — what slip is, and the one thing it will never ask for.

@@ -4,7 +4,13 @@ Short version: **nothing leaves the device unless you configure it to.**
 
 ## What is stored, and where
 
-Everything lives in your browser's local storage on the device you are using:
+Shop records live in your browser's localStorage on the device you are using.
+Shift writes also keep a durable coordination witness (including the shift log) in
+IndexedDB database `slip-shift-coordination-v1`, object store `drawers`. This is local
+browser storage, not a server or cross-device sync. Real and demo drawers are separate.
+Failed records and unsaved-cart recovery context can remain in memory until retry or
+encrypted export; an exported recovery note does not automatically become a recorded sale.
+Clearing all site data removes both storage systems; take an encrypted backup first.
 
 | Stored | Why | Sensitive because |
 |---|---|---|
