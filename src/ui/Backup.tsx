@@ -19,7 +19,14 @@ import {
 import ConfirmButton from './ConfirmButton';
 import { exportLogLines, staffSummary, verifyLog, type ShiftLog } from '../core/shifts';
 import { LEDGER_KEY } from '../core/ledger';
-import { store as appStore } from '../core/storage';
+import {
+  pendingWriteKeys,
+  pendingRecoveryWrites,
+  recoveryStore,
+  recoverySaleSnapshot,
+  store as appStore,
+} from '../core/storage';
+import { isWriteFailed, subscribeWriteState } from '../core/save-state';
 import Tech from './Tech';
 
 interface BackupState {
@@ -33,6 +40,9 @@ interface BackupState {
    * is what a merchant is actually trying not to lose.
    */
   ledger?: unknown;
+  /** Unsaved raw records sealed inside the encrypted file for recovery. */
+  recoveryWrites?: Record<string, string | null>;
+  recoverySale?: unknown;
   app: 'slip';
   savedAt: string;
 }
@@ -49,6 +59,8 @@ export default function Backup() {
   const [verified, setVerified] = useState<{ ok: boolean; reason?: string } | null>(null);
   const [passphrase, setPassphrase] = useState('');
   const [busy, setBusy] = useState(false);
+  const [unsaved, setUnsaved] = useState(isWriteFailed);
+  useEffect(() => subscribeWriteState(setUnsaved), []);
   const [pending, setPending] = useState<PendingRestore | null>(null);
   const [note, setNote] = useState<{ kind: 'ok' | 'warn' | 'bad'; text: string } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -75,8 +87,8 @@ export default function Backup() {
   async function exportFile() {
     // Read the live store: a counter added in another panel must be in the backup even if
     // this component has not re-rendered yet.
-    const live = createRepository(appStore()).load().accounts;
-    if (live.length === 0) {
+    const live = createRepository(recoveryStore()).load().accounts;
+    if (live.length === 0 && pendingWriteKeys().length === 0 && recoverySaleSnapshot() === null) {
       setNote({ kind: 'warn', text: 'there is nothing to back up yet — add a counter first' });
       return;
     }
@@ -86,8 +98,8 @@ export default function Backup() {
     }
     setBusy(true);
     try {
-      const repo = createRepository(appStore());
-      const rawLedger = appStore().getItem(LEDGER_KEY);
+      const repo = createRepository(recoveryStore());
+      const rawLedger = recoveryStore().getItem(LEDGER_KEY);
       const state: BackupState = {
         accounts: repo.load().accounts,
         activeAccountId: repo.load().activeAccountId,
@@ -98,6 +110,12 @@ export default function Backup() {
         ...(rawLedger ? { ledger: JSON.parse(rawLedger) } : {}),
         app: 'slip',
         savedAt: new Date().toISOString(),
+        ...(recoverySaleSnapshot() !== null ? { recoverySale: recoverySaleSnapshot() } : {}),
+        ...(pendingWriteKeys().length
+          ? {
+              recoveryWrites: pendingRecoveryWrites(),
+            }
+          : {}),
       };
       const text = await createBackup(state, passphrase);
       const blob = new Blob([text], { type: 'application/json' });
@@ -112,7 +130,7 @@ export default function Backup() {
       window.dispatchEvent(new Event('slip:data-changed'));
       setNote({
         kind: 'ok',
-        text: `backup written (${(text.length / 1024).toFixed(1)} KB, encrypted). Keep it somewhere you would keep a bank statement.`,
+        text: `Encrypted backup download requested (${(text.length / 1024).toFixed(1)} KB). Check that the file finished downloading.${state.recoveryWrites ? ' Includes unsaved recovery records; this does not save them to this device.' : ''} Keep it somewhere you would keep a bank statement.`,
       });
       setPassphrase('');
     } catch (e) {
@@ -173,7 +191,7 @@ export default function Backup() {
       if (hadLedger) appStore().setItem(LEDGER_KEY, JSON.stringify(state.ledger));
       setNote({
         kind: 'ok',
-        text: `restored ${state.accounts.length} counter(s), ${state.pinHash ? 'the PIN' : 'no PIN'}${hadLedger ? ' and the books' : ' — no books in that file (older backup)'}, from a backup made ${head.createdAt.slice(0, 10)}.`,
+        text: `restored ${state.accounts.length} counter(s), ${state.pinHash ? 'the PIN' : 'no PIN'}${hadLedger ? ' and the books' : ' — no books in that file (older backup)'}${state.recoverySale || state.recoveryWrites ? ' — recovery notes are informational only; not automatically imported' : ''}, from a backup made ${head.createdAt.slice(0, 10)}.`,
       });
       setPassphrase('');
       setPending(null);
@@ -201,6 +219,13 @@ export default function Backup() {
         keep. Still locked with a passphrase, because a list of your shop&apos;s addresses is nobody
         else&apos;s business.
       </p>
+      {unsaved && (
+        <p role="status" className="mt-3 text-warn">
+          Unsaved changes are held only in this tab. The encrypted backup includes recoverable
+          records from this tab, even when this device refuses saves. Exporting does not clear the
+          save warning. Check the download before closing this tab.
+        </p>
+      )}
       <Tech>
         <p className="mt-2 text-xs leading-relaxed text-muted">
           The file holds no spending keys, because none exist here. It is encrypted anyway: an xpub

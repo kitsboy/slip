@@ -66,6 +66,7 @@ import {
 } from '../core/tabs';
 import FreshnessRing from './FreshnessRing';
 import Explain from './Explain';
+
 import { openPrintable } from './print';
 import { paymentLabel } from '../core/brand';
 import { registerDemoSale } from '../demo/fakeExplorer';
@@ -75,7 +76,7 @@ import { isCompareStopped } from '../core/compare-stop';
 import { resumeOpenSale } from '../core/resume-sale';
 import { shortcutAllowed } from '../core/digit-guard';
 import AddressText from './AddressText';
-import { store as appStore } from '../core/storage';
+import { store as appStore, rememberRecoverySale } from '../core/storage';
 import { isQuotaError, isWriteFailed } from '../core/save-state';
 import AwaitingStrip from './AwaitingStrip';
 import OpenTill, { type OpenShift } from './OpenTill';
@@ -564,6 +565,12 @@ export default function Till() {
   }, [rate]);
 
   function charge() {
+    if (isWriteFailed()) {
+      setStatus(
+        'A previous save is unresolved. Retry saving or download a recovery backup before starting another sale.',
+      );
+      return;
+    }
     // Before the sale exists, remember the rate it was priced at — with the moment, so next time
     // the screen can say how old it is instead of implying it is fresh.
     try {
@@ -622,6 +629,19 @@ export default function Till() {
       return;
     }
     const primaryAtoms = chargeSats - leg2Atoms;
+
+    rememberRecoverySale({
+      kind: 'unsubmitted cart',
+      createdAt: new Date().toISOString(),
+      walletId: payee.id,
+      currency: settings.currency,
+      rate,
+      cart,
+      custom,
+      totalAtoms: chargeSats,
+      splitWalletId: leg2Wallet?.id ?? null,
+      splitPercent: leg2Wallet ? splitPercent : null,
+    });
 
     if (settings.assist.rehearsal) {
       // A rehearsal shows the real QR and the real flow, but reserves no index and writes no
@@ -683,12 +703,6 @@ export default function Till() {
       ledger.putInvoice(created.invoice);
       // In the demo the explorer is simulated: it needs to know the amount so it can "confirm"
       // after a few seconds and the walkthrough can show the whole sequence.
-      if (isDemo) registerDemoSale(created.invoice.address, created.invoice.amountAtoms);
-      setInvoice(created.invoice);
-      setReceipt(null);
-      setProof(null);
-      setStatus('waiting');
-
       let secondInvoice: Invoice | null = null;
       if (leg2Wallet && leg2Atoms > 0n) {
         const second = createInvoice({
@@ -706,12 +720,21 @@ export default function Till() {
         ledger.putInvoice(second.invoice);
         // Both legs are real addresses to the payer, so both must be registered: an unregistered
         // leg used to fall back to a made-up 100,000 sats, or hang for ever on 'waiting'.
-        if (isDemo) registerDemoSale(second.invoice.address, second.invoice.amountAtoms);
         secondInvoice = second.invoice;
-        setLeg2(second.invoice);
-      } else {
-        setLeg2(null);
       }
+
+      // Neither payer sees a code until every leg has been saved. In particular, a
+      // failed second leg must not leave the first leg looking ready to accept money.
+      if (isDemo) {
+        registerDemoSale(created.invoice.address, created.invoice.amountAtoms);
+        if (secondInvoice) registerDemoSale(secondInvoice.address, secondInvoice.amountAtoms);
+      }
+      setInvoice(created.invoice);
+      setLeg2(secondInvoice);
+      setReceipt(null);
+      setProof(null);
+      setStatus('waiting');
+      rememberRecoverySale(null);
 
       publishToDisplay({
         kind: 'pay',
@@ -1684,6 +1707,7 @@ export default function Till() {
                         key={c}
                         type="button"
                         onClick={() => setCategory(c)}
+                        aria-pressed={category === c}
                         tabIndex={2}
                         className={`rounded-full border px-3 text-[11px] ${category === c ? 'border-accent text-accent' : 'border-line text-muted'}`}
                       >
@@ -1991,15 +2015,18 @@ export default function Till() {
               )}
             </div>
 
-            <div className={`lg:sticky lg:top-20 v2-held`}>
+            <div className={`lg:sticky lg:top-20 v2-held`} id="tl-cart">
+              <h3 className="v2-cart-heading">
+                Current sale <span>{cart.reduce((n, line) => n + line.quantity, 0)} items</span>
+              </h3>
               {cart.length > 0 && (
-                <ul className="mt-3 space-y-1">
+                <ul className="mt-3 space-y-1 v2-cart-lines">
                   {cart.map((l) => (
                     <li
                       key={l.item.id}
                       className="flex items-center gap-2 rounded-lg border border-line px-2 py-1.5 text-sm"
                     >
-                      <span className="flex-1">{l.item.name}</span>
+                      <span className="flex-1 v2-cart-name">{l.item.name}</span>
                       <button
                         type="button"
                         onClick={() => removeLine(l.item.id)}
@@ -2073,15 +2100,6 @@ export default function Till() {
               )}
               {totals && (
                 <div className="mt-3 rounded-xl border border-line bg-surface p-3" data-totals>
-                  <p className="eyebrow">The customer pays</p>
-                  <p className="figure mt-1 text-[2.25rem] font-bold leading-none tabular-nums">
-                    {formatFiat({ minor: totals.roundedTotalMinor, currency: settings.currency })}
-                  </p>
-                  <p className="mt-1 text-sm text-secondary">
-                    <Explain id="charge">
-                      {chargeSats === null ? 'set a price first' : formatSats(chargeSats)}
-                    </Explain>
-                  </p>
                   <p className="mt-2 text-xs text-muted">
                     {formatFiat({ minor: totals.subtotalMinor, currency: settings.currency })} +{' '}
                     {formatFiat({ minor: totals.taxMinor, currency: settings.currency })} tax
@@ -2100,12 +2118,22 @@ export default function Till() {
               {/* The bar stays at thumb height on a phone: the shopkeeper never scrolls to find the
               button that takes the money. */}
               <div className={`charge-bar mt-3 flex flex-wrap items-center gap-2 v2-rail`}>
+                <a
+                  className="v2-review-sale"
+                  href="#till"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    document.getElementById('tl-cart')?.scrollIntoView({ block: 'center' });
+                  }}
+                >
+                  Review sale · {cart.reduce((n, line) => n + line.quantity, 0)} items
+                </a>
                 {
                   <p className="v2-figure">
                     {totals && chargeSats !== null ? (
                       <>
-                        <span className="v2-sats" aria-hidden>
-                          ≈ {formatSats(chargeSats)}
+                        <span className="v2-sats">
+                          <Explain id="charge">≈ {formatSats(chargeSats)}</Explain>
                         </span>
                         <span className="v2-fiat">
                           {formatFiat({
@@ -2153,7 +2181,9 @@ export default function Till() {
                   }`}
                 >
                   {settings.assist.rehearsal ? 'Rehearse' : 'Charge'}
-                  {totals && chargeSats !== null ? ` ${formatSats(chargeSats)}` : ''}
+                  {totals && chargeSats !== null && (
+                    <span className="sr-only"> {formatSats(chargeSats)}</span>
+                  )}
                 </button>
                 <button
                   type="button"
@@ -2199,7 +2229,11 @@ export default function Till() {
                   </div>
                 )}
               </div>
-              {status && <p className="mt-2 text-[11px] text-bad">{status}</p>}
+              {status && (
+                <p className="v2-sale-status mt-2 text-base text-ink" role="status">
+                  {status}
+                </p>
+              )}
             </div>
           </div>
 
