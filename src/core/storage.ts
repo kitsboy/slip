@@ -1,5 +1,6 @@
 /** Real and demo drawers never share keys. Failed writes live in a tab-local recovery overlay. */
 import { clearWriteFailed, setWriteFailed } from './save-state';
+import { coordinateShift, SHIFT_KEY } from './shift-store';
 
 const DEMO_PREFIX = 'slip.demo.';
 function isDemoMode(): boolean {
@@ -124,7 +125,7 @@ function read(store: KeyValueStore, key: string): string | null {
 }
 
 /** Throws the original error; an in-memory record is never a persisted success. */
-function writeItem(store: KeyValueStore, key: string, value: string, retry = false): void {
+function writeItem(store: KeyValueStore, key: string, value: string, retry = false, authoritativeBase?: string | null): void {
   const entries = writes(store);
   const previous = entries.get(key);
   if (previous && !retry)
@@ -132,7 +133,8 @@ function writeItem(store: KeyValueStore, key: string, value: string, retry = fal
       'Unsaved changes already exist for this record. Retry or export an encrypted backup first.',
     );
   let base = previous?.base ?? null;
-  if (!previous) {
+  if (authoritativeBase !== undefined) base = authoritativeBase;
+  if (!previous && authoritativeBase === undefined) {
     try {
       base = store.getItem(key);
     } catch {
@@ -170,8 +172,12 @@ const demo: KeyValueStore = {
 function overlay(raw: KeyValueStore): KeyValueStore {
   return {
     getItem: (key) => raw.getItem(key),
-    setItem: (key, value) => guardedSetItem(raw, key, value),
+    setItem: (key, value) => {
+      if (key === SHIFT_KEY) throw new Error('Shift-log writes require the asynchronous coordinated API.');
+      guardedSetItem(raw, key, value);
+    },
     removeItem: (key) => {
+      if (key === SHIFT_KEY) throw new Error('Shift-log deletion requires the asynchronous coordinated API.');
       raw.removeItem(key); // A failed deletion must not discard recovery data.
       pending.get(raw)?.delete(key);
       clearWriteFailed(identity(raw, key));
@@ -182,6 +188,30 @@ const plainStore = overlay(real);
 const demoStore = overlay(demo);
 export function store(): KeyValueStore {
   return isDemo ? demoStore : plainStore;
+}
+
+/** Browser shift writes are async and durable-coordinated; synchronous reads stay on disk. */
+export async function mutateShift(change: (base: string | null) => Promise<string | null>, replace = false): Promise<void> {
+  const raw = isDemo ? demo : real;
+  try {
+    if (pending.get(raw)?.has(SHIFT_KEY)) throw new Error('Unsaved changes already exist for this record. Retry or export an encrypted backup first.');
+    let base: string | null = null;
+    await coordinateShift(isDemo, raw, async (current) => {
+      base = current;
+      if (pending.get(raw)?.has(SHIFT_KEY)) throw new Error('Unsaved changes already exist for this record.');
+      return change(current);
+    }, (value) => {
+      if (value === null) raw.removeItem(SHIFT_KEY);
+      else writeItem(raw, SHIFT_KEY, value, false, base);
+    }, undefined, replace);
+    clearWriteFailed(identity(raw, 'shift-coordination'));
+  } catch (error) {
+    setWriteFailed(identity(raw, 'shift-coordination'));
+    throw error;
+  }
+}
+export async function replaceShiftLog(value: string | null): Promise<void> {
+  await mutateShift(async () => value, true);
 }
 
 /** Explicit recovery view; never used for ordinary ledger/resume/payment reads. */
@@ -217,14 +247,18 @@ export function pendingWriteKeys(): string[] {
 }
 
 /** Retry genuine writes, rebasing on disk first. Try every key; rethrow the first error. */
-export function retryPendingWrites(): void {
+export async function retryPendingWrites(): Promise<void> {
   const raw = isDemo ? demo : real;
   let firstError: unknown;
   let failed = false;
   for (const [key] of [...(pending.get(raw) ?? [])]) {
     try {
       const entry = pending.get(raw)!.get(key)!;
-      writeItem(raw, key, recovered(entry, raw.getItem(key)), true);
+      if (key === SHIFT_KEY) {
+        await coordinateShift(isDemo, raw, async (base) => recovered(entry, base),
+          (value) => writeItem(raw, key, value!, true), entry.value);
+        clearWriteFailed(identity(raw, 'shift-coordination'));
+      } else writeItem(raw, key, recovered(entry, raw.getItem(key)), true);
     } catch (error) {
       if (!failed) firstError = error;
       failed = true;
@@ -241,7 +275,11 @@ export function demoExists(): boolean {
     return false;
   }
 }
-export function clearDemo(): void {
+export async function clearDemo(): Promise<void> {
+  await coordinateShift(true, demo, async () => null, () => demo.removeItem(SHIFT_KEY), undefined, true);
+  pending.get(demo)?.delete(SHIFT_KEY);
+  clearWriteFailed(identity(demo, SHIFT_KEY));
+  clearWriteFailed(identity(demo, 'shift-coordination'));
   const storage = window.localStorage;
   const doomed: string[] = [];
   for (let i = 0; i < storage.length; i++) {
@@ -249,5 +287,5 @@ export function clearDemo(): void {
     if (key?.startsWith(DEMO_PREFIX)) doomed.push(key.slice(DEMO_PREFIX.length));
   }
   for (const key of new Set([...doomed, ...(pending.get(demo)?.keys() ?? [])]))
-    demoStore.removeItem(key);
+    if (key !== SHIFT_KEY) demoStore.removeItem(key);
 }

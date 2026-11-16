@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { IDBFactory } from 'fake-indexeddb';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createElement } from 'react';
 import {
@@ -12,7 +13,7 @@ import SaveWarning from '../src/ui/SaveWarning';
 import { guardedSetItem } from '../src/core/storage';
 
 beforeEach(() => vi.resetModules());
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => { vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
 describe('write state', () => {
   it('tracks keys independently and notifies listeners', () => {
@@ -63,6 +64,8 @@ describe('storage recovery overlay', () => {
     const storage = await import('../src/core/storage');
     const state = await import('../src/core/save-state');
     window.localStorage.clear();
+    vi.stubGlobal('indexedDB', new IDBFactory());
+    vi.stubGlobal('navigator', { locks: { request: async (_key: string, _options: unknown, callback: () => unknown) => callback() } });
     return { ...storage, ...state };
   }
   it('keeps every unresolved key through unrelated successes and real retries', async () => {
@@ -80,7 +83,7 @@ describe('storage recovery overlay', () => {
     expect(api.isWriteFailed()).toBe(true);
     expect(() => api.store().setItem('settings', 'new')).toThrow('Unsaved changes');
     expect(api.pendingWriteKeys()).toEqual(['sale', 'settings']);
-    api.retryPendingWrites();
+    await api.retryPendingWrites();
     expect(disk.getItem('sale')).toBe('one');
     expect(api.pendingWriteKeys()).toEqual([]);
     expect(api.isWriteFailed()).toBe(false);
@@ -91,7 +94,7 @@ describe('storage recovery overlay', () => {
       throw new Error('full');
     });
     expect(() => api.store().setItem('sale', 'one')).toThrow();
-    expect(() => api.retryPendingWrites()).toThrow('full');
+    await expect(api.retryPendingWrites()).rejects.toThrow('full');
     expect(api.pendingWriteKeys()).toEqual(['sale']);
     expect(api.recoveryStore().getItem('sale')).toBe('one');
     expect(api.isWriteFailed()).toBe(true);
@@ -130,7 +133,7 @@ describe('storage recovery overlay', () => {
       { id: 'a', status: 'complete', note: 'other tab' },
       { id: 'b', status: 'awaiting' },
     ]);
-    api.retryPendingWrites();
+    await api.retryPendingWrites();
     expect(JSON.parse(window.localStorage.getItem(key)!)).toEqual(recovered);
   });
   it('keeps the original delta across failed retries while another tab keeps editing', async () => {
@@ -142,32 +145,18 @@ describe('storage recovery overlay', () => {
     });
     expect(() => api.store().setItem('record', JSON.stringify({ local: 1, remote: 0 }))).toThrow();
     set.call(window.localStorage, 'record', JSON.stringify({ local: 0, remote: 1 }));
-    expect(() => api.retryPendingWrites()).toThrow('full');
+    await expect(api.retryPendingWrites()).rejects.toThrow('full');
     expect(JSON.parse(api.pendingRecoveryWrites().record!)).toEqual({ local: 1, remote: 0 });
     set.call(window.localStorage, 'record', JSON.stringify({ local: 0, remote: 2 }));
     write.mockRestore();
-    api.retryPendingWrites();
+    await api.retryPendingWrites();
     expect(JSON.parse(api.store().getItem('record')!)).toEqual({ local: 1, remote: 2 });
     expect(api.isWriteFailed()).toBe(false);
   });
-  it('refuses competing hash-chained shift appends instead of splicing invalid chains', async () => {
+  it('refuses uncoordinated synchronous shift mutations', async () => {
     const api = await setup();
-    const key = 'slip.shifts.v1';
-    window.localStorage.setItem(key, JSON.stringify({ version: 1, events: [] }));
-    const write = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-      throw new Error('full');
-    });
-    expect(() =>
-      api.store().setItem(key, JSON.stringify({ version: 1, events: [{ seq: 0, hash: 'local' }] })),
-    ).toThrow();
-    write.mockRestore();
-    window.localStorage.setItem(
-      key,
-      JSON.stringify({ version: 1, events: [{ seq: 0, hash: 'remote' }] }),
-    );
-    expect(() => api.retryPendingWrites()).toThrow('Recovery conflict');
-    expect(JSON.parse(api.store().getItem(key)!).events[0].hash).toBe('remote');
-    expect(JSON.parse(api.pendingRecoveryWrites()[key]!).events[0].hash).toBe('local');
+    expect(() => api.store().setItem('slip.shifts.v1', '{}')).toThrow('asynchronous');
+    expect(() => api.store().removeItem('slip.shifts.v1')).toThrow('asynchronous');
   });
   it('refuses conflicting other-tab updates without overwriting either recovery or disk', async () => {
     const api = await setup();
@@ -178,7 +167,7 @@ describe('storage recovery overlay', () => {
     expect(() => api.store().setItem('record', JSON.stringify({ status: 'complete' }))).toThrow();
     write.mockRestore();
     window.localStorage.setItem('record', JSON.stringify({ status: 'cancelled' }));
-    expect(() => api.retryPendingWrites()).toThrow('Recovery conflict');
+    await expect(api.retryPendingWrites()).rejects.toThrow('Recovery conflict');
     expect(JSON.parse(api.store().getItem('record')!).status).toBe('cancelled');
     expect(JSON.parse(api.pendingRecoveryWrites().record!).status).toBe('complete');
     expect(api.isWriteFailed()).toBe(true);
@@ -218,7 +207,7 @@ describe('storage recovery overlay', () => {
     );
     expect(api.isWriteFailed()).toBe(true);
     write.mockRestore();
-    api.retryPendingWrites();
+    await api.retryPendingWrites();
     expect(JSON.parse(window.localStorage.getItem(LEDGER_KEY)!).invoices[0].status).toBe(
       'complete',
     );
@@ -234,10 +223,10 @@ describe('storage recovery overlay', () => {
     expect(() => api.store().setItem('sale', 'pretend')).toThrow();
     write.mockRestore();
     expect(api.recoveryStore().getItem('sale')).toBe('pretend');
-    api.retryPendingWrites();
+    await api.retryPendingWrites();
     expect(window.localStorage.getItem('sale')).toBe('real');
     expect(window.localStorage.getItem('slip.demo.sale')).toBe('pretend');
-    api.clearDemo();
+    await api.clearDemo();
     expect(window.localStorage.getItem('sale')).toBe('real');
     window.history.replaceState({}, '', '/');
   });

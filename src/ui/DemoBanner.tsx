@@ -19,8 +19,8 @@ export default function DemoBanner() {
       </span>
       <button
         type="button"
-        onClick={() => {
-          clearDemo();
+        onClick={async () => {
+          await clearDemo();
           window.location.href = window.location.pathname;
         }}
         className="rounded border border-warn px-2 py-0.5 text-xs"

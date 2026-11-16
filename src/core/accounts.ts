@@ -21,6 +21,7 @@ import { parseDescriptor, type DescriptorScriptType } from './descriptors';
 import { deriveAddress, encodeAddress, slipNetwork } from './derive';
 import { checkAddress } from './addresses';
 import { appendEvent, emptyLog, type ShiftEventKind, type ShiftLog } from './shifts';
+import { mutateShift, store as browserStore } from './storage';
 
 export type AccountStatus = 'unchecked' | 'ready';
 
@@ -468,6 +469,30 @@ export function createMemoryStore(): KeyValueStore {
   };
 }
 
+/** Same-realm serialization is per store, not per repository or per independent drawer. */
+const shiftQueues = new WeakMap<KeyValueStore, Promise<void>>();
+function queueShift<T>(store: KeyValueStore, operation: () => Promise<T>): Promise<T> {
+  const result = (shiftQueues.get(store) ?? Promise.resolve()).then(operation);
+  // A rejected write still rejects its caller, but must not poison the next append.
+  const settled = result.then(() => {}, () => {});
+  shiftQueues.set(store, settled);
+  void settled.then(() => {
+    if (shiftQueues.get(store) === settled) shiftQueues.delete(store);
+  });
+  return result;
+}
+
+function parseShiftLog(raw: string | null): ShiftLog {
+  if (!raw) return emptyLog();
+  try {
+    const parsed = JSON.parse(raw) as ShiftLog;
+    return parsed && parsed.version === 1 && Array.isArray(parsed.events) ? parsed : emptyLog();
+  } catch {
+    // A corrupt log must not brick the till; start a fresh chain and let it be visible.
+    return emptyLog();
+  }
+}
+
 export function createRepository(store: KeyValueStore): Repository {
   const read = (): Envelope => {
     const raw = store.getItem(STORAGE_KEY);
@@ -569,27 +594,42 @@ export function createRepository(store: KeyValueStore): Repository {
     },
 
     shifts() {
-      const raw = store.getItem(SHIFT_STORAGE_KEY);
-      if (!raw) return emptyLog();
-      try {
-        const parsed = JSON.parse(raw) as ShiftLog;
-        return parsed && parsed.version === 1 && Array.isArray(parsed.events) ? parsed : emptyLog();
-      } catch {
-        // A corrupt log must not brick the till; start a fresh chain and let it be visible.
-        return emptyLog();
-      }
+      return parseShiftLog(store.getItem(SHIFT_STORAGE_KEY));
     },
 
-    async recordShift(kind, account, staff, detail) {
-      const next = await appendEvent(repo.shifts(), {
+    recordShift(kind, account, staff, detail) {
+      // Capture the event before it waits; retries keep its original time and payload.
+      const input = {
         kind,
         accountId: account?.id ?? null,
         accountLabel: account?.label ?? null,
         staff,
+        at: new Date().toISOString(),
         ...(detail ? { detail } : {}),
+      };
+      const append = async (): Promise<ShiftLog> => {
+        for (;;) {
+          const base = store.getItem(SHIFT_STORAGE_KEY);
+          const next = await appendEvent(parseShiftLog(base), input);
+          // Web Crypto yielded: another writer may have advanced the chain. Rehash on
+          // its latest tip instead of overwriting it. No await between reread and write.
+          if (store.getItem(SHIFT_STORAGE_KEY) !== base) continue;
+          store.setItem(SHIFT_STORAGE_KEY, JSON.stringify(next));
+          return next;
+        }
+      };
+      return queueShift(store, () => {
+        if (store === browserStore()) {
+          let result!: ShiftLog;
+          return mutateShift(async (base) => {
+            result = await appendEvent(parseShiftLog(base), input);
+            return JSON.stringify(result);
+          }).then(() => result);
+        }
+        // Custom stores have a same-realm queue and optimistic rebase, not a
+        // cross-realm transaction. The browser drawer never uses this fallback.
+        return append();
       });
-      store.setItem(SHIFT_STORAGE_KEY, JSON.stringify(next));
-      return next;
     },
 
     active() {

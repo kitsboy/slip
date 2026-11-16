@@ -25,9 +25,9 @@ export default function SaveWarning() {
           <button
             type="button"
             className="underline"
-            onClick={() => {
+            onClick={async () => {
               try {
-                retryPendingWrites();
+                await retryPendingWrites();
                 setRetryNote('');
               } catch {
                 setRetryNote(

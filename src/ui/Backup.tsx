@@ -23,6 +23,7 @@ import {
   pendingWriteKeys,
   pendingRecoveryWrites,
   recoveryStore,
+  replaceShiftLog,
   recoverySaleSnapshot,
   store as appStore,
 } from '../core/storage';
@@ -181,8 +182,7 @@ export default function Backup() {
       // The PIN travels with the backup: a restored till with no PIN would silently drop
       // the hand-off protection the merchant thinks they still have.
       repo.setPin(state.pinHash ?? null);
-      appStore().setItem(
-        'slip.shifts.v1',
+      await replaceShiftLog(
         JSON.stringify(state.shifts ?? { version: 1, events: [] }),
       );
       // Restore the books too, and say so when the file predates them rather than pretending

@@ -104,7 +104,7 @@ it('exports a failed updated ledger through the existing encrypted Backup UI wit
     await act(async () => root.unmount());
     host.remove();
     fail.mockRestore();
-    retryPendingWrites();
+    await retryPendingWrites();
     rememberRecoverySale(null);
   }
 });

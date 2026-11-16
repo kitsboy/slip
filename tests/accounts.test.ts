@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { IDBFactory } from 'fake-indexeddb';
 import {
   STORAGE_KEY,
   createRepository,
@@ -8,7 +9,9 @@ import {
 } from '../src/core/accounts';
 import { hashPin, isValidPin, validateHandoff, verifyPin } from '../src/core/pin';
 import { checkAddress, detectNetworks } from '../src/core/addresses';
-import { staffSummary, verifyLog } from '../src/core/shifts';
+import { appendEvent, emptyLog, staffSummary, verifyLog } from '../src/core/shifts';
+import { retryPendingWrites, store as browserStore } from '../src/core/storage';
+import { isWriteFailed } from '../src/core/save-state';
 
 const ZPUB =
   'zpub6rFR7y4Q2AijBEqTUquhVz398htDFrtymD9xYYfG1m4wAcvPhXNfE3EfH1r1ADqtfSdVCToUG868RvUUkgDKf31mGDtKsAYz2oz2AGutZYs';
@@ -352,6 +355,166 @@ describe('wallet shapes', () => {
 // ---------------------------------------------------------------------------
 
 describe('repository shift log', () => {
+  beforeEach(() => {
+    vi.stubGlobal('indexedDB', new IDBFactory());
+    vi.stubGlobal('navigator', { locks: { request: async (_name: string, _options: unknown, callback: () => unknown) => callback() } });
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    window.localStorage.clear();
+  });
+
+  it.each([false, true])('uses guarded browser storage (Web Locks: %s)', async (locked) => {
+    const request = vi.fn(async (_name, _options, callback) => callback());
+    vi.stubGlobal('navigator', { locks: locked ? { request } : undefined });
+    if (!locked) {
+      await expect(createRepository(browserStore()).recordShift('open', null, 'Ana')).rejects.toThrow('unavailable');
+      return;
+    }
+    const store = browserStore();
+    const repo = createRepository(store);
+    await Promise.all(Array.from({ length: 8 }, (_, i) =>
+      createRepository(store).recordShift('handoff', null, `staff-${i}`),
+    ));
+    expect(repo.shifts().events).toHaveLength(8);
+    expect((await verifyLog(repo.shifts())).ok).toBe(true);
+    expect(request).toHaveBeenCalledTimes(locked ? 8 : 0);
+    if (locked) expect(request).toHaveBeenCalledWith(
+      'slip.shifts.v1', { mode: 'exclusive' }, expect.any(Function),
+    );
+  });
+
+  it('isolates demo and real browser lock names and persisted chains', async () => {
+    const originalUrl = window.location.href;
+    const request = vi.fn(async (_name, _options, callback) => callback());
+    vi.stubGlobal('navigator', { locks: { request, query: async () => ({ held: [] }) } });
+    try {
+      window.history.replaceState(null, '', '/');
+      vi.resetModules();
+      const realAccounts = await import('../src/core/accounts');
+      const realStorage = await import('../src/core/storage');
+      const real = realAccounts.createRepository(realStorage.store());
+      window.history.replaceState(null, '', '/?demo=1');
+      vi.resetModules();
+      const demoAccounts = await import('../src/core/accounts');
+      const demoStorage = await import('../src/core/storage');
+      const demo = demoAccounts.createRepository(demoStorage.store());
+      await Promise.all([
+        real.recordShift('open', null, 'real staff'),
+        demo.recordShift('open', null, 'demo staff'),
+      ]);
+      expect(real.shifts().events.map((event) => event.staff)).toEqual(['real staff']);
+      expect(demo.shifts().events.map((event) => event.staff)).toEqual(['demo staff']);
+      expect(request.mock.calls.filter(([, options]) => options.mode === 'exclusive').map(([name]) => name).sort()).toEqual([
+        'slip.demo.slip.shifts.v1', 'slip.shifts.v1',
+      ]);
+    } finally {
+      window.history.replaceState(null, '', originalUrl);
+      vi.resetModules();
+    }
+  });
+
+  it('rejects guarded failures, keeps reads on disk, then recovers after retry', async () => {
+    const repo = createRepository(browserStore());
+    const failure = vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => {
+      throw new Error('quota');
+    });
+    const failed = repo.recordShift('open', null, 'Ana');
+    const blocked = repo.recordShift('return', null, 'Ana');
+    await expect(failed).rejects.toThrow('quota');
+    await expect(blocked).rejects.toThrow('Unsaved changes');
+    expect(isWriteFailed()).toBe(true);
+    expect(repo.shifts().events).toEqual([]);
+    failure.mockRestore();
+    await retryPendingWrites();
+    expect(isWriteFailed()).toBe(false);
+    await repo.recordShift('return', null, 'Ana');
+    expect(repo.shifts().events.map((event) => event.kind)).toEqual(['open', 'return']);
+    expect((await verifyLog(repo.shifts())).ok).toBe(true);
+  });
+
+  it('recovered appends remain authoritative through a new module instance and stale disk reads', async () => {
+    const repo = createRepository(browserStore());
+    await repo.recordShift('open', null, 'first');
+    const fail = vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => { throw new Error('full'); });
+    await expect(repo.recordShift('return', null, 'recovered')).rejects.toThrow('full');
+    fail.mockRestore();
+    await retryPendingWrites();
+    vi.resetModules();
+    const freshAccounts = await import('../src/core/accounts');
+    const freshStorage = await import('../src/core/storage');
+    const get = Storage.prototype.getItem;
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(function (this: Storage, key) {
+      return key === 'slip.shifts.v1' ? null : get.call(this, key);
+    });
+    const log = await freshAccounts.createRepository(freshStorage.store()).recordShift('open', null, 'successor');
+    expect(log.events.map((event) => event.staff)).toEqual(['first', 'recovered', 'successor']);
+    expect((await verifyLog(log)).ok).toBe(true);
+  });
+
+  it('does not poison queued appends after an ordinary store rejection', async () => {
+    const store = memoryStore();
+    vi.spyOn(store, 'setItem').mockImplementationOnce(() => { throw new Error('full'); });
+    const repo = createRepository(store);
+    const failed = repo.recordShift('open', null, 'Ana');
+    const success = repo.recordShift('return', null, 'Bea');
+    await expect(failed).rejects.toThrow('full');
+    await success;
+    expect(repo.shifts().events.map((event) => event.staff)).toEqual(['Bea']);
+    expect((await verifyLog(repo.shifts())).ok).toBe(true);
+  });
+
+  it('rebases when an outside writer advances the chain during hashing', async () => {
+    const store = memoryStore();
+    const outside = await appendEvent(emptyLog(), {
+      kind: 'open', accountId: null, accountLabel: null, staff: 'outside',
+    });
+    const digest = crypto.subtle.digest.bind(crypto.subtle);
+    vi.spyOn(crypto.subtle, 'digest').mockImplementationOnce(async (algorithm, data) => {
+      store.setItem('slip.shifts.v1', JSON.stringify(outside));
+      return digest(algorithm, data);
+    });
+    const log = await createRepository(store).recordShift('return', null, 'local');
+    expect(log.events.map((event) => event.staff)).toEqual(['outside', 'local']);
+    expect((await verifyLog(log)).ok).toBe(true);
+  });
+
+  it('does not block independent stores or acquire browser locks for them', async () => {
+    const request = vi.fn();
+    vi.stubGlobal('navigator', { locks: { request, query: async () => ({ held: [] }) } });
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const digest = crypto.subtle.digest.bind(crypto.subtle);
+    vi.spyOn(crypto.subtle, 'digest').mockImplementationOnce(async (algorithm, data) => {
+      await gate;
+      return digest(algorithm, data);
+    });
+    const first = createRepository(memoryStore()).recordShift('open', null, 'first');
+    await Promise.resolve();
+    const second = await createRepository(memoryStore()).recordShift('open', null, 'second');
+    expect(second.events[0]?.staff).toBe('second');
+    expect(request).not.toHaveBeenCalled();
+    release();
+    await first;
+  });
+
+  it.each([false, true])('keeps simultaneous appends (multiple repositories: %s)', async (multiple) => {
+    const store = memoryStore();
+    const repo = createRepository(store);
+    const results = await Promise.all(Array.from({ length: 20 }, (_, i) =>
+      (multiple ? createRepository(store) : repo).recordShift('handoff', null, `staff-${i}`),
+    ));
+    const log = createRepository(store).shifts();
+    expect(log.events.map((event) => event.staff)).toEqual(
+      Array.from({ length: 20 }, (_, i) => `staff-${i}`),
+    );
+    expect(results.map((result) => result.events.length)).toEqual(
+      Array.from({ length: 20 }, (_, i) => i + 1),
+    );
+    expect((await verifyLog(log)).ok).toBe(true);
+  });
+
   it('appends a verifiable chain as accounts are added and handed over', async () => {
     const store = memoryStore();
     const repo = createRepository(store);

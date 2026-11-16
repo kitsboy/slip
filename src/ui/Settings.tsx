@@ -22,9 +22,9 @@ import {
 } from '../core/settings';
 import { printCounterCard } from './counterCard';
 import { buildLabel } from '../core/buildinfo';
-import { createRepository, SHIFT_STORAGE_KEY, STORAGE_KEY } from '../core/accounts';
+import { createRepository, STORAGE_KEY } from '../core/accounts';
 import { SETTINGS_KEY } from '../core/settings';
-import { store as appStore } from '../core/storage';
+import { store as appStore, replaceShiftLog } from '../core/storage';
 import { persistState, recheckPersistence } from '../core/persist';
 import {
   hashPin,
@@ -161,19 +161,16 @@ export default function Settings() {
       setNote({ kind: 'bad', text: 'type WIPE to confirm — this cannot be undone' });
       return;
     }
-    const repo = createRepository(store);
-    // Record the wipe FIRST: an audit trail that ends before the deletion is the whole point.
-    await repo.recordShift(
-      'account-added',
-      null,
-      null,
-      'DEVICE WIPED by the owner — all local data cleared',
-    );
-
-    store.removeItem(STORAGE_KEY);
-    store.removeItem(SHIFT_STORAGE_KEY);
-    store.removeItem(SETTINGS_KEY);
-    window.location.reload();
+    try {
+      // A confirmed reset must also replace an interrupted shift witness. An ordinary
+      // append would reject that witness before the owner could reach recovery.
+      await replaceShiftLog(null);
+      store.removeItem(STORAGE_KEY);
+      store.removeItem(SETTINGS_KEY);
+      window.location.reload();
+    } catch (error) {
+      setNote({ kind: 'bad', text: error instanceof Error ? error.message : 'Could not clear this device. Keep your backup and try again.' });
+    }
   }
 
   // Has anything been changed since the last save? A settings page that looks saved when it is
@@ -668,8 +665,7 @@ export default function Settings() {
       <p className="mt-1 text-xs leading-relaxed text-muted">
         Wiping removes every counter, the PIN hash and the shift log from{' '}
         <span className="text-ink">this device</span>. It cannot touch your money, because slip
-        never had any — but if you have no backup, the counter list is gone for good. The wipe is
-        written into the log first.
+        never had any — but if you have no backup, the counter list is gone for good.
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <input
