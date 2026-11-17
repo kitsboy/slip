@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.64** — 2026-11-17T03:53:17Z — `50b06e8d185b` — Seven merchant upgrades: coordinated sales, digital numbered receipts, guided close, backup rehearsal and corrected coin QRs
+
 - **v0.31.63** — 2026-11-16T07:23:56Z — `74a412f961dc` — Durable cross-tab shift log, coordinated save recovery and interrupted-witness reset
 
 - **v0.31.62** — 2026-11-16T02:42:49Z — `4790ab273aef` — Reliable per-record save recovery, encrypted unsaved-cart backup, and clearer selling screen
