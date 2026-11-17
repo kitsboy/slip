@@ -1,5 +1,25 @@
 # Kimi handoff
 
+## 2026-11-17 — session closed: v0.31.64 shipped
+
+Seven approved upgrades shipped: coordinated sales/index reservations, customer-held digital
+receipts, daily receipt numbers, guided day close, unclosed-day reminder, non-mutating backup
+testing, and receipt/customer display polish. Existing manual printing remains; no automatic
+printing added. Feature `62f45de`, release `929f566`, both pushed to origin/master.
+Exact release CI passed: https://github.com/kitsboy/slip/actions/runs/44013357706.
+
+Evidence and failure-boundary corrections: `UPGRADES-1-7.md`. Local gates: 697 unit tests,
+one opt-in skipped, all 24 browser suites. Both production hosts served v0.31.64;
+live demo 8/8, rendered BTC/LTC payment QR decoding and customer receipt tests passed.
+Budget warning remains: 797 KB raw / 242 KB gzip, under hard ceilings.
+
+Physical phone/camera/install and newly funded test-payment checks remain UNVERIFIED.
+Historical read-only Litecoin chain access is not fresh-sale proof. No funds moved.
+Close older app tabs before using the durable ledger protocol. No cross-device sync;
+restore spans separately coordinated records, not an all-or-nothing database transaction.
+Two generated tracked screenshot modifications were left unstaged, not included in release.
+
+
 ## 2026-11-16 — session close: v0.31.63 shipped, docs and paths reconciled
 
 **Start at `RESUME-2026-11-16.md`**, then `SHIFT-CONCURRENCY.md`,

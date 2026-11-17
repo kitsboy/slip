@@ -1,0 +1,35 @@
+session_id: session-2026-11-17-001
+date: "2026-11-17"
+status: draft
+summary:
+  purpose: "Ship seven approved merchant upgrades and close with explicit device-test limits."
+  outcomes:
+    - "v0.31.64 deployed; feature 62f45de and release 929f566 pushed."
+    - "Exact release CI 44013357706 succeeded."
+    - "697 units and 24 browser suites passed; live demo 8/8 and rendered payment QR/customer receipt checks passed."
+architectural_decisions:
+  - id: AD-011
+    decision: "Extend durable coordinated transactions to ledger and address reservation; retain recovery intent until final witness acknowledgement."
+    rationale: "Stale renderer reads and final-ack failures must not lose sales or block recovery silently."
+    status: implemented
+  - id: AD-012
+    decision: "Customer receipts carry unsigned records in full URL fragments with explicit manual, simulated and network labels."
+    rationale: "No account or backend receipt database; editable records are not identity proof."
+    status: implemented
+open_questions:
+  - id: OQ-010
+    question: "When will physical-phone, freshly funded testnet payment and merchant-trial checks be performed?"
+    priority: high
+    status: open
+  - id: OQ-011
+    question: "Should existing manual printed receipt options be removed?"
+    status: open
+    note: "No automatic printing added; existing options preserved pending decision."
+session_notes:
+  corrections_to_prior_sessions:
+    - "Green tests did not prove protocol failure recovery or rendered Litecoin QR correctness; independent review produced additional regressions."
+    - "Historical mining-address chain receipts do not prove a freshly funded sale."
+  other:
+    - "Evidence: docs/UPGRADES-1-7.md. No funds moved or wallet secrets inspected."
+    - "Raw/gzip hard budgets pass; gzip target and 48px tap-target warnings remain."
+    - "Two generated tracked screenshots left unstaged. Device checks deferred, not claimed complete."
