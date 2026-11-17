@@ -1,6 +1,10 @@
 # What is actually open
 
-## Current status — 2026-11-16 / v0.31.63
+## Working-tree update — approved upgrades 1–7 (not released)
+
+See `UPGRADES-1-7.md` for implementation and executable evidence. Same-origin browser tabs now coordinate ledger/index mutations durably; this does not synchronize separate devices. Digital customer receipts, daily numbers, an explicit close checklist/unclosed-day reminder and non-mutating backup testing are implemented locally. These supersede proposal items 2.4–2.6 for this working tree, not the deployed v0.31.63 release. Print-on-payment/ESC-POS is **not approved** and must not be implemented from the historical proposal below; existing manual printing remains. Physical/funded/phone checks remain open.
+
+## Last released status — 2026-11-16 / v0.31.63
 
 Items **2.1–2.3 shipped in v0.31.60**; their proposal text below is retained as
 acceptance history, not an open task. Persistence is requested and reported, backups

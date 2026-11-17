@@ -7,6 +7,8 @@
  * loss shows up as a wrong total on a real receipt.
  */
 
+import { isBrowserStore, mutateLedger } from './storage';
+import type { DayClosure } from './day-close';
 import type { CatalogItem } from './catalog';
 import type { Invoice, InvoiceLine, InvoiceStatus } from './orders';
 import type { StandingRequest } from './requests';
@@ -26,6 +28,7 @@ export interface Watch {
 }
 
 export interface Ledger {
+  closures?: DayClosure[];
   items: CatalogItem[];
   invoices: Invoice[];
   requests: StandingRequest[];
@@ -39,7 +42,15 @@ export interface Ledger {
 }
 
 export function emptyLedger(): Ledger {
-  return { items: [], invoices: [], requests: [], books: {}, watches: [], anchors: [], refunds: [] };
+  return {
+    items: [],
+    invoices: [],
+    requests: [],
+    books: {},
+    watches: [],
+    anchors: [],
+    refunds: [],
+  };
 }
 
 interface WireItem extends Omit<CatalogItem, 'priceMinor'> {
@@ -50,7 +61,10 @@ interface WireLine extends Omit<InvoiceLine, 'unitAtoms' | 'unitMinor'> {
   unitMinor: string;
 }
 interface WireInvoice
-  extends Omit<Invoice, 'amountAtoms' | 'amountMinor' | 'rateMinorPerCoin' | 'lines' | 'receivedAtoms'> {
+  extends Omit<
+    Invoice,
+    'amountAtoms' | 'amountMinor' | 'rateMinorPerCoin' | 'lines' | 'receivedAtoms'
+  > {
   amountAtoms: string;
   amountMinor: string;
   rateMinorPerCoin: string | null;
@@ -62,6 +76,7 @@ interface WireRequest extends Omit<StandingRequest, 'amountMinor'> {
   amountMinor: string;
 }
 interface WireLedger {
+  closures?: DayClosure[];
   version: 1;
   watches?: Watch[];
   anchors?: Anchor[];
@@ -79,13 +94,16 @@ function big(text: string | null | undefined): bigint {
 export function toWire(ledger: Ledger): WireLedger {
   return {
     version: 1,
+    closures: ledger.closures,
     items: ledger.items.map((i) => ({ ...i, priceMinor: i.priceMinor.toString() })),
     invoices: ledger.invoices.map((i) => ({
       ...i,
       amountAtoms: i.amountAtoms.toString(),
       amountMinor: i.amountMinor.toString(),
       receivedAtoms:
-        i.receivedAtoms === null || i.receivedAtoms === undefined ? null : i.receivedAtoms.toString(),
+        i.receivedAtoms === null || i.receivedAtoms === undefined
+          ? null
+          : i.receivedAtoms.toString(),
       rateMinorPerCoin: i.rateMinorPerCoin === null ? null : i.rateMinorPerCoin.toString(),
       lines: i.lines.map((l) => ({
         ...l,
@@ -102,7 +120,8 @@ export function toWire(ledger: Ledger): WireLedger {
 }
 
 export function fromWire(wire: WireLedger): Ledger {
-  return {
+  const result: Ledger = {
+    closures: wire.closures ?? [],
     items: (wire.items ?? []).map((i) => ({ ...i, priceMinor: big(i.priceMinor) })),
     invoices: (wire.invoices ?? []).map((i) => ({
       ...i,
@@ -121,7 +140,8 @@ export function fromWire(wire: WireLedger): Ledger {
         : 'awaiting') as InvoiceStatus,
       amountAtoms: big(i.amountAtoms),
       amountMinor: big(i.amountMinor),
-      receivedAtoms: i.receivedAtoms === null || i.receivedAtoms === undefined ? null : big(i.receivedAtoms),
+      receivedAtoms:
+        i.receivedAtoms === null || i.receivedAtoms === undefined ? null : big(i.receivedAtoms),
       rateMinorPerCoin: i.rateMinorPerCoin === null ? null : big(i.rateMinorPerCoin),
       lines: (i.lines ?? []).map((l) => ({
         ...l,
@@ -136,12 +156,42 @@ export function fromWire(wire: WireLedger): Ledger {
       (w): w is Watch => Boolean(w) && typeof w.address === 'string' && typeof w.label === 'string',
     ),
     anchors: (wire.anchors ?? []).filter(
-      (a): a is Anchor => Boolean(a) && typeof a.date === 'string' && typeof a.digestHex === 'string',
+      (a): a is Anchor =>
+        Boolean(a) && typeof a.date === 'string' && typeof a.digestHex === 'string',
     ),
     refunds: (wire.refunds ?? [])
       .filter((r) => Boolean(r) && typeof r.invoiceId === 'string')
       .map((r) => ({ ...r, atoms: big(r.atoms) })),
   };
+  numberReceipts(result);
+  return result;
+}
+
+/** Additive legacy migration: stable creation/id ordering; existing references never change. */
+function numberReceipts(ledger: Ledger): void {
+  const next = new Map<string, number>();
+  for (const invoice of ledger.invoices) {
+    const day = invoice.createdAt?.slice(0, 10) ?? 'undated';
+    const n = invoice.receiptNumber?.startsWith(day + '-')
+      ? Number(invoice.receiptNumber.slice(day.length + 1))
+      : 0;
+    if (Number.isSafeInteger(n)) next.set(day, Math.max(next.get(day) ?? 0, n));
+  }
+  const missing = ledger.invoices
+    .filter((i) => !i.receiptNumber)
+    .sort(
+      (a, b) => (a.createdAt ?? '').localeCompare(b.createdAt ?? '') || a.id.localeCompare(b.id),
+    );
+  const assigned = new Map<string, string>();
+  for (const invoice of missing) {
+    const day = invoice.createdAt?.slice(0, 10) ?? 'undated';
+    const n = (next.get(day) ?? 0) + 1;
+    next.set(day, n);
+    assigned.set(invoice.id, `${day}-${String(n).padStart(3, '0')}`);
+  }
+  ledger.invoices = ledger.invoices.map((i) =>
+    assigned.has(i.id) ? { ...i, receiptNumber: assigned.get(i.id) } : i,
+  );
 }
 
 export interface LedgerStore {
@@ -151,18 +201,22 @@ export interface LedgerStore {
 
 export interface LedgerRepository {
   load(): Ledger;
-  save(ledger: Ledger): void;
+  transaction<T>(change: (repo: LedgerRepository) => T): T | Promise<T>;
+  save(ledger: Ledger): void | Promise<void>;
   book(walletId: string): IndexBook;
-  putInvoice(invoice: Invoice): void;
-  putInvoices(invoices: Invoice[]): void;
-  touchInvoice(id: string, patch: Partial<Invoice>): Invoice | undefined;
-  addItem(item: CatalogItem): void;
-  replaceItems(items: CatalogItem[]): void;
-  addRequest(request: StandingRequest): void;
-  touchRequest(id: string, patch: Partial<StandingRequest>): void;
-  removeRequest(id: string): void;
-  setBook(walletId: string, book: IndexBook): void;
-  addRefund(refund: Refund): void;
+  putInvoice(invoice: Invoice): void | Promise<void>;
+  putInvoices(invoices: Invoice[]): void | Promise<void>;
+  touchInvoice(
+    id: string,
+    patch: Partial<Invoice>,
+  ): Invoice | undefined | Promise<Invoice | undefined>;
+  addItem(item: CatalogItem): void | Promise<void>;
+  replaceItems(items: CatalogItem[]): void | Promise<void>;
+  addRequest(request: StandingRequest): void | Promise<void>;
+  touchRequest(id: string, patch: Partial<StandingRequest>): void | Promise<void>;
+  removeRequest(id: string): void | Promise<void>;
+  setBook(walletId: string, book: IndexBook): void | Promise<void>;
+  addRefund(refund: Refund): void | Promise<void>;
   refunds(): Refund[];
 }
 
@@ -179,11 +233,15 @@ export function createLedger(store: LedgerStore): LedgerRepository {
       return emptyLedger();
     }
   };
-  const save = (ledger: Ledger) => store.setItem(LEDGER_KEY, JSON.stringify(toWire(ledger)));
+  const save = (ledger: Ledger) => {
+    numberReceipts(ledger);
+    store.setItem(LEDGER_KEY, JSON.stringify(toWire(ledger)));
+  };
 
   const repo: LedgerRepository = {
     load,
     save,
+    transaction: (change) => change(repo),
 
     book(walletId) {
       return load().books[walletId] ?? emptyBook();
@@ -198,7 +256,8 @@ export function createLedger(store: LedgerStore): LedgerRepository {
       const l = load();
       const existing = l.invoices.findIndex((i) => i.id === invoice.id);
       const invoices = [...l.invoices];
-      if (existing >= 0) invoices[existing] = invoice;
+      if (existing >= 0)
+        invoices[existing] = { ...invoice, receiptNumber: invoices[existing]!.receiptNumber };
       else invoices.unshift(invoice);
       save({ ...l, invoices });
     },
@@ -206,7 +265,8 @@ export function createLedger(store: LedgerStore): LedgerRepository {
     putInvoices(list) {
       const l = load();
       const byId = new Map(l.invoices.map((i) => [i.id, i]));
-      for (const i of list) byId.set(i.id, i);
+      for (const i of list)
+        byId.set(i.id, { ...i, receiptNumber: byId.get(i.id)?.receiptNumber ?? i.receiptNumber });
       save({ ...l, invoices: [...byId.values()] });
     },
 
@@ -214,7 +274,7 @@ export function createLedger(store: LedgerStore): LedgerRepository {
       const l = load();
       const found = l.invoices.find((i) => i.id === id);
       if (!found) return undefined;
-      const updated = { ...found, ...patch };
+      const updated = { ...found, ...patch, receiptNumber: found.receiptNumber };
       save({ ...l, invoices: l.invoices.map((i) => (i.id === id ? updated : i)) });
       return updated;
     },
@@ -254,5 +314,37 @@ export function createLedger(store: LedgerStore): LedgerRepository {
     },
   };
 
-  return repo;
+  if (!isBrowserStore(store)) return repo;
+  const transaction = async <T>(change: (draft: LedgerRepository) => T): Promise<Awaited<T>> => {
+    let result!: T;
+    await mutateLedger(async (base) => {
+      let value = base;
+      const draft = createLedger({
+        getItem: () => value,
+        setItem: (_key, next) => {
+          value = next;
+        },
+      });
+      result = change(draft);
+      if (result instanceof Promise)
+        throw new Error('Ledger transactions must not await external work.');
+      return value;
+    });
+    return result as Awaited<T>;
+  };
+  return {
+    ...repo,
+    transaction,
+    save: (value) => transaction((draft) => draft.save(value)),
+    setBook: (id, book) => transaction((draft) => draft.setBook(id, book)),
+    putInvoice: (invoice) => transaction((draft) => draft.putInvoice(invoice)),
+    putInvoices: (list) => transaction((draft) => draft.putInvoices(list)),
+    touchInvoice: (id, delta) => transaction((draft) => draft.touchInvoice(id, delta)),
+    addItem: (item) => transaction((draft) => draft.addItem(item)),
+    replaceItems: (items) => transaction((draft) => draft.replaceItems(items)),
+    addRequest: (request) => transaction((draft) => draft.addRequest(request)),
+    touchRequest: (id, delta) => transaction((draft) => draft.touchRequest(id, delta)),
+    removeRequest: (id) => transaction((draft) => draft.removeRequest(id)),
+    addRefund: (refund) => transaction((draft) => draft.addRefund(refund)),
+  };
 }

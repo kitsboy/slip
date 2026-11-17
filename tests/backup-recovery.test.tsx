@@ -1,3 +1,4 @@
+import { IDBFactory } from 'fake-indexeddb';
 import { webcrypto } from 'node:crypto';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -23,12 +24,14 @@ afterEach(() => {
 it('exports a failed updated ledger through the existing encrypted Backup UI without claiming disk recovery', async () => {
   vi.stubGlobal('crypto', webcrypto);
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
+  vi.stubGlobal('indexedDB', new IDBFactory());
+  vi.stubGlobal('navigator', { locks: { request: async (_key: string, _options: unknown, callback: () => unknown) => callback() } });
   const repo = createLedger(store());
-  repo.save(emptyLedger());
+  await repo.save(emptyLedger());
   const fail = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
     throw new Error('full');
   });
-  expect(() =>
+  await expect(
     repo.addRequest({
       id: 'recovery',
       label: 'Recover this',
@@ -41,7 +44,7 @@ it('exports a failed updated ledger through the existing encrypted Backup UI wit
       createdAt: '2026-11-01',
       lastPaidAt: null,
     }),
-  ).toThrow();
+  ).rejects.toThrow();
   expect(repo.load().requests).toHaveLength(0);
   expect(createLedger(recoveryStore()).load().requests[0]?.amountMinor).toBe(123n);
   rememberRecoverySale({ cart: [{ title: 'Unsaved cart', amount: 123n }] });
@@ -91,7 +94,8 @@ it('exports a failed updated ledger through the existing encrypted Backup UI wit
       ledger: { requests: { amountMinor: string }[] };
       recoveryWrites: Record<string, string>;
     };
-    expect(state.ledger.requests[0]?.amountMinor).toBe('123');
+    // Failed intent must not masquerade as committed books; kept separately for recovery.
+    expect(state.ledger.requests).toHaveLength(0);
     expect(state.recoveryWrites[LEDGER_KEY]).toContain('Recover this');
     expect(state.recoveryWrites['slip.recovery.sale.v1']).toBe('{"note":"extra recovery"}');
     expect((state as unknown as { recoverySale: unknown }).recoverySale).toEqual({

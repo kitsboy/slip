@@ -9,10 +9,14 @@
 
 import { useEffect, useState } from 'react';
 import { renderQrSvg } from '../core/qr';
-import { formatSats } from '../core/money';
+import { formatCoinAmount } from '../core/money';
+const displayAmount = (atoms: string, uri?: string, coin?: 'btc' | 'ltc') =>
+  formatCoinAmount(BigInt(atoms), coin ?? (uri?.startsWith('litecoin:') ? 'ltc' : 'btc'));
 
 export interface DisplayMessage {
   readonly kind: 'pay' | 'status' | 'clear';
+  readonly coin?: 'btc' | 'ltc';
+  readonly network?: string;
   readonly uri?: string;
   readonly uri2?: string;
   readonly sats?: string;
@@ -58,7 +62,11 @@ export function openCustomerDisplay(): boolean {
 }
 
 export function publishToDisplay(message: Omit<DisplayMessage, 'at'>): void {
-  const payload: DisplayMessage = { ...message, at: new Date().toISOString() };
+  const payload: DisplayMessage = {
+    ...message,
+    status: new URLSearchParams(location.search).get('demo') === '1' ? 'simulated' : message.status,
+    at: new Date().toISOString(),
+  };
   try {
     const channel = new BroadcastChannel(CHANNEL);
     channel.postMessage(payload);
@@ -69,12 +77,12 @@ export function publishToDisplay(message: Omit<DisplayMessage, 'at'>): void {
   }
 }
 
-function Code({ uri, sats }: { readonly uri: string; readonly sats?: string }) {
+function Code({ uri, sats, coin }: { readonly uri: string; readonly sats?: string; readonly coin?: 'btc' | 'ltc' }) {
   return (
     <div className="v2-display-code">
       {sats ? (
         <>
-          <p className="figure">{formatSats(BigInt(sats))}</p>
+          <p className="figure">{displayAmount(sats, uri, coin)}</p>
           <span className="v2-rule" aria-hidden />
         </>
       ) : null}
@@ -114,7 +122,9 @@ export default function CustomerDisplay() {
       <main className="v2-display flex min-h-screen flex-col items-center justify-center gap-3 p-8 text-center">
         <p className="v2-display-idle">slip</p>
         <p className="v2-display-idle-line">
-          {connected ? 'Ready — the till has not rung anything up yet.' : 'This screen is not connected to a till.'}
+          {connected
+            ? 'Ready — the till has not rung anything up yet.'
+            : 'This screen is not connected to a till.'}
         </p>
       </main>
     );
@@ -126,17 +136,21 @@ export default function CustomerDisplay() {
 
   return (
     <main className="v2-display flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
-      <p className="v2-pay-word">Pay exactly</p>
+      <p className="v2-pay-word">
+        {message.status === 'paid' || message.status === 'manual'
+          ? 'Payment record'
+          : 'Pay exactly'}
+      </p>
       <p className="v2-display-shop v2-yours">{message.shop?.trim() || 'slip'}</p>
       {!split && (
         <>
-          <p className="figure">{message.sats ? formatSats(BigInt(message.sats)) : ''}</p>
+          <p className="figure">{message.sats ? displayAmount(message.sats, message.uri) : ''}</p>
           {message.sats ? <span className="v2-rule" aria-hidden /> : null}
         </>
       )}
       {split && message.uri && message.uri2 ? (
         <div className="v2-display-pair">
-          <Code uri={message.uri} sats={message.sats} />
+          <Code coin={message.coin} uri={message.uri} sats={message.sats} />
           <Code uri={message.uri2} sats={message.sats2} />
         </div>
       ) : (
@@ -144,19 +158,25 @@ export default function CustomerDisplay() {
           <div className="v2-display-code">
             <div
               className="v2-display-qr"
-              dangerouslySetInnerHTML={{ __html: renderQrSvg(message.uri, { scale: 8, margin: 4 }) }}
+              dangerouslySetInnerHTML={{
+                __html: renderQrSvg(message.uri, { scale: 8, margin: 4 }),
+              }}
             />
           </div>
         )
       )}
       <p className={`v2-display-status ${paid ? 'v2-yours' : seen ? 'text-ok' : 'text-warn'}`}>
-        {paid
-          ? 'Paid — thank you'
-          : seen
-            ? 'Seen — waiting for a block'
-            : split
-              ? 'Neither is paid until both are in'
-              : 'Waiting for payment'}
+        {message.status === 'simulated'
+          ? 'Simulated — no real payment'
+          : message.status === 'manual'
+            ? 'Marked paid by merchant — not observed by slip'
+            : paid
+              ? 'Paid — thank you'
+              : seen
+                ? 'Seen — waiting for a block'
+                : split
+                  ? 'Neither is paid until both are in'
+                  : 'Waiting for payment'}
       </p>
     </main>
   );

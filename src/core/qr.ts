@@ -23,7 +23,7 @@ const INVOICE_PREFIX = /^(lnbc|lntb|lnbcrt|lnuri|lnurl)/i;
 /** 1 BTC = 100,000,000 sats. Exact, as a BigInt — never 1e8 as a number. */
 const SATS_PER_BTC = 100_000_000n;
 
-export type PaymentKind = 'bitcoin' | 'lightning';
+export type PaymentKind = 'bitcoin' | 'litecoin' | 'lightning';
 
 export interface PaymentPayload {
   /** On-chain destination (or, for BIP-21, the address part). Required for 'bitcoin'. */
@@ -154,7 +154,7 @@ export function paymentUri(kind: PaymentKind, payload: PaymentPayload): string {
   }
 
   const query = params.length > 0 ? `?${params.join('&')}` : '';
-  return `bitcoin:${address}${query}`;
+  return `${kind}:${address}${query}`;
 }
 
 // ---------------------------------------------------------------------------

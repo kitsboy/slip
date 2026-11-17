@@ -10,7 +10,11 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createLedger } from '../core/ledger';
+import { resolveInvoice, sameInvoice, type Invoice } from '../core/orders';
+import ConfirmButton from './ConfirmButton';
+import { readReceipt } from '../core/digital-receipt';
+import { closeDay, dayFingerprint, unresolved, unclosedDays } from '../core/day-close';
+import { createLedger, fromWire } from '../core/ledger';
 import { createRepository } from '../core/accounts';
 import { closeReport, dayClose, daysWithSales, salesCsv, type SaleRow } from '../core/history';
 import { findSales } from '../core/findsale';
@@ -56,6 +60,9 @@ export default function History() {
   const todayIso = today();
   const [date, setDate] = useState(todayIso);
   const [find, setFind] = useState('');
+  const [exported, setExported] = useState('');
+  const [reviewed, setReviewed] = useState('');
+  const [backupConfirmed, setBackupConfirmed] = useState('');
 
   // The reconciliation sweep can complete a sale while this panel is open; without this the
   // day close would quietly show the numbers from before the sweep.
@@ -66,6 +73,52 @@ export default function History() {
   }, []);
 
   const data = ledger.load();
+  const fingerprint = dayFingerprint(data, date);
+  const unfinished = unresolved(data, date);
+  const previous = unclosedDays(data, todayIso)[0];
+  const isClosed = data.closures?.some((c) => c.date === date && c.fingerprint === fingerprint);
+  let backupCurrent = false;
+  try {
+    const raw = appStore().getItem('slip.backup-books.v1');
+    if (raw) backupCurrent = dayFingerprint(fromWire(JSON.parse(raw)), date) === fingerprint;
+  } catch {
+    /* invalid or unavailable backup evidence is not success */
+  }
+  const canClose =
+    unfinished.length === 0 &&
+    exported === fingerprint &&
+    reviewed === fingerprint &&
+    backupCurrent &&
+    backupConfirmed === fingerprint;
+  async function confirmClose() {
+    try {
+      await ledger.transaction((draft) => {
+        const latest = draft.load();
+        closeDay(latest, date, {
+          fingerprint,
+          report: exported === fingerprint,
+          reviewed: reviewed === fingerprint,
+          backup: backupCurrent && backupConfirmed === fingerprint,
+        });
+        draft.save(latest);
+      });
+      setVersion((v) => v + 1);
+    } catch (e) {
+      setNote({ kind: 'bad', text: e instanceof Error ? e.message : 'Day could not be closed' });
+    }
+  }
+  async function resolveSale(captured: Invoice, action: 'cancel' | 'manual') {
+    try {
+      await ledger.transaction(draft => {
+        const live = draft.load().invoices.find(i => i.id === captured.id);
+        if (!live || !sameInvoice(live, captured)) throw new Error('Sale changed. Review the latest Books before resolving.');
+        const next = resolveInvoice(live, action);
+        draft.touchInvoice(live.id, { status: next.status, manual: next.manual, confirmedAt: next.confirmedAt });
+      });
+      setVersion(v => v + 1);
+      window.dispatchEvent(new Event('slip:data-changed'));
+    } catch(e) { setNote({kind:'bad',text:e instanceof Error ? e.message : 'Could not resolve sale'}); }
+  }
   const days = useMemo(() => {
     const list = daysWithSales(data.invoices);
     return list.includes(date) ? list : [date, ...list];
@@ -136,7 +189,7 @@ export default function History() {
     setNote(null);
   }
 
-  function saveRefund() {
+  async function saveRefund() {
     if (!refunding) return;
     const invoice = invoiceFor(refunding);
     let value: bigint;
@@ -156,7 +209,19 @@ export default function History() {
       return;
     }
     const refund = makeRefund({ invoice, atoms: value, method, reason, reference });
-    ledger.addRefund(refund);
+    try {
+      await ledger.transaction((draft) => {
+        const live = draft.load();
+        const sale = live.invoices.find((i) => i.id === invoice.id);
+        if (!sale) throw new Error('Sale no longer exists.');
+        const latest = checkRefund(sale, live.refunds, value);
+        if (!latest.ok) throw new Error(latest.reason ?? 'Refund changed in another tab.');
+        draft.addRefund(refund);
+      });
+    } catch (e) {
+      setNote({ kind: 'bad', text: e instanceof Error ? e.message : 'Refund was not recorded' });
+      return;
+    }
     setVersion((v) => v + 1);
     setRefunding(null);
     setNote({
@@ -166,7 +231,25 @@ export default function History() {
   }
 
   function downloadCsv() {
-    const csv = salesCsv(close.rows);
+    const csv = salesCsv([
+      ...close.rows,
+      ...cancelledRows.map((i) => ({
+        id: i.id,
+        receiptNumber: i.receiptNumber,
+        status: 'cancelled',
+        coin: coinOf(i.walletId),
+        at: i.createdAt,
+        walletLabel: i.walletLabel,
+        rail: 'other' as const,
+        atoms: 0n,
+        refundedAtoms: 0n,
+        netAtoms: 0n,
+        manual: false,
+        note: 'Cancelled — not taken',
+        receivedAtoms: null,
+        overpaidAtoms: 0n,
+      })),
+    ]);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -174,6 +257,7 @@ export default function History() {
     a.download = `slip-sales-${date}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    setExported(fingerprint);
     const readProse = (node: HTMLElement) => {
       const copy = node.cloneNode(true) as HTMLElement;
       copy.querySelectorAll('button, select, label').forEach((el) => el.remove());
@@ -247,7 +331,7 @@ export default function History() {
         .map(
           (r) =>
             `<tr class="sale"><td class="c0">${escapeHtml(r.at.slice(11, 16))}</td>` +
-            `<td class="c1">${escapeHtml(r.id)}</td>` +
+            `<td class="c1">${escapeHtml(r.receiptNumber ?? r.id)}</td>` +
             `<td class="c2">${escapeHtml(formatCoinAmount(r.netAtoms, r.coin))}</td>` +
             `<td class="c3">${escapeHtml(r.rail)}</td></tr>`,
         )
@@ -418,6 +502,77 @@ export default function History() {
         )}
       </div>
 
+      {previous && (
+        <p className="mt-3 text-warn" data-unclosed-day>
+          Not closed:{' '}
+          <button type="button" className="underline" onClick={() => setDate(previous)}>
+            Open Books for {previous}
+          </button>
+          . Late changes reopen a previously closed day.
+        </p>
+      )}
+      <div className="mt-3 border border-line rounded-lg p-3" data-day-checklist>
+        <h3>Day close checklist — {date}</h3>
+        <p role="status">
+          {isClosed
+            ? 'Day explicitly closed. New records or changes reopen it.'
+            : `${unfinished.length} unresolved payments. Resolve or explicitly cancel them before closing.`}
+        </p>
+        {unfinished.map((i) => (
+          <div key={i.id} className="mt-2" data-unresolved-sale>
+            <p>{i.receiptNumber ?? i.id}: {i.status}. Received: {(i.receivedAtoms === null || i.receivedAtoms === undefined) ? 'not checked' : i.receivedAtoms.toString() + ' atoms'}.</p>
+            <p>Check the wallet first. Partial money is real money; marking paid records the full sale as manually accepted, not observed.</p>
+            <ConfirmButton label="Accept as manually paid" confirmLabel="I checked and accept this sale as paid" onConfirm={() => void resolveSale(i, 'manual')} className="btn btn-secondary" />
+            {!['seen', 'confirmed'].includes(i.status) && (i.receivedAtoms ?? 0n) === 0n && <ConfirmButton label="Cancel unpaid sale" confirmLabel="I checked the wallet: nothing received" onConfirm={() => void resolveSale(i, 'cancel')} className="btn btn-secondary" />}
+          </div>
+        ))}
+        <label className="block mt-2">
+          <input
+            type="checkbox"
+            checked={reviewed === fingerprint}
+            onChange={(e) => setReviewed(e.target.checked ? fingerprint : '')}
+          />{' '}
+          I reviewed the per-coin totals above
+        </label>
+        <p className="mt-2">
+          {exported === fingerprint
+            ? 'Current report download requested. Confirm it finished.'
+            : 'Download the current CSV report below.'}
+        </p>
+        <label className="block mt-2">
+          <input
+            type="checkbox"
+            checked={backupConfirmed === fingerprint}
+            onChange={(e) =>
+              setBackupConfirmed(e.target.checked && backupCurrent ? fingerprint : '')
+            }
+          />{' '}
+          I checked that a current encrypted backup finished downloading
+        </label>
+        {!backupCurrent && <p>Make a fresh backup of these records before confirming it.</p>}
+        <p>
+          Export and backup completion are confirmed by you, not verified by the browser.{' '}
+          <a className="underline" href="#backup">
+            Back up now
+          </a>
+        </p>
+        <button
+          type="button"
+          className="btn btn-secondary mt-2"
+          aria-disabled={!canClose}
+          onClick={() => {
+            if (canClose) void confirmClose();
+          }}
+        >
+          Confirm day closed
+        </button>
+        {!canClose && (
+          <p>
+            Resolve every payment, review totals, request the current report and confirm a
+            downloaded backup first.
+          </p>
+        )}
+      </div>
       <div className={`mt-3 grid gap-2 sm:grid-cols-4 v2-leaders`} data-books-totals>
         <label className="block" htmlFor="hs-date">
           <span className="eyebrow">Day</span>
@@ -471,11 +626,11 @@ export default function History() {
         <button
           type="button"
           onClick={() => {
-            if (close.count === 0) return;
+            if (data.invoices.every((i) => i.createdAt.slice(0, 10) !== date)) return;
             downloadCsv();
           }}
-          aria-disabled={close.count === 0 || undefined}
-          className={`rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink${close.count === 0 ? ' v2-blocked' : ''}`}
+          aria-disabled={data.invoices.every((i) => i.createdAt.slice(0, 10) !== date) || undefined}
+          className="btn btn-secondary"
         >
           download CSV
         </button>
@@ -561,7 +716,7 @@ export default function History() {
                   {row.overpaidAtoms > 0n
                     ? ` · over by ${formatCoinAmount(row.overpaidAtoms, row.coin)}`
                     : ''}
-                  {row.id}
+                  {row.receiptNumber ?? row.id}
                 </p>
                 {row.refundedAtoms < row.atoms && (
                   <button
@@ -667,7 +822,7 @@ export default function History() {
                 </div>
                 <p className="mt-0.5 text-[11px] text-muted">
                   <span className="chip mr-1">cancelled</span>
-                  {inv.id}
+                  {inv.receiptNumber ?? inv.id}
                 </p>
               </li>
             ))}
@@ -682,8 +837,13 @@ export default function History() {
             kind: 'ok',
             text: `scanned: ${text.slice(0, 60)}${text.length > 60 ? '…' : ''}`,
           });
-          const id = text.split('|')[1];
-          const row = close.rows.find((r) => r.id === id);
+          let reference = text.split('|')[1];
+          try {
+            reference = readReceipt(new URL(text).hash)?.reference ?? reference;
+          } catch {
+            /* legacy paper proof */
+          }
+          const row = close.rows.find((r) => r.id === reference || r.receiptNumber === reference);
           if (row) startRefund(row);
           else
             setNote({

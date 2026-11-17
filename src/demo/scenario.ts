@@ -6,7 +6,7 @@
  * demo is not a special mode inside the components, only a different drawer (see core/storage.ts).
  */
 
-import { store } from '../core/storage';
+import { store, replaceLedger } from '../core/storage';
 
 export const DEMO_ZPUB =
   'zpub6rFR7y4Q2AijBEqTUquhVz398htDFrtymD9xYYfG1m4wAcvPhXNfE3EfH1r1ADqtfSdVCToUG868RvUUkgDKf31mGDtKsAYz2oz2AGutZYs';
@@ -143,7 +143,7 @@ export function demoScenario(now = new Date()): {
           lastPaidAt: iso(now.getTime() - 32 * DAY),
         },
       ],
-      books: {},
+      books: { w1: {next:40,reserved:[],used:invoices.filter(i=>i.walletId==='w1').map(i=>i.index)}, w2: {next:40,reserved:[],used:invoices.filter(i=>i.walletId==='w2').map(i=>i.index)} },
       watches: [
         {
           id: 'watch_demo',
@@ -182,13 +182,13 @@ export function demoScenario(now = new Date()): {
 }
 
 /** Write the demo shop into the demo drawer. Idempotent; never touches real keys. */
-export function seedDemo(now = new Date()): void {
+export async function seedDemo(now = new Date()): Promise<void> {
   const s = store();
   if (s.getItem('slip.accounts.v1')) return;
   const scenario = demoScenario(now);
   s.setItem('slip.accounts.v1', JSON.stringify(scenario.accounts));
   s.setItem('slip.settings.v1', JSON.stringify(scenario.settings));
-  s.setItem('slip.ledger.v1', JSON.stringify(scenario.ledger));
+  await replaceLedger(JSON.stringify(scenario.ledger));
   s.setItem('slip.tabs.v1', JSON.stringify(scenario.tabs));
   s.setItem('slip.demo.seeded', '1');
 }

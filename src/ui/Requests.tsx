@@ -51,7 +51,7 @@ export default function Requests() {
   const data = useMemo(() => ledger.load(), [ledger, booksRev]);
   const clock = budgetClock(data.invoices, data.requests);
 
-  function add() {
+  async function add() {
     const wallet = accounts.find((a) => a.id === walletId);
     if (!wallet) {
       setNote('choose a wallet first');
@@ -61,7 +61,7 @@ export default function Requests() {
       const minor = parseFiat(amount, settings.currency).minor;
       const today = new Date();
       const due = cadence === 'once' ? today : nextDueAfter(cadence, today);
-      ledger.addRequest({
+      await ledger.addRequest({
         id: `req_${Math.random().toString(36).slice(2, 8)}`,
         label: label.trim() || 'Untitled request',
         walletId: wallet.id,
@@ -81,7 +81,7 @@ export default function Requests() {
     }
   }
 
-  function showQr(request: StandingRequest) {
+  async function showQr(request: StandingRequest) {
     const wallet = accounts.find((a) => a.id === request.walletId);
     if (!wallet) {
       setNote('that wallet no longer exists');
@@ -94,6 +94,7 @@ export default function Requests() {
     try {
       const rateMinor = parseRate(rate, settings.currency);
       const sats = fiatToAtoms({ minor: request.amountMinor, currency: request.currency }, rateMinor);
+      const created = await ledger.transaction(ledger => {
       const book = ledger.book(wallet.id);
       const created = createInvoice({
         wallet,
@@ -107,6 +108,8 @@ export default function Requests() {
       });
       ledger.setBook(wallet.id, burnInvoiceIndex(created.invoice, created.book));
       ledger.putInvoice(created.invoice);
+      return created;
+      });
       setShowing({ request, address: created.invoice.address, sats });
       setNote(null);
     } catch (e) {
@@ -114,8 +117,8 @@ export default function Requests() {
     }
   }
 
-  function markPaid(request: StandingRequest) {
-    ledger.touchRequest(request.id, markRequestPaid(request));
+  async function markPaid(request: StandingRequest) {
+    await ledger.touchRequest(request.id, markRequestPaid(request));
     setShowing(null);
     setNote(`${request.label} marked paid — next due ${markRequestPaid(request).nextDue}`);
   }
@@ -292,7 +295,7 @@ export default function Requests() {
                       className="v2-qr-box"
                       dangerouslySetInnerHTML={{
                         __html: renderQrSvg(
-                          paymentUri('bitcoin', {
+                          paymentUri(accounts.find((a) => a.id === r.walletId)?.coin === 'ltc' ? 'litecoin' : 'bitcoin', {
                             address: showing.address,
                             amountSats: showing.sats,
                             label: r.label,

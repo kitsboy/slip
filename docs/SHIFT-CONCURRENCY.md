@@ -1,4 +1,11 @@
-# Shift-log concurrency
+# Shift-log and ledger concurrency
+
+## Working-tree extension: ledger and indexes
+
+The same witness protocol now coordinates `slip.ledger.v1` using its own real/demo lock and witness record. `createLedger(browserStore).transaction` builds a synchronous draft against the committed authoritative base. Charge commits both invoice legs and burned index books atomically before publishing either code. Requests also reserve/create inside a transaction. Every public ledger mutation returns a promise for a browser store; callers must await it. Custom test stores remain synchronous. `replaceLedger`, retry, wipe and demo exit all participate. Failed writes reject and only explicit recovery reads expose their overlay.
+
+`tests/e2e/ledger.mjs` proves simultaneous real UI charges, writer-close with forced stale-null successor, and quota failure/retry followed by writer-close and another stale successor. It asserts all five invoices, unique derivation indexes and receipt numbers. This is same-origin coordination, not two-device synchronization. Existing limitations below still apply.
+
 
 `recordShift` queues appends per store across repository instances. A rejected append does not poison later queued work; event time and payload are captured before waiting. Independent custom stores do not share queues.
 

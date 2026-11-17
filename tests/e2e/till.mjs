@@ -107,7 +107,7 @@ await page.waitForSelector('text=Receipt', { timeout: 8000 });
 const receipt = await page.locator('body').innerText();
 check('receipt says paid and seen on chain', /Paid — seen on chain/.test(receipt));
 check('receipt carries a proof QR', (await page.locator('svg').count()) > 0);
-check('receipt names the invoice and index', /Invoice inv_/.test(receipt) && /index #0/.test(receipt));
+check('receipt names its daily number and address index', /Receipt \d{4}-\d{2}-\d{2}-\d{3}/.test(receipt) && /address #0/.test(receipt));
 
 await page.getByRole('button', { name: 'Next sale' }).click();
 await page.waitForTimeout(300);

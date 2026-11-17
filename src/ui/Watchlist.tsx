@@ -39,14 +39,16 @@ export default function Watchlist() {
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  function add() {
+  async function add() {
     const check = checkAddress(address.trim(), networkId);
     if (!check.ok) {
       setNote(check.problem ?? 'that address does not belong to the chosen network');
       return;
     }
     if (!check.networks.includes(networkId)) {
-      setNote(`that address is not a ${networkId} address — it belongs to ${check.networks.join(', ') || 'another chain'}`);
+      setNote(
+        `that address is not a ${networkId} address — it belongs to ${check.networks.join(', ') || 'another chain'}`,
+      );
       return;
     }
     if (label.trim().length < 2) {
@@ -61,17 +63,25 @@ export default function Watchlist() {
       note: '',
       addedAt: new Date().toISOString(),
     };
-    const next = [...watches, watch];
-    ledger.save({ ...ledger.load(), watches: next });
+    const next = await ledger.transaction((draft) => {
+      const current = draft.load();
+      const next = [...current.watches, watch];
+      draft.save({ ...current, watches: next });
+      return next;
+    });
     setWatches(next);
     setLabel('');
     setAddress('');
     setNote(`${watch.label} added — nothing was sent anywhere to add it`);
   }
 
-  function remove(id: string) {
-    const next = watches.filter((w) => w.id !== id);
-    ledger.save({ ...ledger.load(), watches: next });
+  async function remove(id: string) {
+    const next = await ledger.transaction((draft) => {
+      const current = draft.load();
+      const next = current.watches.filter((w) => w.id !== id);
+      draft.save({ ...current, watches: next });
+      return next;
+    });
     setWatches(next);
     // A stale "X added" line under a list that no longer has X is a small lie; clear it.
     setNote('');
@@ -80,7 +90,16 @@ export default function Watchlist() {
   async function check(watch: Watch) {
     const target = targetFor(watch.networkId as NetworkId, settings.explorerUrl);
     if (!target) {
-      setSeen((s) => ({ ...s, [watch.id]: { atoms: 0n, received: 0n, txCount: 0, at: new Date().toISOString(), error: 'no explorer for this network' } }));
+      setSeen((s) => ({
+        ...s,
+        [watch.id]: {
+          atoms: 0n,
+          received: 0n,
+          txCount: 0,
+          at: new Date().toISOString(),
+          error: 'no explorer for this network',
+        },
+      }));
       return;
     }
     try {
@@ -186,8 +205,8 @@ export default function Watchlist() {
 
       {watches.length === 0 && (
         <EmptyState>
-          Nothing is being watched yet. A supplier, a landlord or a cold wallet added above shows its
-          balance here — without slip ever being able to move it.
+          Nothing is being watched yet. A supplier, a landlord or a cold wallet added above shows
+          its balance here — without slip ever being able to move it.
         </EmptyState>
       )}
 
@@ -209,8 +228,13 @@ export default function Watchlist() {
                     <p className="mt-1 text-[11px] text-bad">{s.error}</p>
                   ) : (
                     <p className="mt-1 text-[11px] text-muted">
-                      balance <span className="figure text-ink">{formatSats(s.atoms)}</span> · received{' '}
-                      <span className="figure">{networkById(w.networkId as NetworkId).coin === 'ltc' ? formatAtoms(s.received, 'ltc') : formatSats(s.received)}</span>{' '}
+                      balance <span className="figure text-ink">{formatSats(s.atoms)}</span> ·
+                      received{' '}
+                      <span className="figure">
+                        {networkById(w.networkId as NetworkId).coin === 'ltc'
+                          ? formatAtoms(s.received, 'ltc')
+                          : formatSats(s.received)}
+                      </span>{' '}
                       · {s.txCount} tx · read {s.at.slice(11, 19)} UTC
                     </p>
                   )

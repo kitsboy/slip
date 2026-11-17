@@ -55,10 +55,11 @@ if (sheet) {
   const text = await sheet.evaluate(() => document.body.innerText);
   check('the printed day close names the extra', /ABOVE the ask/.test(text), text.slice(0, 120));
   // Counted once, at the ask: the excess is named in the sentence, not added to the totals.
-  const row = text.match(/inv_demo_00[^\n]*/)?.[0] ?? 'row missing';
+  const number = await page.evaluate(() => window.slip.invoices().find(i=>i.id==='inv_demo_00').receiptNumber);
+  const row = text.split('\n').find(line=>line.includes(number)) ?? 'row missing';
   check(
     'the printed day close counts the sale at the ask, not the excess',
-    /Sales\s+5/.test(text) && /inv_demo_00\s+35,000 sats/.test(text) && !/37,800/.test(text),
+    /Sales\s+5/.test(text) && row.includes('35,000 sats') && !/37,800/.test(text),
     row,
   );
   await sheet.close();

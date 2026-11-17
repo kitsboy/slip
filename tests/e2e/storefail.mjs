@@ -203,8 +203,7 @@ check(
   (await page.locator('[data-save-warning]').count()) === 0,
 );
 
-// Fresh non-demo shop: fail ONLY the fourth ledger write during a split charge,
-// after the first leg and second address book succeeded but before leg two invoice.
+// Fresh non-demo shop: fail the one atomic split write. Neither leg may reach disk or a payer.
 const splitPage = await browser.newPage({ viewport: { width: 430, height: 1700 } });
 const splitErrors = [];
 splitPage.on('pageerror', (error) => splitErrors.push(String(error)));
@@ -244,7 +243,7 @@ await splitPage.evaluate(() => {
   window.__displayObserver = channel;
   const original = Storage.prototype.setItem;
   Storage.prototype.setItem = function failSecondLeg(key, value) {
-    if (key === 'slip.ledger.v1' && ++window.__ledgerWrites === 4)
+    if (key === 'slip.ledger.v1' && ++window.__ledgerWrites === 1)
       throw new DOMException('full', 'QuotaExceededError');
     return original.call(this, key, value);
   };
@@ -257,8 +256,8 @@ const splitState = await splitPage.evaluate(() => ({
   ledger: JSON.parse(localStorage.getItem('slip.ledger.v1')),
 }));
 check(
-  'failure injection reached the second leg invoice write',
-  splitState.writes === 4 && splitState.ledger.invoices.length === 1,
+  'failure injection reached the single atomic split write',
+  splitState.writes === 1 && (splitState.ledger?.invoices.length ?? 0) === 0,
   JSON.stringify(splitState),
 );
 check(

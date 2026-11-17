@@ -24,6 +24,8 @@ export interface RefundLike {
 
 export interface SaleRow {
   readonly id: string;
+  readonly receiptNumber?: string;
+  readonly status?: string;
   /** The chain this sale was paid on. A row that does not name its coin is a row that can be added
    *  to a Bitcoin total by accident, which is how a shop gets a number that means nothing. */
   readonly coin: Coin;
@@ -88,6 +90,7 @@ export function toRow(invoice: Invoice, refunds: readonly RefundLike[], coin: Co
     .reduce((sum, r) => sum + r.atoms, 0n);
   return {
     id: invoice.id,
+    receiptNumber: invoice.receiptNumber,
     coin,
     at: invoice.createdAt,
     walletLabel: invoice.walletLabel,
@@ -231,6 +234,8 @@ export function salesCsv(rows: readonly SaleRow[]): string {
     'overpaid_atoms',
     'manual',
     'note',
+    'receipt_number',
+    'status',
   ];
   const lines = [header.join(',')];
   for (const r of rows) {
@@ -248,6 +253,8 @@ export function salesCsv(rows: readonly SaleRow[]): string {
         r.overpaidAtoms.toString(),
         r.manual ? 'yes' : 'no',
         r.note,
+        r.receiptNumber ?? r.id,
+        r.status ?? 'complete',
       ]
         .map(csvCell)
         .join(','),
@@ -314,7 +321,7 @@ export function closeReport(close: DayClose, shopName: string, currency: string)
 
   if (close.rows.length > 0) lines.push('', ...close.rows.map((r) => {
     const amount = words(r.netAtoms, r.coin);
-    return `${r.at.slice(11, 16)}  ${r.id.padEnd(20).slice(0, 20)}  ${amount.padStart(16)}  ${r.rail}${r.manual ? ' (manual)' : ''}`;
+    return `${r.at.slice(11, 16)}  ${(r.receiptNumber ?? r.id).padEnd(20)}  ${amount.padStart(16)}  ${r.rail}${r.manual ? ' (manual)' : ''}`;
   }));
 
   const overRows = close.rows.filter((r) => r.overpaidAtoms > 0n);

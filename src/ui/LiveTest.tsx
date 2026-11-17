@@ -1,5 +1,5 @@
 /**
- * The real-money rehearsal: 100 sats on a real rail.
+ * Fresh signet observation check; optional Lightning uses real money, not testnet.
  *
  * Everything else in slip can be tried with pretend money. This panel is the opposite: a genuine
  * invoice for a deliberately tiny amount, so a merchant can watch a real payment arrive before they
@@ -23,7 +23,7 @@ import { paymentLabel } from '../core/brand';
 import { loadSettings } from '../core/settings';
 import { store as appStore } from '../core/storage';
 
-const TEST_SATS = 100n;
+const TEST_SATS = 10_000n;
 
 type Rail = 'lightning' | 'signet';
 
@@ -33,11 +33,13 @@ interface Live {
   readonly verifyUrl: string | null;
   readonly address: string | null;
   readonly sats: bigint;
+  readonly baseline?: bigint;
+  readonly baselineCount?: number;
 }
 
 export default function LiveTest() {
   const settings = loadSettings(appStore()).settings;
-  const [rail, setRail] = useState<Rail>('lightning');
+  const [rail, setRail] = useState<Rail>('signet');
   const [lightningAddress, setLightningAddress] = useState('');
   const [signetAddress, setSignetAddress] = useState('');
   const [live, setLive] = useState<Live | null>(null);
@@ -54,16 +56,16 @@ export default function LiveTest() {
           const r = await verifyPayment(live.verifyUrl);
           if (r.settled) {
             setSettled(true);
-            setStatus('settled — your wallet confirmed a real 100 sat payment');
+            setStatus('Wallet reports this real-money Lightning invoice settled. This is NOT a testnet readiness check.');
           }
         } else if (live.rail === 'signet' && live.address) {
           const target = targetFor('btc-signet', '');
           if (!target) return;
           const activity = await fetchAddressActivity(target, live.address);
-          if (activity.chainReceivedAtoms >= live.sats) {
+          if (activity.chainReceivedAtoms >= (live.baseline ?? 0n) + live.sats && activity.txCount > (live.baselineCount ?? 0)) {
             setSettled(true);
-            setStatus('mined on signet — the test payment arrived');
-          } else if (activity.mempoolReceivedAtoms > 0n) {
+            setStatus('Fresh increase mined on signet after the baseline — test coins only. Explorer totals are not proof of payer identity.');
+          } else if (activity.chainReceivedAtoms + activity.mempoolReceivedAtoms > (live.baseline ?? 0n)) {
             setStatus('seen on signet — waiting for a block');
           }
         }
@@ -105,7 +107,7 @@ export default function LiveTest() {
     }
   }
 
-  function startSignet() {
+  async function startSignet() {
     setSettled(false);
     setLive(null);
     setStatus('');
@@ -114,23 +116,28 @@ export default function LiveTest() {
       setStatus(check.problem ?? 'that is not a signet address');
       return;
     }
+    const target = targetFor('btc-signet', '');
+    if (!target) return;
+    let baseline;
+    try { baseline = await fetchAddressActivity(target, signetAddress.trim()); }
+    catch { setStatus('Could not establish a baseline. No test started.'); return; }
     const uri = paymentUri('bitcoin', {
       address: signetAddress.trim(),
       amountSats: TEST_SATS,
       label: paymentLabel(settings.businessName || 'slip test', settings.signature),
     });
-    setLive({ rail: 'signet', uri, verifyUrl: null, address: signetAddress.trim(), sats: TEST_SATS });
-    setStatus('signet invoice ready — pay 100 test sats and slip will watch the block');
+    setLive({ rail: 'signet', uri, verifyUrl: null, address: signetAddress.trim(), sats: TEST_SATS, baseline: baseline.chainReceivedAtoms + baseline.mempoolReceivedAtoms, baselineCount: baseline.txCount });
+    setStatus('Baseline captured. Pay 10,000 NEW signet test sats (above typical dust); existing historical funds cannot pass this check. Test coins are worthless.');
   }
 
   return (
     <section className="mt-6 panel" data-panel="livetest">
       <p className="eyebrow">Live test</p>
-      <h2 className="panel-title mt-1">A real 100 sat payment</h2>
+      <h2 className="panel-title mt-1">Fresh testnet payment check</h2>
       <p className="mt-1 text-xs leading-relaxed text-muted">
-        Everything else here can be practised with pretend money. This is the opposite: a genuine
-        invoice for one hundred satoshis, on a rail you choose, so you can watch real money arrive
-        before the till handles a real price. slip still cannot spend anything.
+        Use signet test coins before real takings. slip captures a baseline before showing the
+        request and waits for a new confirmed increase. Historical payouts are not a fresh sale.
+        The optional Lightning tool below uses REAL money and is not a testnet readiness check.
       </p>
 
       <div className="mt-3 flex gap-2">
@@ -179,7 +186,7 @@ export default function LiveTest() {
         onClick={() => (rail === 'lightning' ? void startLightning() : startSignet())}
         className="mt-2 rounded-lg border border-accent px-3 py-2 text-xs text-accent"
       >
-        request a real {TEST_SATS.toString()} sat invoice
+        request {rail === 'signet' ? 'testnet' : 'REAL MONEY Lightning'} {TEST_SATS.toString()} sat invoice
       </button>
 
       {status && <p className="mt-2 text-[11px] text-muted">{status}</p>}
@@ -198,7 +205,7 @@ export default function LiveTest() {
                 : 'bitcoin signet · test coins only, from a faucet'}
             </p>
             <p className={`mt-2 ${settled ? 'text-ok' : 'text-warn'}`}>
-              {settled ? 'Settled — this was a real payment, watched end to end.' : 'Waiting. slip is checking every five seconds.'}
+              {settled ? 'New receipt reported by the selected source. Not proof of payer identity or a physical end-to-end test.' : 'Waiting for fresh evidence. slip is checking every five seconds.'}
             </p>
             {live.rail === 'signet' && (
               <p className="mt-1">
@@ -219,8 +226,7 @@ export default function LiveTest() {
       )}
 
       <p className="mt-2 text-[11px] leading-relaxed text-muted">
-        This panel spends real (or test) money from your wallet, never slip’s — slip has none. Nothing
-        is stored about the test except the invoice it watched.
+        slip cannot spend or send. You pay separately from your wallet. This check is held in this tab only; no physical or funded test is certified.
       </p>
     </section>
   );

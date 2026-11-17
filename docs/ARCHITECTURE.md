@@ -66,14 +66,13 @@ catalog item → computeTotals (money.ts)          → fiat total + tax + tip
              → watcher observes tx                 → status → Level-3 "paid"
 ```
 
-Indexes are reserved **at invoice creation**, never on page load, and released if the sale is
-cancelled — that is what makes "no address reuse" true rather than intended.
+Indexes are reserved **at invoice creation**, never on page load, then burned before exposing the payment code. Cancellation retains the invoice and its index; an exposed address must not be reused. Both legs of a split and their books commit as one ledger mutation.
 
 ## Storage and recovery
 
-Most records and synchronous reads use localStorage. Browser shift mutations additionally
-require a durable IndexedDB witness under a drawer-specific Web Lock. Appends, retry,
-restore, wipe and demo exit share this protocol; never write the shift key synchronously.
+Most records and synchronous reads use localStorage. Browser shift and ledger mutations additionally
+require a durable IndexedDB witness under separate drawer/record Web Locks. Invoice creation and derivation-book reservations happen inside `ledger.transaction`; callbacks are synchronous and must not await network work. Appends, retry,
+restore, wipe and demo exit share this protocol; never write either key synchronously.
 Await `retryPendingWrites()` and `clearDemo()`. A prepared/interrupted witness fails closed;
 confirmed wipe must reach explicit replacement before any ordinary append.
 See `SHIFT-CONCURRENCY.md` for the protocol, limits and regressions, and

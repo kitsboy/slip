@@ -53,7 +53,7 @@ check('a demo sale shows a QR', (await page.locator('svg').count()) > 0);
 await page.waitForSelector('button:has-text("Next sale")', { timeout: 25_000 });
 const receipt = await body();
 check('the simulated payment completes on its own', /Paid — seen on chain/.test(receipt), receipt.slice(0, 200));
-check('the receipt is a real receipt, in the demo drawer', /Invoice inv_/.test(receipt));
+check('the receipt is a real receipt, in the demo drawer', /Receipt \d{4}-\d{2}-\d{2}-\d{3}/.test(receipt));
 check('the demo shop has its own name', /Demo Café/.test(receipt), receipt.slice(0, 200));
 
 // Storage isolation: the demo writes only to its own prefix.

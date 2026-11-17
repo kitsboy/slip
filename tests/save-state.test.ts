@@ -101,7 +101,7 @@ describe('storage recovery overlay', () => {
   });
   it('rebases a failed record onto other-tab additions and changes', async () => {
     const api = await setup();
-    const key = 'slip.ledger.v1';
+    const key = 'independent-record';
     window.localStorage.setItem(
       key,
       JSON.stringify({ invoices: [{ id: 'a', status: 'awaiting', note: '' }], books: {} }),
@@ -197,9 +197,9 @@ describe('storage recovery overlay', () => {
     const write = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('full');
     });
-    expect(() =>
+    await expect(
       createLedger(api.store()).touchInvoice('sale', { status: 'complete', receivedAtoms: 100n }),
-    ).toThrow('full');
+    ).rejects.toThrow('full');
     expect(createLedger(api.store()).load().invoices[0]?.status).toBe('awaiting');
     expect(createLedger(api.recoveryStore()).load().invoices[0]?.status).toBe('complete');
     expect(JSON.parse(window.localStorage.getItem(LEDGER_KEY)!).invoices[0].status).toBe(

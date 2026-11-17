@@ -54,9 +54,7 @@ export default function Lightning() {
       try {
         const r = await verifyPayment(live.verifyUrl!);
         if (r.settled) {
-          setSettled(true);
-          setStatus('settled — the wallet confirmed it');
-          ledger.putInvoice({
+          await ledger.putInvoice({
             id: `inv_ln_${Date.now().toString(36)}`,
             walletId: `ln:${live.address}`,
             walletLabel: 'Lightning',
@@ -76,6 +74,8 @@ export default function Lightning() {
             manual: false,
             note: 'lightning · LNURL-verify',
           });
+          setSettled(true);
+          setStatus('settled — the wallet confirmed it');
         }
       } catch (e) {
         setStatus(e instanceof Error ? e.message : 'the verifier did not answer');

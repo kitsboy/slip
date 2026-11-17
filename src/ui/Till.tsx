@@ -20,6 +20,8 @@ import {
   statusOf,
   type CounterAccount,
 } from '../core/accounts';
+import { sameInvoice, resolveInvoice } from '../core/orders';
+import { receiptLink } from '../core/digital-receipt';
 import { createLedger, type LedgerRepository } from '../core/ledger';
 import {
   applyStatus,
@@ -264,6 +266,12 @@ export default function Till() {
     };
   }, [reload]);
 
+  function invoiceCoin(i: Invoice): 'btc' | 'ltc' {
+    return createRepository(appStore()).load().accounts.find(a => a.id === i.walletId)?.coin ?? 'btc';
+  }
+  function invoiceNetwork(i: Invoice): string {
+    return createRepository(appStore()).load().accounts.find(a => a.id === i.walletId)?.networkId ?? 'unknown';
+  }
   // A reload used to forget the sale. The books still hold it, and the strip above the
   // till is how it is reopened. Opening the pay screen here hid the till, so the page
   // had no counter. The customer screen still gets the same code back.
@@ -276,19 +284,20 @@ export default function Till() {
     const shop = loadSettings(appStore()).settings;
     publishToDisplay({
       kind: 'pay',
-      uri: paymentUri('bitcoin', {
+      uri: paymentUri(invoiceCoin(found.primary) === 'ltc' ? 'litecoin' : 'bitcoin', {
         address: found.primary.address,
         amountSats: found.primary.amountAtoms,
         label: paymentLabel(found.primary.walletLabel, shop.signature),
       }),
       uri2: found.second
-        ? paymentUri('bitcoin', {
+        ? paymentUri(invoiceCoin(found.second) === 'ltc' ? 'litecoin' : 'bitcoin', {
             address: found.second.address,
             amountSats: found.second.amountAtoms,
             label: found.second.walletLabel,
           })
         : undefined,
-      sats: found.primary.amountAtoms.toString(),
+      coin: invoiceCoin(found.primary), network: invoiceNetwork(found.primary),
+        sats: found.primary.amountAtoms.toString(),
       sats2: found.second ? found.second.amountAtoms.toString() : undefined,
       label: found.primary.walletLabel,
       status: 'awaiting',
@@ -310,18 +319,19 @@ export default function Till() {
       const shop = loadSettings(appStore()).settings;
       publishToDisplay({
         kind: 'pay',
-        uri: paymentUri('bitcoin', {
+        uri: paymentUri(invoiceCoin(found.primary) === 'ltc' ? 'litecoin' : 'bitcoin', {
           address: found.primary.address,
           amountSats: found.primary.amountAtoms,
           label: paymentLabel(found.primary.walletLabel, shop.signature),
         }),
         uri2: found.second
-          ? paymentUri('bitcoin', {
+          ? paymentUri(invoiceCoin(found.second) === 'ltc' ? 'litecoin' : 'bitcoin', {
               address: found.second.address,
               amountSats: found.second.amountAtoms,
               label: found.second.walletLabel,
             })
           : undefined,
+        coin: invoiceCoin(found.primary), network: invoiceNetwork(found.primary),
         sats: found.primary.amountAtoms.toString(),
         sats2: found.second ? found.second.amountAtoms.toString() : undefined,
         label: found.primary.walletLabel,
@@ -564,7 +574,7 @@ export default function Till() {
     if (isDemo && rate.trim() === '') setRate('94000.00');
   }, [rate]);
 
-  function charge() {
+  async function charge() {
     if (isWriteFailed()) {
       setStatus(
         'A previous save is unresolved. Retry saving or download a recovery backup before starting another sale.',
@@ -675,7 +685,6 @@ export default function Till() {
       return;
     }
 
-    const book = ledger.book(payee.id);
     const lines = cart.map((l) => ({
       name: l.item.name,
       quantity: l.quantity,
@@ -684,44 +693,57 @@ export default function Till() {
     }));
 
     try {
-      const created = createInvoice({
-        wallet: payee,
-        book,
-        amountAtoms: primaryAtoms,
-        amountMinor: (totals.roundedTotalMinor * primaryAtoms) / chargeSats,
-        currency: settings.currency,
-        rateMinorPerCoin: parseRate(rate, settings.currency),
-        lines,
-        buildAddress: (index) => deriveForAccount(payee, index),
-        note: tipJar
-          ? `tip jar${staffId ? ` for ${settings.staff.find((s) => s.walletId === staffId)?.name ?? ''}` : ''}`
-          : '',
-      });
-      // The address is about to reach a payer, so the index is burned now — not at
-      // creation, so an abandoned cart never consumes one.
-      ledger.setBook(payee.id, burnInvoiceIndex(created.invoice, created.book));
-      ledger.putInvoice(created.invoice);
-      // In the demo the explorer is simulated: it needs to know the amount so it can "confirm"
-      // after a few seconds and the walkthrough can show the whole sequence.
-      let secondInvoice: Invoice | null = null;
-      if (leg2Wallet && leg2Atoms > 0n) {
-        const second = createInvoice({
-          wallet: leg2Wallet,
-          book: ledger.book(leg2Wallet.id),
-          amountAtoms: leg2Atoms,
-          amountMinor:
-            totals.roundedTotalMinor - (totals.roundedTotalMinor * primaryAtoms) / chargeSats,
+      const { created, secondInvoice } = await ledger.transaction((ledger) => {
+        const book = ledger.book(payee.id);
+        const created = createInvoice({
+          wallet: payee,
+          book,
+          amountAtoms: primaryAtoms,
+          amountMinor: (totals.roundedTotalMinor * primaryAtoms) / chargeSats,
           currency: settings.currency,
           rateMinorPerCoin: parseRate(rate, settings.currency),
-          buildAddress: (index) => deriveForAccount(leg2Wallet, index),
-          note: `split with ${payee.label}`,
+          lines,
+          buildAddress: (index) => deriveForAccount(payee, index),
+          note: tipJar
+            ? `tip jar${staffId ? ` for ${settings.staff.find((s) => s.walletId === staffId)?.name ?? ''}` : ''}`
+            : '',
         });
-        ledger.setBook(leg2Wallet.id, burnInvoiceIndex(second.invoice, second.book));
-        ledger.putInvoice(second.invoice);
-        // Both legs are real addresses to the payer, so both must be registered: an unregistered
-        // leg used to fall back to a made-up 100,000 sats, or hang for ever on 'waiting'.
-        secondInvoice = second.invoice;
-      }
+        // The address is about to reach a payer, so the index is burned now — not at
+        // creation, so an abandoned cart never consumes one.
+        ledger.setBook(payee.id, burnInvoiceIndex(created.invoice, created.book));
+        ledger.putInvoice(created.invoice);
+        // In the demo the explorer is simulated: it needs to know the amount so it can "confirm"
+        // after a few seconds and the walkthrough can show the whole sequence.
+        let secondInvoice: Invoice | null = null;
+        if (leg2Wallet && leg2Atoms > 0n) {
+          const second = createInvoice({
+            wallet: leg2Wallet,
+            book: ledger.book(leg2Wallet.id),
+            amountAtoms: leg2Atoms,
+            amountMinor:
+              totals.roundedTotalMinor - (totals.roundedTotalMinor * primaryAtoms) / chargeSats,
+            currency: settings.currency,
+            rateMinorPerCoin: parseRate(rate, settings.currency),
+            buildAddress: (index) => deriveForAccount(leg2Wallet, index),
+            note: `split with ${payee.label}`,
+          });
+          ledger.setBook(leg2Wallet.id, burnInvoiceIndex(second.invoice, second.book));
+          ledger.putInvoice(second.invoice);
+          // Both legs are real addresses to the payer, so both must be registered: an unregistered
+          // leg used to fall back to a made-up 100,000 sats, or hang for ever on 'waiting'.
+          secondInvoice = second.invoice;
+        }
+
+        return {
+          created: {
+            ...created,
+            invoice: ledger.load().invoices.find((i) => i.id === created.invoice.id)!,
+          },
+          secondInvoice: secondInvoice
+            ? ledger.load().invoices.find((i) => i.id === secondInvoice!.id)!
+            : null,
+        };
+      });
 
       // Neither payer sees a code until every leg has been saved. In particular, a
       // failed second leg must not leave the first leg looking ready to accept money.
@@ -738,18 +760,19 @@ export default function Till() {
 
       publishToDisplay({
         kind: 'pay',
-        uri: paymentUri('bitcoin', {
+        uri: paymentUri(invoiceCoin(created.invoice) === 'ltc' ? 'litecoin' : 'bitcoin', {
           address: created.invoice.address,
           amountSats: created.invoice.amountAtoms,
           label: paymentLabel(payee.label, settings.signature),
         }),
         uri2: secondInvoice
-          ? paymentUri('bitcoin', {
+          ? paymentUri(invoiceCoin(secondInvoice) === 'ltc' ? 'litecoin' : 'bitcoin', {
               address: secondInvoice.address,
               amountSats: secondInvoice.amountAtoms,
               label: secondInvoice.walletLabel,
             })
           : undefined,
+        coin: invoiceCoin(created.invoice), network: invoiceNetwork(created.invoice),
         sats: created.invoice.amountAtoms.toString(),
         sats2: secondInvoice ? secondInvoice.amountAtoms.toString() : undefined,
         label: payee.label,
@@ -796,26 +819,31 @@ export default function Till() {
         });
         // A cue is a courtesy, never evidence: nothing about the invoice changes here.
         const cue = cueForTransition(target.status, updated.status);
+        await ledger.transaction(draft => {
+          const live = draft.load().invoices.find(i => i.id === updated.id);
+          if (!live || !sameInvoice(live, target)) throw new Error('This sale changed in another tab. Reopen it before checking again.');
+          draft.touchInvoice(live.id, { status: updated.status, seenAt: updated.seenAt, confirmedAt: updated.confirmedAt, receivedAtoms: updated.receivedAtoms });
+        });
         if (cue) announceOnce(updated.id, cue, { enabled: settings.assist.soundOnPayment });
-        ledger.putInvoice(updated);
         setInvoice((cur) => (cur && cur.id === updated.id ? updated : cur));
         const bothIn = !leg2 || leg2.status === 'complete';
         const displayPaid = updated.status === 'complete' && bothIn;
         publishToDisplay({
           kind: 'status',
-          uri: paymentUri('bitcoin', {
+          uri: paymentUri(invoiceCoin(updated) === 'ltc' ? 'litecoin' : 'bitcoin', {
             address: updated.address,
             amountSats: updated.amountAtoms,
             label: paymentLabel(updated.walletLabel, settings.signature),
           }),
           uri2: leg2
-            ? paymentUri('bitcoin', {
+            ? paymentUri(invoiceCoin(leg2) === 'ltc' ? 'litecoin' : 'bitcoin', {
                 address: leg2.address,
                 amountSats: leg2.amountAtoms,
                 label: leg2.walletLabel,
               })
             : undefined,
-          sats: updated.amountAtoms.toString(),
+          coin: invoiceCoin(updated), network: invoiceNetwork(updated),
+        sats: updated.amountAtoms.toString(),
           sats2: leg2 ? leg2.amountAtoms.toString() : undefined,
           label: updated.walletLabel,
           status: displayPaid ? 'paid' : updated.status === 'seen' ? 'seen' : 'awaiting',
@@ -837,7 +865,11 @@ export default function Till() {
                 receivedAtoms:
                   secondActivity.chainReceivedAtoms + secondActivity.mempoolReceivedAtoms,
               });
-              ledger.putInvoice(secondUpdated);
+              await ledger.transaction(draft => {
+                const live = draft.load().invoices.find(i => i.id === leg2.id);
+                if (!live || !sameInvoice(live, leg2)) throw new Error('This split leg changed. Reopen the sale.');
+                draft.touchInvoice(live.id, { status: secondUpdated.status, seenAt: secondUpdated.seenAt, confirmedAt: secondUpdated.confirmedAt, receivedAtoms: secondUpdated.receivedAtoms });
+              });
               setLeg2(secondUpdated);
               if (secondUpdated.status !== 'complete') {
                 setStatus(
@@ -866,7 +898,7 @@ export default function Till() {
             createdAt: updated.createdAt,
             dayDigestHex: anchor?.status === 'submitted' ? anchor.digestHex : null,
           });
-          setReceipt(updated);
+          setReceipt(ledger.load().invoices.find(i => i.id === updated.id) ?? updated);
         }
       } catch (e) {
         setStatus(e instanceof Error ? e.message : 'could not reach the explorer');
@@ -1039,12 +1071,19 @@ export default function Till() {
     window.dispatchEvent(new CustomEvent(event, { detail }));
   }
 
-  function abandon() {
+  async function abandon() {
     if (!invoice) return;
-    if (invoice.status === 'awaiting' || invoice.status === 'seen') {
-      ledger.setBook(invoice.walletId, cancelInvoice(invoice, ledger.book(invoice.walletId)));
-      ledger.touchInvoice(invoice.id, { status: 'cancelled' });
-    }
+    try {
+      await ledger.transaction((draft) => {
+        for (const captured of [invoice, leg2].filter((i): i is Invoice => Boolean(i))) {
+          const live = draft.load().invoices.find(i => i.id === captured.id);
+          if (!live || !sameInvoice(live, captured)) throw new Error('This sale changed in another tab. Reopen it before cancelling.');
+          const next = resolveInvoice(live, 'cancel');
+          draft.setBook(live.walletId, cancelInvoice(live, draft.book(live.walletId)));
+          draft.touchInvoice(live.id, { status: next.status });
+        }
+      });
+    } catch (e) { setInvoice(ledger.load().invoices.find(i => i.id === invoice.id) ?? invoice); setStatus(e instanceof Error ? e.message : 'Could not cancel'); return; }
     setInvoice(null);
     setLeg2(null);
     setBigLeg(null);
@@ -1059,7 +1098,16 @@ export default function Till() {
     if (!invoice) return;
     const updated = markManualPaid(invoice);
     // A rehearsal never touches the books, even when the merchant confirms it.
-    if (invoice.note !== 'rehearsal') ledger.putInvoice(updated);
+    if (invoice.note !== 'rehearsal') {
+      try {
+        await ledger.transaction(draft => {
+          const live = draft.load().invoices.find(i => i.id === invoice.id);
+          if (!live || !sameInvoice(live, invoice)) throw new Error('This sale changed. Reopen it before marking paid.');
+          const next = resolveInvoice(live, 'manual');
+          draft.touchInvoice(live.id, { status: next.status, manual: true, confirmedAt: next.confirmedAt });
+        });
+      } catch (e) { setStatus(e instanceof Error ? e.message : 'Could not mark paid'); return; }
+    }
     setInvoice(updated);
     if (leg2 && leg2.status !== 'complete') {
       setStatus(
@@ -1067,16 +1115,17 @@ export default function Till() {
       );
       publishToDisplay({
         kind: 'status',
-        uri: paymentUri('bitcoin', {
+        uri: paymentUri(invoiceCoin(updated) === 'ltc' ? 'litecoin' : 'bitcoin', {
           address: updated.address,
           amountSats: updated.amountAtoms,
           label: paymentLabel(updated.walletLabel, settings.signature),
         }),
+        coin: invoiceCoin(updated), network: invoiceNetwork(updated),
         sats: updated.amountAtoms.toString(),
         label: updated.walletLabel,
         status: 'awaiting',
         shop: settings.businessName,
-        uri2: paymentUri('bitcoin', {
+        uri2: paymentUri(invoiceCoin(leg2) === 'ltc' ? 'litecoin' : 'bitcoin', {
           address: leg2.address,
           amountSats: leg2.amountAtoms,
           label: leg2.walletLabel,
@@ -1094,20 +1143,21 @@ export default function Till() {
       createdAt: updated.createdAt,
       dayDigestHex: anchor?.status === 'submitted' ? anchor.digestHex : null,
     });
-    setReceipt(updated);
+    setReceipt(ledger.load().invoices.find(i => i.id === updated.id) ?? updated);
     publishToDisplay({
       kind: 'status',
-      uri: paymentUri('bitcoin', {
+      uri: paymentUri(invoiceCoin(updated) === 'ltc' ? 'litecoin' : 'bitcoin', {
         address: updated.address,
         amountSats: updated.amountAtoms,
         label: paymentLabel(updated.walletLabel, settings.signature),
       }),
-      sats: updated.amountAtoms.toString(),
+      coin: invoiceCoin(updated), network: invoiceNetwork(updated),
+        sats: updated.amountAtoms.toString(),
       label: updated.walletLabel,
-      status: leg2 && leg2.status !== 'complete' ? 'awaiting' : 'paid',
+      status: leg2 && leg2.status !== 'complete' ? 'awaiting' : 'manual',
       shop: settings.businessName,
       uri2: leg2
-        ? paymentUri('bitcoin', {
+        ? paymentUri(invoiceCoin(leg2) === 'ltc' ? 'litecoin' : 'bitcoin', {
             address: leg2.address,
             amountSats: leg2.amountAtoms,
             label: leg2.walletLabel,
@@ -1153,7 +1203,7 @@ export default function Till() {
 
   // --- payment screen -------------------------------------------------------
   if (invoice && !receipt) {
-    const uri = paymentUri('bitcoin', {
+    const uri = paymentUri(invoiceCoin(invoice) === 'ltc' ? 'litecoin' : 'bitcoin', {
       address: invoice.address,
       amountSats: invoice.amountAtoms,
       label: paymentLabel(invoice.walletLabel, settings.signature),
@@ -1174,7 +1224,7 @@ export default function Till() {
           ? 'seen on its way — not confirmed yet'
           : 'waiting — not paid';
     const legUri = (item: Invoice) =>
-      paymentUri('bitcoin', {
+      paymentUri(invoiceCoin(item) === 'ltc' ? 'litecoin' : 'bitcoin', {
         address: item.address,
         amountSats: item.amountAtoms,
         label: item.walletLabel,
@@ -1392,10 +1442,17 @@ export default function Till() {
 
   // --- receipt --------------------------------------------------------------
   if (receipt) {
-    const proofUri = paymentUri('bitcoin', {
-      address: receipt.address,
-      amountSats: receipt.amountAtoms,
-    });
+    const proofUri = receiptLink(
+      receipt,
+      settings.businessName,
+      createRepository(appStore())
+        .load()
+        .accounts.find((a) => a.id === receipt.walletId)?.coin ?? 'btc',
+      location.href,
+      new URLSearchParams(location.search).get('demo') === '1',
+      invoiceNetwork(receipt),
+      leg2 ? { invoice: ledger.load().invoices.find(i => i.id === leg2.id) ?? leg2, coin: invoiceCoin(leg2), network: invoiceNetwork(leg2) } : undefined,
+    );
     return (
       <section className="v2-receipt">
         {/* The same news, spoken. 'Marked paid by you' and 'seen on chain' are different claims, and a
@@ -1413,7 +1470,7 @@ export default function Till() {
             .join(' ')}
         >
           <div>
-            <p className="eyebrow">Receipt</p>
+            <p className="eyebrow">Receipt {receipt.receiptNumber ?? receipt.id}</p>
             <p
               className={[
                 'figure mt-1 text-[2rem] font-bold leading-none tabular-nums',
@@ -1481,11 +1538,17 @@ export default function Till() {
             <p className="mt-1">
               {receipt.manual
                 ? 'This receipt records a manual confirmation. slip did not observe a payment.'
-                : 'slip observed this payment at this address.'}
+                : isDemo || receipt.note === 'rehearsal' ? 'Simulated payment — no real money moved.' : 'slip observed this payment at this address.'}
             </p>
             <p className="mt-1">
-              Invoice {receipt.id} · wallet {receipt.walletLabel}
-              {receipt.index !== null ? ` · index #${receipt.index}` : ' · fixed address'}
+              Receipt {receipt.receiptNumber ?? receipt.id} · Unsigned record
+              <a className="block underline mt-2" href={proofUri} target="_blank" rel="noreferrer">
+                Open customer receipt
+              </a>
+              <span className="block mt-2">
+                Scan to keep this receipt, not to pay again. The link contains this record; anyone
+                with it can read it.
+              </span>
             </p>
           </div>
         </div>
@@ -1645,8 +1708,8 @@ export default function Till() {
                       <button
                         key={t.id}
                         type="button"
-                        onClick={() => {
-                          ledger.replaceItems(templateItems(t.id));
+                        onClick={async () => {
+                          await ledger.replaceItems(templateItems(t.id));
                           reload();
                         }}
                         className="rounded-lg border border-accent px-3 py-2 text-xs text-accent"
@@ -2285,8 +2348,7 @@ function printReceipt(
 <div class="fiat">${esc(formatFiat({ minor: invoice.amountMinor, currency: invoice.currency }))}</div>
 <div class="status ${invoice.manual || invoice.note === 'rehearsal' ? 'status-manual' : ''}">${esc(status)}</div>
 <table>
-  <tr><td>Invoice</td><td>${esc(invoice.id)}</td></tr>
-  <tr><td>Wallet</td><td>${esc(invoice.walletLabel)}</td></tr>
+  <tr><td>Receipt</td><td>${esc(invoice.receiptNumber ?? invoice.id)}</td></tr>
   <tr><td>Address</td><td><code>${esc(invoice.address)}</code></td></tr>
   <tr><td>Index</td><td>${invoice.index === null ? 'fixed address' : `#${invoice.index}`}</td></tr>
   ${overpaid > 0n ? `<tr><td>Received</td><td>${esc(formatSats(invoice.receivedAtoms ?? 0n))} — ${esc(formatSats(overpaid))} more than asked</td></tr>` : ''}

@@ -1,12 +1,14 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import DigitalReceipt from './ui/DigitalReceipt';
 import CustomerDisplay from './ui/CustomerDisplay';
 import Explainer from './ui/Explainer';
 import Parts from './ui/Parts';
 import { installFakeExplorer } from './demo/fakeExplorer';
 import { seedDemo } from './demo/scenario';
 import './index.css';
+import { createLedger } from './core/ledger';
 import { store as appStore } from './core/storage';
 
 const el = document.getElementById('root');
@@ -48,7 +50,10 @@ declare global {
       invoices: () => unknown[];
       requests: () => unknown[];
       today: (walletId: string) => string;
-      on: (event: 'slip:paid' | 'slip:data-changed', handler: (detail: unknown) => void) => () => void;
+      on: (
+        event: 'slip:paid' | 'slip:data-changed',
+        handler: (detail: unknown) => void,
+      ) => () => void;
     };
   }
 }
@@ -69,8 +74,11 @@ window.slip = {
   },
   invoices: () => {
     try {
-      const raw = appStore().getItem('slip.ledger.v1');
-      return raw ? (JSON.parse(raw).invoices ?? []) : [];
+      return createLedger(appStore())
+        .load()
+        .invoices.map((i) =>
+          JSON.parse(JSON.stringify(i, (_k, v) => (typeof v === 'bigint' ? v.toString() : v))),
+        );
     } catch {
       return [];
     }
@@ -89,8 +97,10 @@ window.slip = {
       const invoices = raw ? (JSON.parse(raw).invoices ?? []) : [];
       const day = new Date().toISOString().slice(0, 10);
       return invoices
-        .filter((i: { walletId: string; status: string; createdAt: string }) =>
-          i.walletId === walletId && i.status === 'complete' && i.createdAt.slice(0, 10) === day)
+        .filter(
+          (i: { walletId: string; status: string; createdAt: string }) =>
+            i.walletId === walletId && i.status === 'complete' && i.createdAt.slice(0, 10) === day,
+        )
         .reduce((sum: bigint, i: { amountAtoms: string }) => sum + BigInt(i.amountAtoms), 0n)
         .toString();
     } catch {
@@ -133,38 +143,44 @@ if (document.documentElement.dataset.skin === 'v2') {
  * Demo boot: seed the demo drawer, then replace fetch with a simulator. Both happen before React
  * renders, so no panel can make a real request or read a real key on the way up.
  */
-if (isDemo) {
-  installFakeExplorer();
-  seedDemo();
-}
-
-if (params.get('gallery') === '1') {
-  // The component gallery ships, because the owner is the developer and wants to look at the parts
-  // without a build server: https://slip.giveabit.io/?gallery=1. It is reachable only by typing the
-  // query — nothing links to it, it asks search engines to keep away, and every sample on it is
-  // labelled as a part, never as a sale. It is a workbench, not a screen of the shop.
-  document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="noindex" />');
-  void import('./ui/Gallery').then(({ default: Gallery }) => {
-    createRoot(el).render(
-      <React.StrictMode>
-        <Gallery />
-      </React.StrictMode>,
-    );
+if (isDemo) installFakeExplorer();
+const ready = isDemo && params.get('receipt') !== '1' ? seedDemo() : Promise.resolve();
+void ready
+  .then(() => {
+    if (params.get('gallery') === '1') {
+      // The component gallery ships, because the owner is the developer and wants to look at the parts
+      // without a build server: https://slip.giveabit.io/?gallery=1. It is reachable only by typing the
+      // query — nothing links to it, it asks search engines to keep away, and every sample on it is
+      // labelled as a part, never as a sale. It is a workbench, not a screen of the shop.
+      document.head.insertAdjacentHTML('beforeend', '<meta name="robots" content="noindex" />');
+      void import('./ui/Gallery').then(({ default: Gallery }) => {
+        createRoot(el).render(
+          <React.StrictMode>
+            <Gallery />
+          </React.StrictMode>,
+        );
+      });
+    } else {
+      createRoot(el).render(
+        <React.StrictMode>
+          {params.get('receipt') === '1' ? (
+            <DigitalReceipt />
+          ) : isExplain ? (
+            <Explainer />
+          ) : isDisplay ? (
+            <CustomerDisplay />
+          ) : isParts ? (
+            <Parts />
+          ) : (
+            <>
+              <App />
+            </>
+          )}
+        </React.StrictMode>,
+      );
+    }
+  })
+  .catch(() => {
+    el.textContent =
+      'Safe storage could not start. Keep any existing tabs open and export a backup.';
   });
-} else {
-  createRoot(el).render(
-    <React.StrictMode>
-      {isExplain ? (
-        <Explainer />
-      ) : isDisplay ? (
-        <CustomerDisplay />
-      ) : isParts ? (
-        <Parts />
-      ) : (
-        <>
-          <App />
-        </>
-      )}
-    </React.StrictMode>,
-  );
-}

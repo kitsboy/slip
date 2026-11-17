@@ -33,6 +33,7 @@ export interface InvoiceLine {
 
 export interface Invoice {
   readonly id: string;
+  readonly receiptNumber?: string;
   readonly walletId: string;
   readonly walletLabel: string;
   readonly address: string;
@@ -181,6 +182,18 @@ export function overpaidBy(
 }
 
 /** A human confirming by eye. Recorded as manual, never dressed up as an observation. */
+export function sameInvoice(a: Invoice, b: Invoice): boolean {
+  const encode = (i: Invoice) => JSON.stringify(i, (_k, v) => typeof v === 'bigint' ? v.toString() : v);
+  return encode(a) === encode(b);
+}
+export function resolveInvoice(i: Invoice, action: 'cancel' | 'manual'): Invoice {
+  if (!['awaiting', 'seen', 'expired', 'underpaid', 'confirmed'].includes(i.status))
+    throw new Error('This sale is already closed. Reopen Books to see its current state.');
+  if (action === 'manual') return markManualPaid(i);
+  if (i.status === 'seen' || i.status === 'confirmed' || (i.receivedAtoms ?? 0n) > 0n)
+    throw new Error('Money may have arrived. Check the wallet; do not cancel this as unpaid.');
+  return { ...i, status: 'cancelled' };
+}
 export function markManualPaid(invoice: Invoice, now = new Date()): Invoice {
   return { ...invoice, status: 'complete', confirmedAt: now.toISOString(), manual: true };
 }

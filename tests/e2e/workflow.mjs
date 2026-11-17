@@ -166,6 +166,13 @@ if ((await strip.count()) > 0) {
   check('reopening keeps the amount that was quoted', /2,500 sats/.test(payment), payment.slice(0, 120));
 
   await page.getByRole('button', { name: /cancel sale/i }).click();
+  // Cancellation is a durable async transaction; wait for either its committed result or
+  // the optimistic-concurrency refusal before deciding whether a retry is needed.
+  const cancelled = page.getByText('Sale cancelled. Nothing was paid.', { exact: true });
+  const stale = page.getByText('This sale changed in another tab. Reopen it before cancelling.', { exact: true });
+  await cancelled.or(stale).waitFor({ state: 'visible' });
+  if (await stale.isVisible()) await page.getByRole('button', { name: /cancel sale/i }).click();
+  await cancelled.waitFor({ state: 'visible' });
   await showPanel(page, 'till');
 }
 

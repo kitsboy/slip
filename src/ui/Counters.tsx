@@ -423,7 +423,7 @@ export default function Counters() {
                     className="h-32 w-32 shrink-0 rounded-lg bg-white p-1"
                     dangerouslySetInnerHTML={{
                       __html: renderQrSvg(
-                        paymentUri('bitcoin', {
+                        paymentUri(a.coin === 'ltc' ? 'litecoin' : 'bitcoin', {
                           address: a.firstAddress,
                           label: a.label,
                         }),

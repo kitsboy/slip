@@ -64,7 +64,7 @@ export default function AnchorPanel() {
     try {
       const anchor = await submitAnchor(book);
       const next = [...anchors.filter((a) => a.date !== date), anchor];
-      ledger.save({ ...ledger.load(), anchors: next });
+      await ledger.transaction(draft => { draft.save({ ...draft.load(), anchors: [...draft.load().anchors.filter(a => a.date !== date), anchor] }); });
       setAnchors(next);
       setNote(describeAnchor(anchor));
     } finally {

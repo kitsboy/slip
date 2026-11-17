@@ -16,14 +16,16 @@ import {
   recordBackupTaken,
   restoreBackup,
 } from '../core/backup';
+import { testBackup } from '../core/test-backup';
 import ConfirmButton from './ConfirmButton';
 import { exportLogLines, staffSummary, verifyLog, type ShiftLog } from '../core/shifts';
 import { LEDGER_KEY } from '../core/ledger';
 import {
   pendingWriteKeys,
-  pendingRecoveryWrites,
+  backupSnapshot,
   recoveryStore,
   replaceShiftLog,
+  replaceLedger,
   recoverySaleSnapshot,
   store as appStore,
 } from '../core/storage';
@@ -99,8 +101,9 @@ export default function Backup() {
     }
     setBusy(true);
     try {
-      const repo = createRepository(recoveryStore());
-      const rawLedger = recoveryStore().getItem(LEDGER_KEY);
+      const snapshot = await backupSnapshot();
+      const repo = createRepository(snapshot.view);
+      const rawLedger = snapshot.view.getItem(LEDGER_KEY);
       const state: BackupState = {
         accounts: repo.load().accounts,
         activeAccountId: repo.load().activeAccountId,
@@ -112,9 +115,9 @@ export default function Backup() {
         app: 'slip',
         savedAt: new Date().toISOString(),
         ...(recoverySaleSnapshot() !== null ? { recoverySale: recoverySaleSnapshot() } : {}),
-        ...(pendingWriteKeys().length
+        ...(Object.keys(snapshot.recovery).length
           ? {
-              recoveryWrites: pendingRecoveryWrites(),
+              recoveryWrites: snapshot.recovery,
             }
           : {}),
       };
@@ -127,6 +130,13 @@ export default function Backup() {
       a.click();
       URL.revokeObjectURL(url);
       recordBackupTaken(appStore());
+      if (!state.recoveryWrites) {
+        try {
+          appStore().setItem('slip.backup-books.v1', rawLedger ?? '');
+        } catch {
+          /* download remains usable; close evidence stays unavailable */
+        }
+      }
       // Let the History day-close nudge learn the fresh backup date immediately.
       window.dispatchEvent(new Event('slip:data-changed'));
       setNote({
@@ -157,11 +167,29 @@ export default function Backup() {
     }
   }
 
+  async function checkFile() {
+    if (!pending || busy || !passphrase) return;
+    setBusy(true);
+    try {
+      const result = await testBackup(await pending.file.text(), passphrase);
+      setNote({
+        kind: result.ok ? 'ok' : 'bad',
+        text: result.summary ?? result.error ?? 'Validation failed',
+      });
+    } catch (e) {
+      setNote({ kind: 'bad', text: e instanceof Error ? e.message : 'Could not test backup' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function importFile(file: File) {
     setBusy(true);
     try {
       const text = await file.text();
       const head = describeBackup(text);
+      const validation = await testBackup(text, passphrase);
+      if (!validation.ok) throw new Error(validation.error);
       const result = await restoreBackup(text, passphrase);
       if (!result.ok) {
         setNote({ kind: 'bad', text: result.error });
@@ -182,13 +210,11 @@ export default function Backup() {
       // The PIN travels with the backup: a restored till with no PIN would silently drop
       // the hand-off protection the merchant thinks they still have.
       repo.setPin(state.pinHash ?? null);
-      await replaceShiftLog(
-        JSON.stringify(state.shifts ?? { version: 1, events: [] }),
-      );
+      await replaceShiftLog(JSON.stringify(state.shifts ?? { version: 1, events: [] }));
       // Restore the books too, and say so when the file predates them rather than pretending
       // the history came back.
       const hadLedger = state.ledger !== undefined && state.ledger !== null;
-      if (hadLedger) appStore().setItem(LEDGER_KEY, JSON.stringify(state.ledger));
+      if (hadLedger) await replaceLedger(JSON.stringify(state.ledger));
       setNote({
         kind: 'ok',
         text: `restored ${state.accounts.length} counter(s), ${state.pinHash ? 'the PIN' : 'no PIN'}${hadLedger ? ' and the books' : ' — no books in that file (older backup)'}${state.recoverySale || state.recoveryWrites ? ' — recovery notes are informational only; not automatically imported' : ''}, from a backup made ${head.createdAt.slice(0, 10)}.`,
@@ -282,7 +308,7 @@ export default function Backup() {
           aria-disabled={busy || undefined}
           className={`rounded-lg border border-line px-3 py-2 text-xs font-semibold text-muted hover:text-ink${busy ? ' v2-blocked' : ''}`}
         >
-          Restore from a .slip file
+          Test or restore a .slip file
         </button>
         <input
           ref={fileInput}
@@ -310,6 +336,14 @@ export default function Backup() {
             the passphrase above, then confirm.
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              aria-disabled={busy || !passphrase}
+              onClick={() => void checkFile()}
+            >
+              Test my backup — no changes
+            </button>
             <ConfirmButton
               label="Confirm restore"
               confirmLabel="Restore again — this replaces this device"

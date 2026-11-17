@@ -31,6 +31,7 @@ export function findSales(invoices: readonly Invoice[], query: string, limit = 2
   for (const invoice of invoices) {
     const reasons: string[] = [];
 
+    if (invoice.receiptNumber?.toLowerCase().includes(q)) reasons.push('receipt number');
     if (invoice.id.toLowerCase().includes(q)) reasons.push('invoice number');
     if (invoice.address.toLowerCase().includes(q)) reasons.push('address');
     if (invoice.walletLabel.toLowerCase().includes(q)) reasons.push('wallet');

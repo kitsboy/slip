@@ -24,7 +24,7 @@ import { printCounterCard } from './counterCard';
 import { buildLabel } from '../core/buildinfo';
 import { createRepository, STORAGE_KEY } from '../core/accounts';
 import { SETTINGS_KEY } from '../core/settings';
-import { store as appStore, replaceShiftLog } from '../core/storage';
+import { store as appStore, replaceShiftLog, replaceLedger } from '../core/storage';
 import { persistState, recheckPersistence } from '../core/persist';
 import {
   hashPin,
@@ -165,6 +165,7 @@ export default function Settings() {
       // A confirmed reset must also replace an interrupted shift witness. An ordinary
       // append would reject that witness before the owner could reach recovery.
       await replaceShiftLog(null);
+      await replaceLedger(null);
       store.removeItem(STORAGE_KEY);
       store.removeItem(SETTINGS_KEY);
       window.location.reload();

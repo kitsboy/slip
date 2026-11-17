@@ -8,6 +8,7 @@
  */
 
 import { createRepository } from './accounts';
+import { sameInvoice } from './orders';
 import { createLedger } from './ledger';
 import { sweep, type SweepResult } from './reconcile';
 import { fetchAddressActivity, targetFor } from './providers/esplora';
@@ -35,6 +36,18 @@ export async function sweepNow(store: KeyValueStore, settings: ShopSettings): Pr
   };
 
   const result = await sweep(invoices, look);
-  if (result.updated.length > 0) createLedger(store).putInvoices([...result.updated]);
-  return { result, changed: result.changes.length > 0 };
+  const committed = new Set<string>();
+  if (result.updated.length > 0) await createLedger(store).transaction(draft => {
+    const current = draft.load();
+    const eligible = result.updated.filter(next => {
+      const before = invoices.find(i => i.id === next.id);
+      const live = current.invoices.find(i => i.id === next.id);
+      if (!before || !live || !sameInvoice(before, live)) return false;
+      committed.add(next.id);
+      return true;
+    });
+    draft.putInvoices(eligible);
+  });
+  const changes = result.changes.filter(c => committed.has(c.invoiceId));
+  return { result: { ...result, updated: result.updated.filter(i => committed.has(i.id)), changes }, changed: changes.length > 0 };
 }

@@ -46,7 +46,7 @@ export default function SilentPay() {
     }
   }
 
-  function recordManual() {
+  async function recordManual() {
     if (!shown) return;
     const now = new Date();
     const invoice = {
@@ -69,7 +69,7 @@ export default function SilentPay() {
       manual: true,
       note: 'silent payments · confirmed by the merchant',
     };
-    ledger.putInvoice(invoice);
+    await ledger.putInvoice(invoice);
     setNote({
       kind: 'ok',
       text: 'recorded as a manual confirmation — slip cannot watch an sp1 address, and your wallet is the authority here.',

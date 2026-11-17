@@ -5,7 +5,7 @@
  */
 export const SHIFT_KEY = 'slip.shifts.v1';
 type Witness = { phase: 'prepared' | 'committed'; base: string | null; value: string | null };
-const unavailable = () => new Error('Safe shift-log storage is unavailable. Keep this tab open and export a backup.');
+const unavailable = () => new Error('Safe coordinated storage is unavailable. Keep this tab open and export a backup.');
 function open(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     if (!globalThis.indexedDB) { reject(unavailable()); return; }
@@ -25,28 +25,51 @@ function access(db: IDBDatabase, key: string, next?: Witness): Promise<Witness |
     transaction.onerror = () => { /* onabort owns rejection */ };
   });
 }
+/** Holds both writer locks while capturing the two authoritative records. Prepared
+ * candidates are recovery notes; their last committed base remains in the books. */
+export async function coordinatedSnapshot(demo: boolean, mirror: {getItem(key: string): string | null}): Promise<{records: Record<string,string|null>; prepared: Record<string,string|null>}> {
+  const locks = globalThis.navigator?.locks;
+  if (!locks?.request || !globalThis.indexedDB) throw unavailable();
+  const prefix = demo ? 'slip.demo.' : '';
+  return locks.request(prefix + SHIFT_KEY, {mode:'exclusive'}, () =>
+    locks.request(prefix + 'slip.ledger.v1', {mode:'exclusive'}, async () => {
+      const db = await open();
+      try {
+        const records: Record<string,string|null> = {}, prepared: Record<string,string|null> = {};
+        for (const key of [SHIFT_KEY, 'slip.ledger.v1']) {
+          const w = await access(db,prefix+key);
+          records[key] = w ? w.phase === 'committed' ? w.value : w.base : mirror.getItem(key);
+          if(w?.phase === 'prepared') prepared[key] = w.value;
+        }
+        return {records,prepared};
+      } finally {db.close();}
+    }));
+}
 export async function coordinateShift(
   demo: boolean,
   mirror: { getItem(key: string): string | null },
   change: (base: string | null) => Promise<string | null>,
   persist: (value: string | null) => void,
-  retryValue?: string,
+  retryValue?: string | null,
   replace = false,
+  recordKey = SHIFT_KEY,
+  intent?: (base: string | null, value: string | null) => void,
 ): Promise<void> {
   const locks = globalThis.navigator?.locks;
   if (!locks?.request || !globalThis.indexedDB) throw unavailable();
-  const key = `${demo ? 'slip.demo.' : ''}${SHIFT_KEY}`;
+  const key = `${demo ? 'slip.demo.' : ''}${recordKey}`;
   await locks.request(key, { mode: 'exclusive' }, async () => {
     const db = await open();
     try {
       const witness = await access(db, key);
-      const visible = mirror.getItem(SHIFT_KEY);
+      const visible = mirror.getItem(recordKey);
       if (witness?.phase === 'prepared' && retryValue !== witness.value && !replace) {
-        throw new Error('An interrupted shift-log save needs its original tab to retry or an encrypted backup. No records were overwritten.');
+        throw new Error('An interrupted coordinated save needs its original tab to retry or an encrypted backup. No records were overwritten.');
       }
       // Once initialized, the durable witness is authoritative, never a cached mirror.
       const base = witness ? (witness.phase === 'committed' ? witness.value : witness.base) : visible;
       const value = await change(base);
+      intent?.(base, value);
       await access(db, key, { phase: 'prepared', base, value });
       persist(value); // Guarded localStorage failures still reject and retain recovery data.
       await access(db, key, { phase: 'committed', base, value });
