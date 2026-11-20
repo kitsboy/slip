@@ -1414,6 +1414,7 @@ export default function Till() {
           </div>
         )}
 
+        <p className="v2-notice" data-payment-next>{invoice.status === 'seen' ? 'Wait for confirmation. Do not pay again.' : 'Already sent? Check now before paying again.'}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
@@ -1508,6 +1509,7 @@ export default function Till() {
           }
         </div>
         <h2
+          role="status" aria-live="polite"
           className={`mt-2 text-sm font-semibold v2-paid${
             receipt.note !== 'rehearsal' && !receipt.manual ? ' v2-yours' : ''
           }`}
@@ -1806,6 +1808,9 @@ export default function Till() {
                       aria-label="Search items"
                       className="min-w-0 flex-1 rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
                     />
+                    {query && <button type="button" className="btn btn-secondary" onClick={() => { setQuery(''); document.getElementById('tl-search')?.focus(); }}>Clear search</button>}
+                    <button type="button" className="btn btn-secondary" onClick={() => setPadOpen(true)}>Keypad</button>
+                    <a className="btn btn-secondary" href="#tl-cart" onClick={e => { e.preventDefault(); document.getElementById('tl-cart')?.focus(); }}>Edit sale</a>
                     <ScanToCart
                       items={items}
                       currency={settings.currency}
@@ -1926,13 +1931,7 @@ export default function Till() {
                         </span>
                       }
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => setPadOpen(true)}
-                      className="btn btn-secondary mt-1 w-full sm:hidden"
-                    >
-                      Use the keypad
-                    </button>
+
                   </label>
                   <div className="flex items-end gap-2">
                     <button
@@ -2078,7 +2077,7 @@ export default function Till() {
               )}
             </div>
 
-            <div className={`lg:sticky lg:top-20 v2-held`} id="tl-cart">
+            <div className={`lg:sticky lg:top-20 v2-held`} id="tl-cart" tabIndex={-1}>
               <h3 className="v2-cart-heading">
                 Current sale <span>{cart.reduce((n, line) => n + line.quantity, 0)} items</span>
               </h3>

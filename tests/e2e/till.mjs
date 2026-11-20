@@ -88,12 +88,14 @@ check('payment screen warns to pay the exact amount', /Pay the exact amount/.tes
 check('payment screen names the address index', /Address #0/.test(payment), payment.slice(0, 200));
 check('payment screen shows a QR svg', (await page.locator('svg').count()) > 0);
 check('first status is waiting', /waiting for payment/i.test(payment));
+check('waiting gives a duplicate-payment precaution', /Check now before paying again/.test(await page.locator('[data-payment-next]').innerText()));
 
 // --- mempool-only receipt is "seen", never "paid" ----------------------------
 mode = 'mempool';
 await page.getByRole('button', { name: 'check now' }).click();
 await page.waitForTimeout(700);
 const seen = await page.locator('body').innerText();
+check('observed payment next step is wait, not pay again', /Wait for confirmation. Do not pay again./.test(await page.locator('[data-payment-next]').innerText()));
 // The plain-language pass renamed this: a shopkeeper should not need the word "mempool" to know a
 // payment is on its way but not yet confirmed.
 check('an unconfirmed payment reads as seen, not paid', /seen on its way/i.test(seen), seen.slice(0, 240));

@@ -1,0 +1,41 @@
+import { chromium } from 'playwright';
+import { chromePath } from './_chrome.mjs';
+import { mkdirSync } from 'node:fs';
+const base = process.argv[2] ?? 'http://[::1]:4181/';
+const out = process.argv[3]; if(out) mkdirSync(out,{recursive:true});
+const browser = await chromium.launch({executablePath:chromePath(),args:['--no-sandbox']});
+let failures=0, checks=0;
+function check(name,ok,detail){checks++;console.log(`${ok?'PASS':'FAIL'} ${name} ${JSON.stringify(detail??'')}`);if(!ok)failures++;}
+for(const theme of ['dark','light']) for(const width of [320,390,768,1440]){
+ const context=await browser.newContext({viewport:{width,height:844},colorScheme:theme,reducedMotion:'reduce'});
+ const page=await context.newPage(); const errors=[];page.on('pageerror',e=>errors.push(String(e)));
+ const url=new URL(base);url.searchParams.set('demo','1');await page.goto(String(url));await page.locator('#tl-search').waitFor();
+ const name=`${theme}/${width}`;
+ await page.locator('#tl-search').fill('Espresso');await page.getByRole('button',{name:'Clear search',exact:true}).click();
+ check(name+' clears search and restores focus',await page.locator('#tl-search').evaluate(e=>e.value===''&&e===document.activeElement));
+ await page.getByRole('link',{name:'Edit sale',exact:true}).click();
+ check(name+' edit sale moves keyboard focus',await page.locator('#tl-cart').evaluate(e=>e===document.activeElement));
+ await page.getByRole('button',{name:'Keypad',exact:true}).click();
+ check(name+' keypad opens at every width',await page.getByRole('dialog').isVisible());await page.keyboard.press('Escape');
+ check(name+' Escape restores keypad opener and scrolling',await page.getByRole('button',{name:'Keypad',exact:true}).evaluate(e=>e===document.activeElement&&document.body.style.overflow!=='hidden'));
+ await page.locator('.v2-find').scrollIntoViewIfNeeded();
+ if(out)await page.screenshot({path:`${out}/${width}-sell-${theme}.png`,animations:'disabled'});
+ await page.locator('.v2-tile').first().click();
+ const remove=page.locator('#tl-cart button[aria-label^="Remove"]').first();await remove.click();await page.getByRole('button',{name:'Undo',exact:true}).click();
+ check(name+' cart removal can be undone',await page.locator('#tl-cart .v2-cart-lines li').count()===1);
+ await page.locator('#tl-rate').fill('60000');await page.locator('#tl-charge').click();
+ await page.locator('#tl-pay').waitFor();
+ check(name+' waiting next step avoids duplicate payment',/Check now before paying again/.test(await page.locator('[data-payment-next]').innerText()));
+ if(out)await page.screenshot({path:`${out}/${width}-waiting-${theme}.png`,animations:'disabled'});
+ url.hash='books';await page.goto(String(url));await page.locator('#hs-date').waitFor();
+ const past=await page.locator('#hs-date option').evaluateAll(options=>options.map(o=>o.value).find(v=>v!==new Date().toISOString().slice(0,10)));
+ if(past)await page.locator('#hs-date').selectOption(past);
+ await page.getByRole('button',{name:'Today',exact:true}).click();
+ check(name+' Today selects current UTC day',await page.locator('#hs-date').inputValue()===new Date().toISOString().slice(0,10));
+ const geometry=await page.evaluate(()=>({filter:document.getElementById('hs-find').getBoundingClientRect().top,close:document.querySelector('[data-day-checklist]').getBoundingClientRect().top,overflow:document.documentElement.scrollWidth-innerWidth}));
+ check(name+' filter precedes closing and page fits',geometry.filter<geometry.close&&geometry.overflow===0,geometry);
+ check(name+' dated export group',await page.getByRole('group',{name:/Reports & exports/}).count()===1);
+ if(out)await page.screenshot({path:`${out}/${width}-books-${theme}.png`,animations:'disabled'});
+ check(name+' no runtime errors',errors.length===0,errors);await context.close();
+}
+await browser.close();console.log(`${checks} checks, ${failures} failures`);process.exit(failures?1:0);

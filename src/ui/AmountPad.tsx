@@ -9,7 +9,8 @@
  * source of truth for totals.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useModalFocus } from './useModalFocus';
 import { applyPadKey } from '../core/digit-guard';
 
 interface Props {
@@ -24,6 +25,8 @@ const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', '⌫'] as c
 
 export default function AmountPad({ currency, open, quick = [5, 10, 20, 50], onClose, onAmount }: Props) {
   const [value, setValue] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
+  useModalFocus(ref, open, onClose);
 
   useEffect(() => {
     if (!open) return;
@@ -46,7 +49,7 @@ export default function AmountPad({ currency, open, quick = [5, 10, 20, 50], onC
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col justify-end bg-black/50" role="dialog" aria-modal="true" aria-label="Amount">
+    <div ref={ref} tabIndex={-1} className="fixed inset-0 z-40 flex flex-col justify-end bg-black/50 overflow-y-auto" role="dialog" aria-modal="true" aria-label="Amount">
       <div className="rounded-t-2xl border-t border-line bg-bg p-4">
         <div className="flex items-baseline justify-between">
           <p className="eyebrow">How much</p>

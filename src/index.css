@@ -814,13 +814,6 @@ html[data-skin='v2'] {
   font-family: var(--v2-font-ui);
 }
 
-html[data-skin='v2'] .v2-hero {
-  font-size: var(--v2-t-hero);
-  line-height: 1;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-}
 
 html[data-skin='v2'] .v2-money {
   font-size: var(--v2-t-money);
@@ -830,34 +823,9 @@ html[data-skin='v2'] .v2-money {
   font-variant-numeric: tabular-nums;
 }
 
-html[data-skin='v2'] .v2-title {
-  font-size: var(--v2-t-title);
-  line-height: 24px;
-  font-weight: 600;
-  letter-spacing: -0.005em;
-}
 
-html[data-skin='v2'] .v2-body {
-  font-size: var(--v2-t-body);
-  line-height: 24px;
-  font-weight: 400;
-  max-width: 66ch;
-}
 
-html[data-skin='v2'] .v2-stamp {
-  font-size: var(--v2-t-stamp);
-  line-height: 16px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
 
-html[data-skin='v2'] .v2-mono {
-  font-family: var(--v2-font-mono);
-  font-size: var(--v2-t-mono);
-  line-height: 20px;
-  font-variant-numeric: slashed-zero;
-}
 
 @keyframes v2-feed {
   from {
@@ -932,9 +900,6 @@ html[data-skin='v2'] .v2-btn[aria-disabled='true'] {
   color: var(--v2-ink-2);
   transform: none;
 }
-html[data-skin='v2'] .v2-btn-s {
-  min-height: 40px;
-}
 html[data-skin='v2'] .v2-btn-text {
   border: 0;
   background: transparent;
@@ -960,25 +925,6 @@ html[data-skin='v2'] .v2-money {
   align-items: baseline;
   gap: 6px;
   font-variant-numeric: tabular-nums;
-}
-html[data-skin='v2'] .v2-money-hero {
-  font-size: clamp(24px, 11cqw, 80px);
-  line-height: 1;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  container-type: inline-size;
-}
-html[data-skin='v2'] .v2-money-hero[data-fit='tight'] {
-  font-size: clamp(16px, 8cqw, 36px);
-}
-html[data-skin='v2'] .v2-money-inline {
-  font-size: 20px;
-  line-height: 24px;
-  font-weight: 600;
-}
-html[data-skin='v2'] .v2-money-sats {
-  font-size: 16px;
-  line-height: 24px;
 }
 html[data-skin='v2'] .v2-money-unit {
   font-size: 12px;
@@ -1061,7 +1007,8 @@ html[data-skin='v2'] .v2-row-sub {
 
 html[data-skin='v2'] .v2-status {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-items: baseline;
   gap: 8px;
   font: 600 14px/20px var(--v2-font-ui);
 }
@@ -1090,6 +1037,7 @@ html[data-skin='v2'] .v2-count-dead {
 }
 
 html[data-skin='v2'] .v2-status-detail {
+  flex-basis: 100%;
   font-weight: 400;
   color: var(--v2-ink-2);
 }

@@ -405,6 +405,24 @@ export default function History() {
       data-rail-manual={close.byRail.manual.toString()}
     >
       <p className="eyebrow">History &amp; day close</p>
+      <nav aria-label="Books day" className="mt-3 flex flex-wrap items-end gap-2">
+        <label className="block" htmlFor="hs-date">
+          <span className="eyebrow">Day</span>
+          <select
+            id="hs-date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+          >
+            {days.slice(0, 60).map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button type="button" className="btn btn-secondary" onClick={() => setDate(todayIso)}>Today</button>
+      </nav>
       <div className="flex items-center gap-2">
         <h2 className="panel-title mt-1">What you rang up</h2>
         <InfoVideo
@@ -502,6 +520,19 @@ export default function History() {
         )}
       </div>
 
+      <label className="mt-3 block" htmlFor="hs-find" data-panel="findsale">
+        <span className="eyebrow">Find a sale</span>
+        <input
+          id="hs-find"
+          value={find}
+          onChange={(e) => setFind(e.target.value)}
+          placeholder="amount, address ending, time, invoice…"
+          className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+        />
+        <span className="mt-1 block text-[11px] text-muted">
+          A customer comes back with a receipt and no invoice number: type what they remember.
+        </span>
+      </label>
       {previous && (
         <p className="mt-3 text-warn" data-unclosed-day>
           Not closed:{' '}
@@ -574,21 +605,7 @@ export default function History() {
         )}
       </div>
       <div className={`mt-3 grid gap-2 sm:grid-cols-4 v2-leaders`} data-books-totals>
-        <label className="block" htmlFor="hs-date">
-          <span className="eyebrow">Day</span>
-          <select
-            id="hs-date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
-          >
-            {days.slice(0, 60).map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-        </label>
+
         {[
           ['Sales', String(close.count)],
           ['Net', perCoin((t) => t.netAtoms)],
@@ -622,7 +639,8 @@ export default function History() {
         confirmed by a human: <span className="figure">{perCoin((t) => t.manualAtoms)}</span>
       </p>
 
-      <div className="mt-2 flex flex-wrap gap-2">
+      <fieldset className="mt-3 flex flex-wrap gap-2">
+        <legend>Reports &amp; exports — {date}</legend>
         <button
           type="button"
           onClick={() => {
@@ -656,7 +674,7 @@ export default function History() {
         >
           Print on A4
         </button>
-      </div>
+      </fieldset>
       <Blocker show={close.count === 0}>
         Nothing sold on this day yet, so there is no sheet to close and no CSV to download.
       </Blocker>
@@ -676,19 +694,7 @@ export default function History() {
         </p>
       )}
 
-      <label className="mt-3 block" htmlFor="hs-find" data-panel="findsale">
-        <span className="eyebrow">Find a sale</span>
-        <input
-          id="hs-find"
-          value={find}
-          onChange={(e) => setFind(e.target.value)}
-          placeholder="amount, address ending, time, invoice…"
-          className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
-        />
-        <span className="mt-1 block text-[11px] text-muted">
-          A customer comes back with a receipt and no invoice number: type what they remember.
-        </span>
-      </label>
+
 
       {close.count === 0 ? (
         <p className="mt-3 rounded-lg border border-line p-2 text-[11px] text-muted">
