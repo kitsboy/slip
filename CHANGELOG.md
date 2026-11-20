@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.67** — 2026-11-20T20:54:28Z — `c3a0acee64f4` — Eight merchant upgrades: leaner bundle, readiness, payment exceptions, offline guidance, validated recovery, receipt sharing, busy counter and export preview
+
 - **v0.31.66** — 2026-11-20T07:43:46Z — `535b4c66750e` — Three focused upgrades: faster sale entry, clearer payment progress and easier Books day navigation
 
 - **v0.31.65** — 2026-11-20T07:18:30Z — `f52ac57213c8` — Whole-site polish: readable sections, accessible dialogs, responsive wallet QRs, clearer setup and honest customer guidance
