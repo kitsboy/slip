@@ -91,7 +91,13 @@ for(const theme of ['dark','light']) for(const width of [320,390,768,1440]){
 // Exception fixtures are synthetic provider observations; no external requests or funds.
 for (const scenario of ['seen','expired','underpaid']) {
  const c=await browser.newContext({viewport:{width:390,height:900}}); const p=await c.newPage();
- let receive=0; await c.route('https://**/*', r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({chain_stats:{funded_txo_sum:receive,tx_count:receive?1:0},mempool_stats:{funded_txo_sum:scenario==='seen'?1000000:0,tx_count:scenario==='seen'?1:0}})}));
+ let receive=0; let providerHits=0; const appOrigin=new URL(base).origin;
+ await c.route('https://**/*', r=>{
+   // The fixture is for external providers, never the app document/assets on HTTPS.
+   if(new URL(r.request().url()).origin===appOrigin) return r.continue();
+   providerHits++;
+   return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({chain_stats:{funded_txo_sum:receive,tx_count:receive?1:0},mempool_stats:{funded_txo_sum:scenario==='seen'?1000000:0,tx_count:scenario==='seen'?1:0}})});
+ });
  await p.goto(base); await showPanel(p,'wallets');await p.locator('#ct-label').fill('LTC exception fixture');
  await p.locator('#ct-xpub').fill('zpub6rFR7y4Q2AijBEqTUquhVz398htDFrtymD9xYYfG1m4wAcvPhXNfE3EfH1r1ADqtfSdVCToUG868RvUUkgDKf31mGDtKsAYz2oz2AGutZYs');
  await p.locator('#ct-network').selectOption('ltc-mainnet');await p.waitForSelector('ol li code');await p.getByLabel(/I opened my wallet/).check();await p.getByRole('button',{name:'Save counter',exact:true}).click();
@@ -101,7 +107,7 @@ for (const scenario of ['seen','expired','underpaid']) {
  if(scenario!=='seen'){await p.clock.fastForward(16*60*1000);if(scenario==='underpaid')receive=1;}
  await p.locator('#tl-check').click();
  const guidance=p.locator('[data-payment-next]');await guidance.getByText(scenario==='seen'?/Wait for confirmation/:scenario==='expired'?/request expired/:/Short payment/).waitFor();
- const text=await guidance.innerText();check('actual invoice '+scenario,scenario!=='underpaid'||/LTC/.test(text),text);
+ const text=await guidance.innerText();check('provider fixture exercised '+scenario,providerHits>0,{providerHits});check('actual invoice '+scenario,scenario!=='underpaid'||/LTC/.test(text),text);
  const last=await p.locator('#tl-pay').innerText();await c.setOffline(true);await p.clock.fastForward(30000);
  check('offline retains existing check age',/checked/.test(last)&&/checked/.test(await p.locator('#tl-pay').innerText()));
  await p.screenshot({path:`${out}/ltc-${scenario}.png`});await c.close();
