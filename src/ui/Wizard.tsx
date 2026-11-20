@@ -186,7 +186,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
   const stepper = WIZARD_STEPS.find((s) => s.step === step);
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-5 pb-16 pt-10">
+    <div className="v2-wizard mx-auto w-full max-w-2xl px-5 pb-16 pt-10">
       <div className="flex items-center gap-2">
         {WIZARD_STEPS.map((s) => (
           <span
@@ -199,7 +199,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
       {(
         <p className="v2-stages">
           {(['Welcome', 'Shop', 'Wallet', 'PIN', 'Ready'] as const).map((name, i) => (
-            <span key={name} className={step === i + 1 ? 'v2-on' : undefined}>{i + 1} {name}</span>
+            <span key={name} aria-current={step === i + 1 ? 'step' : undefined} className={step === i + 1 ? 'v2-on' : undefined}>{i + 1} {name}</span>
           ))}
         </p>
       )}
@@ -225,12 +225,15 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
           <p className="mt-3 text-sm leading-relaxed text-warn">
             It will never ask for your seed phrase. If anything ever does, it is not slip.
           </p>
+          <button type="button" className="btn btn-primary mt-3" onClick={() => setStep(nextStep(step))}>Continue</button>
           <ul className="mt-3 space-y-1 text-xs text-muted">
             <li>· works offline once loaded</li>
             <li>· you paste public keys only — never a private one</li>
             <li>· start on a test network until a full sale works</li>
           </ul>
 
+          <details className="mt-3">
+            <summary>Optional: wallet guides and a pretend shop</summary>
           {/* The wall, demonstrated offline and on this device. Nothing is written. */}
           <div className="mt-4 rounded-lg border border-line p-3">
             <p className="text-xs">
@@ -274,6 +277,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
               Pretend shop first
             </a>
           </div>
+          </details>
         </div>
       )}
 
@@ -614,7 +618,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
         )}
         {/* D-83 applies to every step, not only the last: a disabled Continue drops focus and hides the
             one line that says what is missing. It stays focusable and refused. Same rule as the last step. */}
-        {step < 5 ? (
+        {step === 1 ? null : step < 5 ? (
           <button
             type="button"
             onClick={() => {

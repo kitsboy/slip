@@ -165,7 +165,7 @@ export default function CustomerDisplay() {
           </div>
         )
       )}
-      <p className={`v2-display-status ${paid ? 'v2-yours' : seen ? 'text-ok' : 'text-warn'}`}>
+      <p role="status" aria-live="polite" className={`v2-display-status ${paid ? 'v2-yours' : seen ? 'text-ok' : 'text-warn'}`}>
         {message.status === 'simulated'
           ? 'Simulated — no real payment'
           : message.status === 'manual'

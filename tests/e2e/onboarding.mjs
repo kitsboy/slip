@@ -44,6 +44,7 @@ await page.waitForSelector('h1', { timeout: 15000 });
 
 // Open the wizard from the hero.
 await page.getByRole('button', { name: /set up my shop/i }).click();
+await page.getByText('Optional: wallet guides and a pretend shop', { exact: true }).click();
 await page.waitForSelector('#wz-try', { timeout: 8000 });
 
 // --- Step 1: the wall is demonstrated, not just described -------------------

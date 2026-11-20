@@ -132,7 +132,8 @@ export default function Requests() {
         never calls it covered unless a completed invoice says so.
       </p>
 
-      <div className={`mt-3 grid gap-2 sm:grid-cols-2 v2-form`}>
+      <fieldset className="mt-4 grid gap-4 sm:grid-cols-2 v2-form">
+        <legend className="px-1 font-semibold">New standing request</legend>
         <label className="block" htmlFor="rq-label">
           <span className="eyebrow">What is it</span>
           <input
@@ -193,12 +194,12 @@ export default function Requests() {
             className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
           />
         </label>
-      </div>
+      </fieldset>
 
       <button
         type="button"
         onClick={add}
-        className="mt-2 rounded-lg border border-accent px-3 py-2 text-xs text-accent"
+        className="btn btn-primary mt-4"
       >
         add request
       </button>

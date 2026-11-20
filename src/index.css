@@ -1006,13 +1006,14 @@ html[data-skin='v2'] .v2-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 24px;
-  padding: 0 8px;
+  min-height: 28px;
+  max-width: 100%;
+  padding: 4px 8px;
   border-radius: var(--v2-r-1);
   border: 1px solid var(--v2-edge);
-  font: 700 12px/16px var(--v2-font-ui);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font: 600 0.875rem/1.4 var(--v2-font-ui);
+  letter-spacing: 0;
+  text-transform: none;
 }
 html[data-skin='v2'] .v2-badge-dot {
   width: 8px;
@@ -1152,17 +1153,28 @@ html[data-skin='v2'] .v2-scrim {
   background: rgb(0 0 0 / 0.5);
   display: grid;
   place-items: end center;
+  padding: 16px 12px max(16px, env(safe-area-inset-bottom));
+  overflow: auto;
   z-index: 40;
 }
 html[data-skin='v2'] .v2-dialog,
 html[data-skin='v2'] .v2-sheet {
   width: min(420px, 100%);
-  max-height: 88dvh;
+  max-height: calc(100dvh - 32px);
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  min-width: 0;
   background: var(--v2-raised);
   border-radius: var(--v2-r-3);
   padding: 24px;
   color: var(--v2-ink);
+}
+html[data-skin='v2'] .v2-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
 }
 html[data-skin='v2'] .v2-sheet-close {
   min-width: 48px;
@@ -1298,6 +1310,9 @@ html[data-skin='v2'] textarea {
   border-radius: 12px;
   background: var(--v2-sunk);
   color: var(--v2-ink);
+  font-size: 1rem;
+  min-width: 0;
+  scroll-margin-block: 160px;
 }
 html[data-skin='v2'] button[aria-label^='Remove '] {
   min-height: 48px;
@@ -1327,8 +1342,8 @@ html[data-skin='v2'] .text-xs,
 html[data-skin='v2'] .eyebrow,
 html[data-skin='v2'] [class*='text-[11px]'] {
   color: var(--v2-ink);
-  font-size: 16px;
-  line-height: 1.45;
+  font-size: 1rem;
+  line-height: 1.5;
   letter-spacing: 0;
   text-transform: none;
   font-weight: 500;
@@ -1509,13 +1524,53 @@ html[data-skin='v2'] [data-panel='requests'] button.border-accent {
 
 /* Setup and More, under the flag. The tools stay. The backup row says Optional.
    Panels read as rows. The receipt check is the proof card. Learn stays open. */
-html[data-skin='v2'] .v2-section > div:first-child h2 {
-  font-size: 18px;
-  line-height: 24px;
+html[data-skin='v2'] :is(.v2-section, [data-panel]) {
+  scroll-margin-top: calc(var(--shell-head, 300px) + 16px);
+}
+html[data-skin='v2'] .v2-section-heading {
+  display: grid;
+  gap: 8px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--v2-line);
+}
+html[data-skin='v2'] .v2-section-heading h2 {
+  font-size: 1.5rem;
+  line-height: 1.25;
   font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
   color: var(--v2-ink);
+}
+html[data-skin='v2'] .v2-section-heading p {
+  max-width: 66ch;
+  font-size: 1rem;
+  color: var(--v2-ink-2);
+}
+html[data-skin='v2'] .v2-resume-sale {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 12px 16px;
+  margin-top: 16px;
+  border: 1px solid var(--v2-edge);
+  border-radius: 12px;
+  background: var(--v2-sunk);
+  color: var(--v2-ink);
+  font-size: 1rem;
+  text-underline-offset: 4px;
+}
+html[data-skin='v2'] [data-day-checklist] {
+  padding: 16px;
+  background: var(--v2-sunk);
+}
+html[data-skin='v2'] [data-day-checklist] label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding-block: 8px;
+}
+html[data-skin='v2'] [data-unresolved-sale] {
+  padding-block: 12px;
+  border-bottom: 1px solid var(--v2-line);
 }
 html[data-skin='v2'] #setup .panel,
 html[data-skin='v2'] #more .panel {
@@ -2171,8 +2226,8 @@ html[data-skin='v2'] .v2-display-idle-line {
 html[data-skin='v2'] .v2-display {
   background: #1a1613;
   color: #f7f2ea;
-  gap: 28px;
-  padding: 48px 24px 64px;
+  gap: 24px;
+  padding: 32px 16px max(32px, env(safe-area-inset-bottom));
 }
 html[data-skin='v2'] .v2-display-shop {
   margin: 0;
@@ -2180,7 +2235,9 @@ html[data-skin='v2'] .v2-display-shop {
   font-size: clamp(32px, 6vw, 56px);
   font-weight: 500;
   letter-spacing: -0.02em;
-  line-height: 1.05;
+  line-height: 1.15;
+  max-width: 24ch;
+  overflow-wrap: anywhere;
   color: var(--v2-yours);
 }
 html[data-skin='v2'] .v2-yours {
@@ -2211,7 +2268,7 @@ html[data-skin='v2'] .v2-display-status {
 }
 html[data-skin='v2'] .v2-display-pair {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: 16px;
   width: min(100%, 880px);
   align-items: start;
@@ -2277,8 +2334,8 @@ html[data-skin='v2'] .v2-stages {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 16px;
-  margin: 14px 0 0;
+  gap: 8px 16px;
+  margin: 16px 0 0;
   padding: 0;
   list-style: none;
   font-size: 16px;
@@ -2326,14 +2383,8 @@ html[data-skin='v2'] .v2-pair-qr {
   overflow: visible;
 }
 html[data-skin='v2'] .v2-qr {
-  width: 100%;
-  max-width: 440px;
-  height: auto;
   aspect-ratio: auto;
   padding: 16px;
-  background: #ffffff;
-  box-sizing: border-box;
-  overflow: visible;
 }
 html[data-skin='v2'] .v2-qr .v2-qr-box {
   width: 100%;
@@ -2857,9 +2908,17 @@ html[data-skin='v2'] .v2-notice {
   color: var(--v2-ink);
 }
 html[data-skin='v2'] .v2-receipt p + p {
-  border-top: 1px dotted var(--v2-edge);
-  padding-top: 6px;
+  border-top: 1px dotted var(--v2-line);
+  padding-top: 12px;
 }
+html[data-skin='v2'] [data-digital-receipt] {
+  width: calc(100% - 32px);
+  margin: 24px auto 48px;
+  line-height: 1.6;
+}
+html[data-skin='v2'] [data-digital-receipt] h1 { font-size: 1.5rem; }
+html[data-skin='v2'] .v2-receipt-status { font-weight: 700; }
+html[data-skin='v2'] [data-digital-receipt] .figure { font-size: clamp(24px, 8vw, 40px); }
 
 /* A waiting sale is one line on a phone, so it cannot cover the first coffee. */
 @media (max-width: 400px) {
@@ -3271,7 +3330,23 @@ html[data-skin='v2'] [data-readiness] a {
    tab's close mark (13 wide), the clip button inside the footer's film strip (40 high), and the
    warning-coloured link to the demo shop (37 high). Each is a real tap on a phone. */
 html[data-skin='v2'] .btn {
-  min-height: 44px;
+  min-height: 48px;
+  line-height: 1.4;
+  white-space: normal;
+}
+html[data-skin='v2'] :is(.v2-section, .v2-wizard) summary {
+  min-height: 48px;
+  padding-block: 12px;
+}
+html[data-skin='v2'] :is(.v2-section, .v2-wizard) label:has(input[type='checkbox']) {
+  min-height: 48px;
+  gap: 12px;
+}
+html[data-skin='v2'] input:is([type='checkbox'], [type='radio']) {
+  min-height: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 html[data-skin='v2'] [data-slip] button[aria-label^='Close'],
 html[data-skin='v2'] button[aria-label^='Close'] {
@@ -3309,7 +3384,10 @@ html[data-skin='v2'] a[href='#settings'].underline {
    taken away the reason; this class is the dimming without the silence. */
 html[data-skin='v2'] .v2-blocked,
 html[data-skin='v2'] button[aria-disabled='true'] {
-  opacity: 0.55;
+  opacity: 1;
+  color: var(--v2-ink-2);
+  background: var(--v2-sunk);
+  border-color: var(--v2-edge);
   cursor: not-allowed;
 }
 
@@ -3437,10 +3515,10 @@ html[data-skin='v2'] .v2-qr-box {
   border-radius: 8px;
   line-height: 0;
 }
-html[data-skin='v2'] .v2-qr-box svg {
-  display: block;
-  width: 100%;
-  height: auto;
+html[data-skin='v2'] .v2-public-code { grid-template-columns: minmax(0, 1fr); }
+html[data-skin='v2'] [data-panel='explainer'] { font-size: 1rem; }
+@media (min-width: 640px) {
+  html[data-skin='v2'] .v2-public-code { grid-template-columns: minmax(0, 280px) minmax(0, 1fr); }
 }
 
 html[data-skin='v2'] .v2-foot-link {

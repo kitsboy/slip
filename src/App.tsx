@@ -289,6 +289,16 @@ export default function App() {
     }
   })();
 
+  useEffect(() => {
+    const header = document.querySelector('header');
+    if (!header || typeof ResizeObserver === 'undefined') return;
+    const measure = () => document.documentElement.style.setProperty('--shell-head', `${header.getBoundingClientRect().height}px`);
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    measure();
+    return () => observer.disconnect();
+  }, [locked]);
+
   const v2 = document.documentElement.dataset.skin === 'v2';
   const tabClass = (t: Tab) =>
     v2
@@ -522,6 +532,11 @@ export default function App() {
               )}
             </section>
 
+            {shellCounts.openAtoms !== null && activeSection !== 'sell' && (
+              <a href="#till" data-open-sale className="v2-resume-sale">
+                A sale is still waiting · {formatSats(shellCounts.openAtoms)} · back to it
+              </a>
+            )}
             <Group
               id="sell"
               label="Sell"
@@ -647,15 +662,7 @@ export default function App() {
       )}
 
       {/* Bottom tab bar on phones — five equal targets inside thumb reach. */}
-      {shellCounts.openAtoms !== null && activeSection !== 'sell' && (
-        <a
-          href="#till"
-          data-open-sale
-          className="fixed bottom-[86px] left-1/2 z-30 -translate-x-1/2 rounded-full bg-accent px-4 py-2 text-xs font-semibold text-bg shadow-lg"
-        >
-          A sale is still waiting · {formatSats(shellCounts.openAtoms)} · back to it
-        </a>
-      )}
+
 
       <nav
         aria-label="Primary sections (phone)"
@@ -717,12 +724,13 @@ function Group({
       id={id}
       className={`mt-10 scroll-mt-16 sm:scroll-mt-24 ${document.documentElement.dataset.skin === 'v2' ? 'v2-section' : ''}`}
       hidden={!active}
+      aria-labelledby={`${id}-title`}
     >
-      <div className="flex flex-wrap items-baseline gap-2 border-b border-line pb-1">
-        <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+      <div className="v2-section-heading">
+        <h2 id={`${id}-title`}>
           {label}
         </h2>
-        <span className="text-[11px] text-muted/80">{why}</span>
+        <p>{why}</p>
       </div>
       {id === 'learn' && document.documentElement.dataset.skin === 'v2' ? (
         <details className="v2-learn" open>

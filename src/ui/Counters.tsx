@@ -378,7 +378,7 @@ export default function Counters() {
                 <AddressText address={a.firstAddress} />
               </p>
               {(a.source === 'xpub' || a.source === 'descriptor') && (
-                <div className="mt-2 flex items-start gap-3">
+                <div className="v2-public-code mt-2 grid items-start gap-3 sm:grid-cols-[auto_minmax(0,1fr)]">
                   <div
                     className="v2-pair-qr shrink-0 rounded-xl bg-white p-2"
                     dangerouslySetInnerHTML={{ __html: renderQrSvg(a.xpub, { scale: 4, margin: 4 }) }}
@@ -416,11 +416,11 @@ export default function Counters() {
                 {qrFor === a.id ? 'hide QR' : 'address 0/0 QR'}
               </button>
               {qrFor === a.id && (
-                <div className="mt-2 flex items-start gap-3">
+                <div className="v2-public-code mt-2 grid items-start gap-3 sm:grid-cols-[auto_minmax(0,1fr)]">
                   {/* Our own generated SVG — the only markup injected here, and its content
                       is a QR matrix, not merchant text. */}
                   <div
-                    className="h-32 w-32 shrink-0 rounded-lg bg-white p-1"
+                    className="v2-pair-qr rounded-lg bg-white p-2"
                     dangerouslySetInnerHTML={{
                       __html: renderQrSvg(
                         paymentUri(a.coin === 'ltc' ? 'litecoin' : 'bitcoin', {

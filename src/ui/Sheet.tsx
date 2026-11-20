@@ -1,4 +1,5 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
+import { useModalFocus } from './useModalFocus';
 
 /** C-17. Close is a button, not a swipe. One sheet at a time is the caller's job. */
 export default function Sheet({
@@ -13,24 +14,14 @@ export default function Sheet({
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const close = useRef(onClose);
-  close.current = onClose;
-
-  useEffect(() => {
-    if (!open) return;
-    ref.current?.querySelector<HTMLElement>('button')?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close.current();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open]);
+  useModalFocus(ref, open, onClose);
 
   if (!open) return null;
   return (
     <div className="v2-scrim" onClick={onClose}>
       <div
         ref={ref}
+        tabIndex={-1}
         className="v2-sheet"
         role="dialog"
         aria-modal="true"

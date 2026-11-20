@@ -10,7 +10,7 @@ export default function DigitalReceipt() {
           <p className="figure mt-4">{formatCoinAmount(BigInt(r.atoms), r.coin)}</p>
           <span className="v2-rule" aria-hidden />
           <p>{formatFiat({ minor: BigInt(r.minor), currency: r.currency })}</p>
-          <p role="status" className="mt-4">
+          <p role="status" className="v2-receipt-status mt-4">
             {r.status}
           </p>
           <p>{r.network ?? 'Network not recorded in this older receipt'}</p>

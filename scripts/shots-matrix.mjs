@@ -19,8 +19,9 @@ const BASE = process.argv[2] ?? 'http://[::1]:4181/';
 const OUT = process.argv[3] ?? 'docs/shots/matrix';
 
 const CANVASES = [
+  { name: 'small', width: 320, height: 700 },
   { name: 'phone', width: 390, height: 844 },
-  { name: 'tablet', width: 834, height: 1112 },
+  { name: 'tablet', width: 768, height: 1024 },
   { name: 'desk', width: 1440, height: 960 },
 ];
 
@@ -31,6 +32,7 @@ const SCREENS = [
   { name: 'money-in', hash: 'requests' },
   { name: 'books', hash: 'books' },
   { name: 'setup', hash: 'wallets' },
+  { name: 'more', hash: 'more' },
   { name: 'learn', hash: 'learn' },
   { name: 'parts', hash: '', parts: true },
   { name: 'customer', hash: '', customer: true },
@@ -54,7 +56,7 @@ for (const canvas of CANVASES) {
     for (const screen of SCREENS) {
       const url = new URL(BASE);
       url.searchParams.set('demo', '1');
-      if (screen.parts) url.searchParams.set('parts', '1');
+      if (screen.parts) url.searchParams.set('gallery', '1');
       if (screen.customer) url.searchParams.set('display', '1');
       if (screen.hash) url.hash = screen.hash;
       await page.goto(url.toString(), { waitUntil: 'networkidle' });
@@ -112,7 +114,7 @@ for (const canvas of CANVASES) {
   for (const screen of SCREENS) {
     const url = new URL(BASE);
     url.searchParams.set('demo', '1');
-    if (screen.parts) url.searchParams.set('parts', '1');
+    if (screen.parts) url.searchParams.set('gallery', '1');
     if (screen.customer) url.searchParams.set('display', '1');
     if (screen.hash) url.hash = screen.hash;
     await page.goto(url.toString(), { waitUntil: 'networkidle' });
