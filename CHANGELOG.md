@@ -1,5 +1,7 @@
 # Changelog
 
+- **v0.31.66** — 2026-11-20T07:43:46Z — `535b4c66750e` — Three focused upgrades: faster sale entry, clearer payment progress and easier Books day navigation
+
 - **v0.31.65** — 2026-11-20T07:18:30Z — `f52ac57213c8` — Whole-site polish: readable sections, accessible dialogs, responsive wallet QRs, clearer setup and honest customer guidance
 
 - **v0.31.64** — 2026-11-17T03:53:17Z — `50b06e8d185b` — Seven merchant upgrades: coordinated sales, digital numbered receipts, guided close, backup rehearsal and corrected coin QRs
