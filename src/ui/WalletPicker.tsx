@@ -1,3 +1,4 @@
+import { c9, c15 } from './classes';
 /**
  * "Which wallet do you use?" — the picker that makes step one recognisable.
  *
@@ -56,14 +57,14 @@ export default function WalletPicker({ onSend }: Props) {
 
           {chosen.caveat && <p className="mt-2 text-[11px] leading-relaxed text-warn">{chosen.caveat}</p>}
 
-          <p className="mt-1 text-[11px] text-muted">
+          <p className={c9}>
             Menus move between versions — if a name has changed, the idea is the same: a long code
             beginning zpub / ypub / xpub, or an address that looks like an email.
           </p>
 
           <button
             type="button"
-            className="btn btn-secondary mt-2 px-2 py-1 text-xs"
+            className={c15}
             onClick={() => {
               onSend?.(chosen.kind);
               const target =

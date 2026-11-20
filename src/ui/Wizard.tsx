@@ -1,3 +1,4 @@
+import { c0, c4, c5, c16, c25, c31, c32, c33, c34, c35 } from './classes';
 /**
  * Setup wizard — five screens, in the order a shop actually works.
  *
@@ -259,7 +260,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
               className="mt-2 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
             />
             {tryRefusal && (
-              <p role="alert" className="mt-2 rounded-lg border border-bad p-2 text-xs text-bad">
+              <p role="alert" className={c31}>
                 {refusalCopy(tryRefusal)}
               </p>
             )}
@@ -290,17 +291,17 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
               placeholder="Corner Coffee"
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+              className={c4}
             />
           </label>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className={c32}>
             <label className="block" htmlFor="wz-currency">
               <span className="eyebrow">Currency</span>
               <select
                 id="wz-currency"
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+                className={c4}
               >
                 {COMMON.map((c) => (
                   <option key={c} value={c}>
@@ -316,7 +317,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
                 value={taxPercent}
                 onChange={(e) => setTaxPercent(e.target.value.replace(/[^\d.]/g, ''))}
                 inputMode="decimal"
-                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+                className={c5}
               />
             </label>
           </div>
@@ -331,7 +332,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
               id="wz-label"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+              className={c4}
             />
           </label>
           <label className="mt-3 block" htmlFor="wz-network">
@@ -340,7 +341,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
               id="wz-network"
               value={networkId}
               onChange={(e) => setNetworkId(e.target.value as NetworkId)}
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+              className={c4}
             >
               {NETWORKS.map((n) => (
                 <option key={n.id} value={n.id}>
@@ -350,7 +351,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
             </select>
             {/* What this chain can and cannot do, before a merchant picks it. A shopkeeper who
                 assumes Litecoin works exactly like Bitcoin finds out at the till otherwise. */}
-            <p className="mt-1 text-xs leading-relaxed text-muted" data-coin-note>
+            <p className={c0} data-coin-note>
               {networkId.startsWith('ltc') ? (
                 <>
                   Litecoin: addresses, segwit, taproot and the day stamp all work. Litecoin has{' '}
@@ -375,7 +376,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
               rows={3}
               spellCheck={false}
               placeholder="zpub6… or wpkh(zpub…/0/*)"
-              className="mt-1 w-full resize-y rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
+              className={c33}
             />
             <p className="mt-1 text-sm text-ink">Scan the QR from your wallet, or paste the zpub. A private key is refused and wiped.</p>
             <CameraCapture
@@ -404,13 +405,13 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
           </label>
 
           {refusal && (
-            <p role="alert" className="mt-2 rounded-lg border border-bad p-2 text-xs text-bad">
+            <p role="alert" className={c31}>
               {refusalCopy(refusal)}
             </p>
           )}
 
           {validation && !validation.ok && (
-            <p className="mt-2 rounded-lg border border-warn p-2 text-xs text-warn" role="alert">
+            <p className={c34} role="alert">
               {validation.error}
             </p>
           )}
@@ -466,7 +467,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
                 </button>
               </div>
               {matchStop && (
-                <p className="mt-2 rounded-lg border border-bad p-2 text-sm text-bad" role="alert" data-compare-stop>
+                <p className={c35} role="alert" data-compare-stop>
                   They don&apos;t match. slip will not take a sale until address 0/0 matches your wallet.
                   There is no skip. Check the address, then press They match.
                 </p>
@@ -498,7 +499,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
               value={pin}
               onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 8))}
               inputMode="numeric"
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+              className={c5}
             />
           </label>
           <button type="button" onClick={() => void savePin()} className="btn btn-secondary mt-2">
@@ -550,7 +551,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
                 </button>
               </div>
               {matchStop && (
-                <p className="mt-2 rounded-lg border border-bad p-2 text-sm text-bad" role="alert" data-compare-stop>
+                <p className={c35} role="alert" data-compare-stop>
                   They don&apos;t match. This setup cannot open the counter. There is no skip.
                 </p>
               )}
@@ -568,12 +569,12 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
               </label>
             </>
           ) : (
-            <p className="mt-2 rounded-lg border border-warn p-2 text-xs text-warn">
+            <p className={c34}>
               No wallet is confirmed yet. Go back to step 3 and check address 0/0 first.
             </p>
           )}
 
-          <dl className="mt-4 grid gap-2 sm:grid-cols-2">
+          <dl className={c25}>
             {[
               ['Shop', businessName || '—'],
               ['Currency', currency],
@@ -582,7 +583,7 @@ export default function Wizard({ onDone }: { onDone: () => void }) {
               ['PIN', pin ? 'set' : 'not set'],
               ['Stage', 'Working till — sell, close the day, prove it'],
             ].map(([k, v]) => (
-              <div key={k} className="rounded-lg border border-line px-3 py-2">
+              <div key={k} className={c16}>
                 <dt className="eyebrow">{k}</dt>
                 <dd className="mt-0.5 text-sm">{v}</dd>
               </div>

@@ -1,3 +1,4 @@
+import { c8, c16, c17, c18 } from './classes';
 /**
  * Verify this build.
  *
@@ -46,8 +47,8 @@ export default function About() {
           ['Commit', COMMIT],
           ['Built', BUILT_AT.replace('T', ' ').replace(/\..*$/, ' UTC')],
         ].map(([k, v]) => (
-          <div key={k} className="rounded-lg border border-line px-3 py-2">
-            <dt className="text-[11px] uppercase tracking-[0.08em] text-muted">{k}</dt>
+          <div key={k} className={c16}>
+            <dt className={c8}>{k}</dt>
             <dd className="figure mt-0.5 text-[11px]">{v}</dd>
           </div>
         ))}
@@ -63,11 +64,11 @@ export default function About() {
         panel is the honest half of the check.
       </p>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className={c17}>
         <button
           type="button"
           onClick={() => void copy()}
-          className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
+          className={c18}
         >
           {copied ? 'copied' : 'copy diagnostics'}
         </button>

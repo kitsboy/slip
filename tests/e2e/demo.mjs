@@ -65,8 +65,11 @@ check('the demo never reached the internet', external.length === 0, external.sli
 check('no runtime errors from slip', errs.length === 0, errs.join(' | '));
 
 // Leaving wipes the demo drawer and returns to the real app.
-await page.getByRole('button', { name: 'exit demo' }).click();
-await page.waitForTimeout(700);
+await Promise.all([
+  page.waitForURL(url => url.searchParams.get('demo') !== '1'),
+  page.getByRole('button', { name: 'exit demo' }).click(),
+]);
+await page.locator('[data-panel="till"]').waitFor({ state: 'visible' });
 const after = await page.evaluate(() => Object.keys(window.localStorage).filter((k) => k.startsWith('slip.demo.')));
 check('exiting the demo clears its drawer', after.length === 0, after.join(','));
 check('the real app comes back', !/DEMO — a pretend shop/i.test(await body()));

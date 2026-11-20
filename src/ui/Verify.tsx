@@ -1,3 +1,4 @@
+import { c0, c1, c2, c3 } from './classes';
 /**
  * Checking a receipt someone hands you.
  *
@@ -75,7 +76,7 @@ export default function Verify() {
           seconds={12}
         />
       </div>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
+      <p className={c0}>
         Paste the text under a receipt&apos;s QR (or scan it and paste what your phone shows). slip
         compares it against the books on this device. Nothing is sent anywhere.
       </p>
@@ -88,14 +89,14 @@ export default function Verify() {
           onChange={(e) => setText(e.target.value)}
           rows={3}
           placeholder="SLIP1|inv_…|bc1q…|17084|2026-10-31T13:43:00.000Z|-"
-          className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-[11px] outline-none focus:border-accent"
+          className={c1}
         />
       </label>
       <div className="mt-2 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={check}
-          className="rounded-lg border border-accent px-3 py-2 text-xs text-accent"
+          className={c2}
         >
           check receipt
         </button>
@@ -123,7 +124,7 @@ export default function Verify() {
             id="vf-pick"
             value={chosen?.id ?? ''}
             onChange={(e) => toCode(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-xs outline-none focus:border-accent"
+            className={c3}
           >
             <option value="">— choose a completed sale —</option>
             {invoices.slice(0, 50).map((i) => (

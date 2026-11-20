@@ -1,3 +1,4 @@
+import { c0, c7, c8, c40 } from './classes';
 /**
  * "Check your key" — the derivation preview, shipped early on purpose.
  *
@@ -92,7 +93,7 @@ export default function KeyCheck() {
   return (
     <section className="mt-6 panel">
       <h2 className="panel-title">Check your key</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
+      <p className={c0}>
         Paste an account-level <span className="font-mono">xpub / ypub / zpub / Ltub / tpub</span>.
         slip derives the first five receiving addresses and nothing else. Compare address #0 with
         your wallet&apos;s Receive tab — if they differ, stop and tell me before any sale.
@@ -158,7 +159,7 @@ export default function KeyCheck() {
       )}
 
       {result.state === 'error' && (
-        <p className="mt-4 rounded-lg border border-warn p-3 text-sm text-warn" role="alert">
+        <p className={c40} role="alert">
           {result.message}
         </p>
       )}
@@ -172,8 +173,8 @@ export default function KeyCheck() {
               ['Parent fp', result.fingerprint],
               ['Script', result.scriptType],
             ].map(([k, v]) => (
-              <div key={k} className="rounded-lg border border-line px-2 py-1">
-                <dt className="text-[11px] uppercase tracking-[0.08em] text-muted">{k}</dt>
+              <div key={k} className={c7}>
+                <dt className={c8}>{k}</dt>
                 <dd className="font-mono text-[11px]">{v}</dd>
               </div>
             ))}

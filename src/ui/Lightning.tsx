@@ -1,3 +1,4 @@
+import { c0, c4, c5, c6, c11, c13, c14 } from './classes';
 /**
  * Lightning, the way a café actually takes it: no node, no channel, no credential.
  *
@@ -135,12 +136,12 @@ export default function Lightning() {
     <section className="mt-6 panel" data-panel="lightning">
       <p className="eyebrow">Lightning</p>
       <h2 className="panel-title mt-1">Take a Lightning payment</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
+      <p className={c0}>
         Your Lightning address is public, so slip can ask your own wallet for an invoice at the
         exact amount. No node, no channel, no credential — and nothing here can spend.
       </p>
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+      <div className={c11}>
         <label className="block" htmlFor="ln-addr">
           <span className="eyebrow">Lightning address</span>
           <input
@@ -148,7 +149,7 @@ export default function Lightning() {
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="shop@getalby.com"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
         <label className="block" htmlFor="ln-amt">
@@ -159,7 +160,7 @@ export default function Lightning() {
             onChange={(e) => setAmount(e.target.value)}
             inputMode="decimal"
             placeholder="4.50"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
         <label className="block" htmlFor="ln-rate">
@@ -170,7 +171,7 @@ export default function Lightning() {
             onChange={(e) => setRate(e.target.value)}
             inputMode="decimal"
             placeholder="60000.00"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
         <label className="block" htmlFor="ln-memo">
@@ -180,7 +181,7 @@ export default function Lightning() {
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
             placeholder="two coffees"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           />
         </label>
       </div>
@@ -193,15 +194,15 @@ export default function Lightning() {
         Request invoice
       </button>
 
-      {status && <p className="mt-2 text-[11px] text-muted">{status}</p>}
+      {status && <p className={c6}>{status}</p>}
 
       {live && (
-        <div className="mt-3 flex flex-wrap items-start gap-3">
+        <div className={c13}>
           <div
             className="qr-pocket h-48 w-48"
             dangerouslySetInnerHTML={{ __html: renderQrSvg(lightningUri(live.pr), { scale: 5, margin: 2 }) }}
           />
-          <div className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
+          <div className={c14}>
             <p className="figure text-sm text-ink">{formatSats(live.sats)}</p>
             <p>
               {formatFiat({ minor: live.minor, currency: settings.currency })} · to {live.address}

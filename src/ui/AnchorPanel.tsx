@@ -1,3 +1,4 @@
+import { c0, c4, c6, c7, c18, c24, c41 } from './classes';
 /**
  * The day book, and stamping it.
  *
@@ -86,13 +87,13 @@ export default function AnchorPanel() {
     <section className="mt-6 panel" data-panel="anchor">
       <p className="eyebrow">Day book &amp; proof</p>
       <h2 className="panel-title mt-1">Prove what you rang up</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
+      <p className={c0}>
         Each day&apos;s completed sales are hashed into one digest on this device. Nothing leaves
         until you press stamp, and stamping only submits the digest to a public calendar — it is
         not a Bitcoin confirmation yet.
       </p>
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+      <div className={c41}>
         <label className="block" htmlFor="an-date">
           <span className="eyebrow">Day</span>
           <select
@@ -103,7 +104,7 @@ export default function AnchorPanel() {
               setCheck(null);
               setNote(null);
             }}
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           >
             {days.map((d) => (
               <option key={d} value={d}>
@@ -112,13 +113,13 @@ export default function AnchorPanel() {
             ))}
           </select>
         </label>
-        <div className="rounded-lg border border-line px-2 py-1">
+        <div className={c7}>
           <span className="eyebrow">Completed sales</span>
           <p className="figure mt-0.5 text-xs">
             {book ? `${book.count} · ${formatSats(book.totalAtoms)}` : '—'}
           </p>
         </div>
-        <div className="rounded-lg border border-line px-2 py-1">
+        <div className={c7}>
           <span className="eyebrow">Day digest</span>
           <p className="mt-0.5 break-all font-mono text-[11px]">
             {book ? (
@@ -162,7 +163,7 @@ export default function AnchorPanel() {
           <button
             type="button"
             onClick={() => void recheck()}
-            className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
+            className={c18}
           >
             re-hash my books
           </button>
@@ -176,7 +177,7 @@ export default function AnchorPanel() {
             : 'Nothing completed on this day, so there is no digest to stamp.'}
       </Blocker>
 
-      <p className="mt-2 text-[11px] leading-relaxed text-muted">
+      <p className={c24}>
         Calendars: {CALENDARS.join(' · ')} — third parties we do not control. They learn that a
         digest of this shape exists, and nothing about your customers.
       </p>
@@ -195,7 +196,7 @@ export default function AnchorPanel() {
           </p>
         </div>
       )}
-      {note && <p className="mt-2 text-[11px] text-muted">{note}</p>}
+      {note && <p className={c6}>{note}</p>}
       {check && <p className="mt-1 text-[11px] text-ok">{check}</p>}
     </section>
   );

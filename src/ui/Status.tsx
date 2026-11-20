@@ -68,8 +68,12 @@ export default function Status() {
   return (
     <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-muted">
       <span className={`chip ${state.online ? 'chip-good' : 'border-warn text-warn'}`}>
-        {state.online ? 'online' : 'offline — no payment detection'}
+        {state.online ? 'online hint — providers unverified' : 'offline — no payment detection'}
       </span>
+      <details data-offline-capabilities><summary>What works offline?</summary>
+        <p>Once loaded: cart, saved books, public receiving addresses, encrypted backup/test/restore, and local reports remain on this device if storage works. A cached rate is not a fresh quote.</p>
+        <p>Explorer payment checks, fresh rates, Lightning invoices/verification and calendar stamps need their configured providers. Browser online status is only a hint, not proof a provider works. Reconnect, then Check now before asking for another payment. Existing last-check times remain the last observation, not a new check.</p>
+      </details>
       <span className="chip">{state.installed ? 'installed app' : 'in a browser tab'}</span>
       {state.updateReady && (
         <button

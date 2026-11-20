@@ -1,3 +1,4 @@
+import { c0, c1, c4, c32, c43 } from './classes';
 /**
  * Pairing a wallet with a second device — by QR, with no server.
  *
@@ -81,13 +82,13 @@ export default function Pair() {
     <section className="mt-6 panel" data-panel="pair">
       <p className="eyebrow">Pairing</p>
       <h2 className="panel-title mt-1">Move a wallet to another device</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
+      <p className={c0}>
         A pairing code is public wallet material — the same thing you would write on a card for a
         colleague. Nothing secret travels, and nothing arrives checked: the receiving device must
         still confirm address 0/0 before it takes money.
       </p>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+      <div className={c32}>
         <div>
           <span className="eyebrow">Show a code for</span>
           <select
@@ -97,7 +98,7 @@ export default function Pair() {
               setShowing(accounts.find((a) => a.id === e.target.value) ?? null);
               setNote(null);
             }}
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           >
             <option value="">— choose a wallet —</option>
             {accounts.map((a) => (
@@ -137,7 +138,7 @@ export default function Pair() {
               onChange={(e) => setIncoming(e.target.value)}
               rows={4}
               placeholder="SLIP-WALLET-1|Shop till|btc|btc-mainnet|xpub|p2wpkh|zpub…"
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-[11px] outline-none focus:border-accent"
+              className={c1}
             />
           </label>
           <ScanField
@@ -159,7 +160,7 @@ export default function Pair() {
             <button
               type="button"
               onClick={read}
-              className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:text-ink"
+              className={c43}
             >
               read code
             </button>

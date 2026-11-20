@@ -1,3 +1,4 @@
+import { c4 } from './classes';
 /**
  * Scanning straight into the cart.
  *
@@ -132,7 +133,7 @@ export default function ScanToCart({ items, currency, onPick, onAmount }: Props)
               }
             }}
             placeholder="a bar code, an item name, or an amount"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           />
         </label>
         <button type="button" onClick={() => resolve(code)} className="btn btn-secondary">

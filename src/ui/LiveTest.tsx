@@ -1,3 +1,4 @@
+import { c0, c5, c6, c12, c13, c14, c24 } from './classes';
 /**
  * Fresh signet observation check; optional Lightning uses real money, not testnet.
  *
@@ -134,7 +135,7 @@ export default function LiveTest() {
     <section className="mt-6 panel" data-panel="livetest">
       <p className="eyebrow">Live test</p>
       <h2 className="panel-title mt-1">Fresh testnet payment check</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
+      <p className={c0}>
         Use signet test coins before real takings. slip captures a baseline before showing the
         request and waits for a new confirmed increase. Historical payouts are not a fresh sale.
         The optional Lightning tool below uses REAL money and is not a testnet readiness check.
@@ -165,7 +166,7 @@ export default function LiveTest() {
             value={lightningAddress}
             onChange={(e) => setLightningAddress(e.target.value)}
             placeholder="you@wallet.example"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
       ) : (
@@ -176,7 +177,7 @@ export default function LiveTest() {
             value={signetAddress}
             onChange={(e) => setSignetAddress(e.target.value)}
             placeholder="tb1…"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
       )}
@@ -184,20 +185,20 @@ export default function LiveTest() {
       <button
         type="button"
         onClick={() => (rail === 'lightning' ? void startLightning() : startSignet())}
-        className="mt-2 rounded-lg border border-accent px-3 py-2 text-xs text-accent"
+        className={c12}
       >
         request {rail === 'signet' ? 'testnet' : 'REAL MONEY Lightning'} {TEST_SATS.toString()} sat invoice
       </button>
 
-      {status && <p className="mt-2 text-[11px] text-muted">{status}</p>}
+      {status && <p className={c6}>{status}</p>}
 
       {live && (
-        <div className="mt-3 flex flex-wrap items-start gap-3">
+        <div className={c13}>
           <div
             className="h-48 w-48 rounded-lg bg-white p-1"
             dangerouslySetInnerHTML={{ __html: renderQrSvg(live.uri, { scale: 5, margin: 2 }) }}
           />
-          <div className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
+          <div className={c14}>
             <p className="figure text-sm text-ink">{formatSats(live.sats)}</p>
             <p>
               {live.rail === 'lightning'
@@ -225,7 +226,7 @@ export default function LiveTest() {
         </div>
       )}
 
-      <p className="mt-2 text-[11px] leading-relaxed text-muted">
+      <p className={c24}>
         slip cannot spend or send. You pay separately from your wallet. This check is held in this tab only; no physical or funded test is certified.
       </p>
     </section>

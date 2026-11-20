@@ -1,3 +1,4 @@
+import { c4, c5, c39 } from './classes';
 /**
  * Opening and closing the till.
  *
@@ -126,7 +127,7 @@ export default function OpenTill({ staff, shift, counter = '', currency, busy = 
     <div className="mt-3 rounded-xl border border-line bg-surface-2 p-4" data-shift="closed">
       <p className="eyebrow">Before the first customer</p>
       <h3 className="mt-1 text-sm text-ink">Open the till</h3>
-      <p className="mt-1 text-[11px] leading-relaxed text-muted">
+      <p className={c39}>
         Who is on, and what you started with. Optional, and reversible: closing writes the matching
         line.
       </p>
@@ -140,7 +141,7 @@ export default function OpenTill({ staff, shift, counter = '', currency, busy = 
             onChange={(e) => setName(e.target.value)}
             list={staff.length > 0 ? 'tl-staff-names' : undefined}
             placeholder="Your name, or a staff name"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           />
           {staff.length > 0 && (
             <datalist id="tl-staff-names">
@@ -159,7 +160,7 @@ export default function OpenTill({ staff, shift, counter = '', currency, busy = 
             onChange={(e) => setFloat(e.target.value)}
             inputMode="decimal"
             placeholder="120.00"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
 

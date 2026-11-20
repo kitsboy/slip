@@ -1,3 +1,4 @@
+import { c0, c2, c4, c6, c9, c10, c19, c36, c41 } from './classes';
 /**
  * Watchlist — addresses slip looks at but does not own.
  *
@@ -138,12 +139,12 @@ export default function Watchlist() {
     <section className="mt-6 panel" data-panel="watchlist">
       <p className="eyebrow">Watchlist</p>
       <h2 className="panel-title mt-1">Addresses you can see but never touch</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
+      <p className={c0}>
         A supplier, a landlord, a cold wallet. Adding one costs nothing and sends nothing; checking
         one asks your explorer, and every balance below carries the moment it was read.
       </p>
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+      <div className={c41}>
         <label className="block" htmlFor="wl-label">
           <span className="eyebrow">Name</span>
           <input
@@ -151,7 +152,7 @@ export default function Watchlist() {
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             placeholder="Landlord"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           />
         </label>
         <label className="block sm:col-span-2" htmlFor="wl-addr">
@@ -161,7 +162,7 @@ export default function Watchlist() {
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="bc1q…"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
+            className={c36}
           />
         </label>
         <label className="block" htmlFor="wl-net">
@@ -170,7 +171,7 @@ export default function Watchlist() {
             id="wl-net"
             value={networkId}
             onChange={(e) => setNetworkId(e.target.value as NetworkId)}
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           >
             {ALL_NETWORK_IDS.map((n) => (
               <option key={n} value={n}>
@@ -185,7 +186,7 @@ export default function Watchlist() {
         <button
           type="button"
           onClick={add}
-          className="rounded-lg border border-accent px-3 py-2 text-xs text-accent"
+          className={c2}
         >
           add to watchlist
         </button>
@@ -201,7 +202,7 @@ export default function Watchlist() {
         )}
       </div>
 
-      {note && <p className="mt-2 text-[11px] text-muted">{note}</p>}
+      {note && <p className={c6}>{note}</p>}
 
       {watches.length === 0 && (
         <EmptyState>
@@ -216,7 +217,7 @@ export default function Watchlist() {
             const s = seen[w.id];
             return (
               <li key={w.id} className="rounded-lg border border-line p-2">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <div className={c19}>
                   <span className="text-sm">{w.label}</span>
                   <span className="chip">{w.networkId}</span>
                 </div>
@@ -227,7 +228,7 @@ export default function Watchlist() {
                   s.error ? (
                     <p className="mt-1 text-[11px] text-bad">{s.error}</p>
                   ) : (
-                    <p className="mt-1 text-[11px] text-muted">
+                    <p className={c9}>
                       balance <span className="figure text-ink">{formatSats(s.atoms)}</span> ·
                       received{' '}
                       <span className="figure">
@@ -239,13 +240,13 @@ export default function Watchlist() {
                     </p>
                   )
                 ) : (
-                  <p className="mt-1 text-[11px] text-muted">not checked yet</p>
+                  <p className={c9}>not checked yet</p>
                 )}
                 <div className="mt-1 flex gap-2">
                   <button
                     type="button"
                     onClick={() => void check(w)}
-                    className="rounded border border-line px-2 text-xs text-muted hover:text-ink"
+                    className={c10}
                   >
                     check
                   </button>

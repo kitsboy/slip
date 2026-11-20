@@ -1,3 +1,4 @@
+import { c0, c4, c20, c28, c30, c42 } from './classes';
 /**
  * The words, in plain English, with the exact term kept alongside for whoever wants it.
  *
@@ -87,7 +88,7 @@ export default function Glossary() {
     <section className="mt-6 panel" data-panel="glossary" id="glossary">
       <p className="eyebrow">Plain words</p>
       <h2 className="panel-title mt-1">Every term, in English</h2>
-      <p className="mt-1 text-sm leading-relaxed text-secondary">
+      <p className={c20}>
         Next step: set up a wallet, then ring a sale on Sell. Nothing here is required reading.
       </p>
       <label className="mt-3 block" htmlFor="gl-search">
@@ -97,7 +98,7 @@ export default function Glossary() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="sats, paid, seed…"
-          className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+          className={c4}
         />
       </label>
       <p className="mt-1 text-sm text-muted">
@@ -109,11 +110,11 @@ export default function Glossary() {
           const match =
             !needle || `${entry.term} ${entry.plain} ${entry.technical}`.toLowerCase().includes(needle);
           return (
-            <div key={entry.term} className="rounded-xl border border-line p-3" hidden={!match}>
-              <dt className="text-sm font-semibold text-ink">{entry.term}</dt>
-              <dd className="mt-1 text-sm leading-relaxed">{entry.plain}</dd>
+            <div key={entry.term} className={c42} hidden={!match}>
+              <dt className={c28}>{entry.term}</dt>
+              <dd className={c30}>{entry.plain}</dd>
               <Tech>
-                <dd className="mt-1 text-xs leading-relaxed text-muted">
+                <dd className={c0}>
                   <span className="opacity-70">Exact term: </span>
                   {entry.technical}
                 </dd>

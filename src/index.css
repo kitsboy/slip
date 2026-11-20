@@ -1,6 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+html[data-skin='v2'] [data-busy-counter='on'] .v2-tile { min-height: 112px; padding: 16px; }
+html[data-skin='v2'] [data-busy-counter='on'] .v2-tile:focus-visible { outline: 3px solid var(--v2-ink); outline-offset: 2px; }
+[data-export-preview] textarea, [data-receipt-handoff] textarea { max-width: 100%; overflow-wrap: anywhere; }
+[data-offline-capabilities] { min-width: 0; max-width: 100%; }
+[data-offline-capabilities] summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+@media (max-width: 520px) { .v2-receipt [data-proof-row] { flex-direction: column; } }
+
+
 
 /* Theme tokens. Dark is the default (a till behind a counter at night).
    Every colour is a plain custom property so a theme swap needs no rebuild.

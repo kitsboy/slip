@@ -1,3 +1,4 @@
+import { c0, c4, c5, c11, c15, c17, c18, c22, c32, c36, c39, c43, c45 } from './classes';
 /**
  * Settings — the shop's own numbers, editable after setup.
  *
@@ -205,14 +206,14 @@ export default function Settings() {
 
       {/* Two choices that matter more than they look: the screen is read at arm's length, often by
           tired eyes, and a POS that only fits young eyesight gets zoomed and then looks broken. */}
-      <div className="mt-3 grid gap-3 sm:grid-cols-2" data-display>
+      <div className={c32} data-display>
         <label className="block" htmlFor="st-size">
           <span className="eyebrow">Text size</span>
           <select
             id="st-size"
             value={textSize}
             onChange={(e) => setTextSize(e.target.value === 'large' ? 'large' : 'normal')}
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           >
             <option value="normal">Normal</option>
             <option value="large">Larger — easier across the counter</option>
@@ -224,7 +225,7 @@ export default function Settings() {
             id="st-density"
             value={density}
             onChange={(e) => setDensity(e.target.value === 'compact' ? 'compact' : 'comfortable')}
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           >
             <option value="comfortable">Comfortable</option>
             <option value="compact">Compact — more of the day on screen</option>
@@ -239,7 +240,7 @@ export default function Settings() {
             id="st-name"
             value={businessName}
             onChange={(e) => setBusinessName(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           />
         </label>
         <label className="block" htmlFor="st-currency">
@@ -248,7 +249,7 @@ export default function Settings() {
             id="st-currency"
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           >
             {COMMON.map((c) => (
               <option key={c} value={c}>
@@ -264,7 +265,7 @@ export default function Settings() {
             value={taxPercent}
             onChange={(e) => setTaxPercent(e.target.value.replace(/[^\d.]/g, ''))}
             inputMode="decimal"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
         <label className="block" htmlFor="st-footer">
@@ -274,7 +275,7 @@ export default function Settings() {
             value={receiptFooter}
             onChange={(e) => setReceiptFooter(e.target.value)}
             placeholder="Thanks — see you tomorrow"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           />
         </label>
       </div>
@@ -289,15 +290,15 @@ export default function Settings() {
           onChange={(e) => setExplorerUrl(e.target.value)}
           spellCheck={false}
           placeholder="https://mempool.space/api — or your own https://node.local/api"
-          className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
+          className={c36}
         />
       </label>
-      <p className="mt-1 text-[11px] leading-relaxed text-muted">
+      <p className={c39}>
         A public explorer learns which addresses you ask about, and your IP. Point this at your own
         Esplora / electrs and it learns nothing. slip never sends anything else.
       </p>
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+      <div className={c11}>
         <label className="block" htmlFor="st-rate-endpoint">
           <span className="eyebrow">Rate endpoint (empty = type the rate yourself)</span>
           <input
@@ -306,7 +307,7 @@ export default function Settings() {
             onChange={(e) => setRateEndpoint(e.target.value)}
             spellCheck={false}
             placeholder="https://mempool.space/api/v1/prices"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
+            className={c36}
           />
         </label>
         <label className="mt-4 flex items-start gap-2 text-xs" htmlFor="st-auto-rate">
@@ -329,7 +330,7 @@ export default function Settings() {
 
       <div className="mt-3 rounded-lg border border-line p-2">
         <span className="eyebrow">Staff tip jars</span>
-        <p className="mt-1 text-[11px] leading-relaxed text-muted">
+        <p className={c39}>
           A named person can take tips into their own wallet. Only public wallet material is stored
           — slip still cannot spend a sat.
         </p>
@@ -391,7 +392,7 @@ export default function Settings() {
               setNewStaff('');
               setNewStaffWallet('');
             }}
-            className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
+            className={c18}
           >
             add
           </button>
@@ -406,7 +407,7 @@ export default function Settings() {
           value={signature}
           onChange={(e) => setSignature(e.target.value)}
           placeholder="giveabit.io"
-          className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
+          className={c36}
         />
         <span className="mt-1 block text-[11px] text-muted">
           Rides on the BIP-21 label a customer’s wallet already shows — never a logo across the
@@ -416,14 +417,14 @@ export default function Settings() {
 
       <div className="mt-4 rounded-lg border border-line p-2" data-panel="assist">
         <span className="eyebrow">Assistance</span>
-        <p className="mt-1 text-[11px] leading-relaxed text-muted">
+        <p className={c39}>
           Every switch here adds words or widgets to the screen. A busy counter can turn them all
           off; a first week can leave them on. Nothing here changes what slip does with money.
         </p>
         {ASSIST_GROUPS.map((group) => (
           <div key={group.id} className="mt-3" data-assist-group={group.id}>
             <div className="flex flex-wrap items-baseline gap-2">
-              <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+              <h4 className={c22}>
                 {group.label}
               </h4>
               <span className="text-[11px] text-muted/80">{group.why}</span>
@@ -449,14 +450,14 @@ export default function Settings() {
             </ul>
           </div>
         ))}
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className={c45}>
           <button
             type="button"
             onClick={() => {
               const ok = printCounterCard({ shopName: businessName, version: buildLabel() });
               if (!ok) setNote({ kind: 'warn', text: 'allow pop-ups to print the counter card' });
             }}
-            className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:text-ink"
+            className={c43}
           >
             print the counter card
           </button>
@@ -466,7 +467,7 @@ export default function Settings() {
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className={c17}>
         <button
           type="button"
           onClick={() => save()}
@@ -500,7 +501,7 @@ export default function Settings() {
 
       <div data-till-lock>
         <p className="eyebrow">Till lock</p>
-        <p className="mt-1 text-xs leading-relaxed text-muted">
+        <p className={c0}>
           A PIN keeps a passer-by out of the day's takings when the phone is left on the counter. It
           is <span className="text-ink">not encryption</span> — the books live in this browser, and
           anyone with the device and its own tools can read them. Forgotten PIN? Restore your backup
@@ -508,7 +509,7 @@ export default function Settings() {
         </p>
 
         {pinHash ? (
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className={c32}>
             <label className="block" htmlFor="st-lock-after">
               <span className="eyebrow">Lock the till</span>
               <select
@@ -523,7 +524,7 @@ export default function Settings() {
                     text: `the till will lock ${minutes === 0 ? 'only when you press Lock now' : `after ${minutes} quiet minutes`}`,
                   });
                 }}
-                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+                className={c4}
               >
                 {LOCK_CHOICES.map((c) => (
                   <option key={c.minutes} value={c.minutes}>
@@ -573,7 +574,7 @@ export default function Settings() {
           </p>
         )}
 
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <div className={c11}>
           <label className="block" htmlFor="st-pin-new">
             <span className="eyebrow">{pinHash ? 'New PIN' : 'Set a PIN'}</span>
             <input
@@ -584,7 +585,7 @@ export default function Settings() {
               inputMode="numeric"
               autoComplete="off"
               placeholder="4 to 8 digits"
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+              className={c5}
             />
           </label>
           <label className="block" htmlFor="st-pin-confirm">
@@ -597,7 +598,7 @@ export default function Settings() {
               inputMode="numeric"
               autoComplete="off"
               placeholder="the same digits"
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+              className={c5}
             />
           </label>
         </div>
@@ -616,7 +617,7 @@ export default function Settings() {
 
       <div data-persist-status>
         <p className="eyebrow">Keeping the books on this device</p>
-        <p className="mt-1 text-xs leading-relaxed text-muted">
+        <p className={c0}>
           Browsers drop a site's data when the phone is short of space — iOS is the keenest — so
           slip asks the browser to keep this shop. The answer is{' '}
           <span className="text-ink">{PERSIST_LABEL[persist?.answer ?? 'unknown']}</span>
@@ -653,7 +654,7 @@ export default function Settings() {
             setPersist(await recheckPersistence(appStore()));
             window.dispatchEvent(new Event('slip:data-changed'));
           }}
-          className="btn btn-secondary mt-2 px-2 py-1 text-xs"
+          className={c15}
           id="st-persist-recheck"
         >
           Ask again
@@ -663,12 +664,12 @@ export default function Settings() {
       <hr className="divider my-5" />
 
       <p className="eyebrow">Danger zone</p>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
+      <p className={c0}>
         Wiping removes every counter, the PIN hash and the shift log from{' '}
         <span className="text-ink">this device</span>. It cannot touch your money, because slip
         never had any — but if you have no backup, the counter list is gone for good.
       </p>
-      <div className="mt-2 flex flex-wrap items-center gap-2">
+      <div className={c45}>
         <input
           value={confirmWipe}
           onChange={(e) => setConfirmWipe(e.target.value)}

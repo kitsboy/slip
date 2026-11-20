@@ -1,3 +1,4 @@
+import { c5, c17, c18, c19, c20, c21, c22, c23 } from './classes';
 /**
  * Backup, restore and the shift log — the two things that make a shop's records
  * survive a lost phone and a change of staff.
@@ -62,6 +63,13 @@ export default function Backup() {
   const [verified, setVerified] = useState<{ ok: boolean; reason?: string } | null>(null);
   const [passphrase, setPassphrase] = useState('');
   const [busy, setBusy] = useState(false);
+  const [preflight, setPreflight] = useState<number | null>(null);
+  const generation = useRef(0);
+  const selectedFile = useRef<File | null>(null);
+  function invalidatePreflight() {
+    generation.current += 1;
+    setPreflight(null);
+  }
   const [unsaved, setUnsaved] = useState(isWriteFailed);
   useEffect(() => subscribeWriteState(setUnsaved), []);
   const [pending, setPending] = useState<PendingRestore | null>(null);
@@ -143,6 +151,7 @@ export default function Backup() {
         kind: 'ok',
         text: `Encrypted backup download requested (${(text.length / 1024).toFixed(1)} KB). Check that the file finished downloading.${state.recoveryWrites ? ' Includes unsaved recovery records; this does not save them to this device.' : ''} Keep it somewhere you would keep a bank statement.`,
       });
+      invalidatePreflight();
       setPassphrase('');
     } catch (e) {
       setNote({ kind: 'bad', text: e instanceof Error ? e.message : 'could not write the backup' });
@@ -153,30 +162,44 @@ export default function Backup() {
 
   /** Reads the file header only — no passphrase, nothing written. */
   async function inspectFile(file: File) {
+    invalidatePreflight();
+    selectedFile.current = file;
+    setPending(null);
     try {
       const text = await file.text();
       const head = describeBackup(text);
+      if (selectedFile.current !== file) return;
       setPending({ file, createdAt: head.createdAt, bytes: head.bytes });
       setNote({
         kind: 'warn',
         text: `backup from ${head.createdAt.slice(0, 10)} (${(head.bytes / 1024).toFixed(1)} KB, encrypted). Restoring REPLACES the counters on this device — enter the passphrase and confirm.`,
       });
     } catch (e) {
+      if (selectedFile.current !== file) return;
       setPending(null);
       setNote({ kind: 'bad', text: e instanceof Error ? e.message : 'that is not a slip backup' });
     }
   }
 
   async function checkFile() {
-    if (!pending || busy || !passphrase) return;
+    if (!pending || busy || !passphrase) {
+      setNote({ kind: 'warn', text: 'Choose a .slip file and enter its original passphrase first.' });
+      return;
+    }
+    invalidatePreflight();
+    const token = generation.current;
+    const file = pending.file;
     setBusy(true);
     try {
-      const result = await testBackup(await pending.file.text(), passphrase);
+      const result = await testBackup(await file.text(), passphrase);
+      if (generation.current !== token || selectedFile.current !== file) return;
+      setPreflight(result.ok ? token : null);
       setNote({
         kind: result.ok ? 'ok' : 'bad',
         text: result.summary ?? result.error ?? 'Validation failed',
       });
     } catch (e) {
+      if (generation.current !== token || selectedFile.current !== file) return;
       setNote({ kind: 'bad', text: e instanceof Error ? e.message : 'Could not test backup' });
     } finally {
       setBusy(false);
@@ -184,17 +207,22 @@ export default function Backup() {
   }
 
   async function importFile(file: File) {
+    const token = generation.current;
+    const current = () => preflight === token && generation.current === token && selectedFile.current === file;
+    if (!current() || busy) return;
     setBusy(true);
     try {
       const text = await file.text();
       const head = describeBackup(text);
       const validation = await testBackup(text, passphrase);
+      if (!current()) return;
       if (!validation.ok) throw new Error(validation.error);
       const result = await restoreBackup(text, passphrase);
       if (!result.ok) {
         setNote({ kind: 'bad', text: result.error });
         return;
       }
+      if (!current()) return;
       const state = result.state as BackupState;
       if (!Array.isArray(state?.accounts)) {
         setNote({ kind: 'bad', text: 'that file does not contain slip counters' });
@@ -219,6 +247,7 @@ export default function Backup() {
         kind: 'ok',
         text: `restored ${state.accounts.length} counter(s), ${state.pinHash ? 'the PIN' : 'no PIN'}${hadLedger ? ' and the books' : ' — no books in that file (older backup)'}${state.recoverySale || state.recoveryWrites ? ' — recovery notes are informational only; not automatically imported' : ''}, from a backup made ${head.createdAt.slice(0, 10)}.`,
       });
+      invalidatePreflight();
       setPassphrase('');
       setPending(null);
       // Every panel reads the same store; after a restore they all need to re-read, or the
@@ -240,7 +269,7 @@ export default function Backup() {
     <section className="mt-6 panel" data-panel="backup">
       <p className="eyebrow">Backups &amp; staff record</p>
       <h2 className="panel-title mt-1">Your records, on your device, recoverable</h2>
-      <p className="mt-1 text-sm leading-relaxed text-secondary">
+      <p className={c20}>
         Your wallets, settings and staff log, in one file you can keep. No keys — there are none to
         keep. Still locked with a passphrase, because a list of your shop&apos;s addresses is nobody
         else&apos;s business.
@@ -253,29 +282,34 @@ export default function Backup() {
         </p>
       )}
       <Tech>
-        <p className="mt-2 text-xs leading-relaxed text-muted">
+        <p className={c21}>
           The file holds no spending keys, because none exist here. It is encrypted anyway: an xpub
           reveals every past and future address of a wallet.
         </p>
       </Tech>
 
+      <details className="mt-3" data-guided-recovery open><summary>Recover this device safely</summary>
+        <ol><li>Keep a backup of this device first if you need its existing records.</li><li>Choose your encrypted .slip file, enter its original passphrase, then Test my backup — no changes.</li><li>Read the validation result before confirming replacement twice.</li></ol>
+        <p>No file? Find your off-device copy; slip has no server copy. Forgotten passphrase? It cannot be reset. A wallet seed is not a slip backup — never paste seeds or private keys here.</p>
+        <p>Restore replaces counters, PIN and staff log; books are replaced only if present in the file. Older files without books leave current books unchanged. Recovery notes are not auto-imported. Replacement is not all-or-nothing across these records; a failure may leave a partial restore. Keep both files and check the result before selling.</p>
+      </details>
       <label className="mt-4 block" htmlFor="bk-pass">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+        <span className={c22}>
           Backup passphrase
         </span>
         <input
           id="bk-pass"
           type="password"
           value={passphrase}
-          onChange={(e) => setPassphrase(e.target.value)}
+          onChange={(e) => { invalidatePreflight(); setPassphrase(e.target.value); }}
           autoComplete="new-password"
-          className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+          className={c5}
         />
       </label>
       {strength && !strength.ok && <p className="mt-1 text-[11px] text-warn">{strength.reason}</p>}
       {strength?.ok && <p className="mt-1 text-[11px] text-good">passphrase is usable</p>}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className={c17}>
         <button
           type="button"
           onClick={() => {
@@ -295,7 +329,7 @@ export default function Backup() {
         <button
           type="button"
           onClick={() => window.print()}
-          className="rounded-lg border border-line px-3 py-2 text-xs font-semibold text-muted hover:text-ink"
+          className={c23}
         >
           Print / save as PDF
         </button>
@@ -318,7 +352,10 @@ export default function Backup() {
           aria-label="Choose a .slip backup file"
           onChange={(e) => {
             const f = e.target.files?.[0];
+            invalidatePreflight();
+            selectedFile.current = f ?? null;
             if (f) void inspectFile(f);
+            else setPending(null);
           }}
         />
         {accounts.length === 0 && (
@@ -333,8 +370,9 @@ export default function Backup() {
           <p className="text-xs text-warn">
             Backup from {pending.createdAt.slice(0, 10)} ({(pending.bytes / 1024).toFixed(1)} KB).
             Restoring <span className="text-ink">replaces</span> the counters on this device. Enter
-            the passphrase above, then confirm.
+            the passphrase above, test without changes, then confirm replacement.
           </p>
+          {!preflight && <p role="status">Test this file successfully with this passphrase before restore is available.</p>}
           <div className="mt-2 flex flex-wrap gap-2">
             <button
               type="button"
@@ -345,10 +383,11 @@ export default function Backup() {
               Test my backup — no changes
             </button>
             <ConfirmButton
+              key={generation.current}
               label="Confirm restore"
               confirmLabel="Restore again — this replaces this device"
               onConfirm={() => void importFile(pending.file)}
-              disabled={busy || !passphrase}
+              disabled={busy || !passphrase || preflight !== generation.current || pending.file !== selectedFile.current}
               className="rounded-lg border border-warn px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-warn disabled:border-line disabled:text-muted"
             />
             {!passphrase && (
@@ -359,11 +398,13 @@ export default function Backup() {
             <button
               type="button"
               onClick={() => {
+                invalidatePreflight();
+                selectedFile.current = null;
                 setPending(null);
                 setNote(null);
                 if (fileInput.current) fileInput.current.value = '';
               }}
-              className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
+              className={c18}
             >
               Cancel
             </button>
@@ -388,7 +429,7 @@ export default function Backup() {
 
       <hr className="divider my-4" />
 
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
+      <div className={c19}>
         <h3 className="text-sm font-semibold">Staff &amp; shift log</h3>
         {verified && (
           <span className={`chip ${verified.ok ? 'chip-good' : 'border-bad text-bad'}`}>

@@ -1,3 +1,4 @@
+import { c4, c5, c10, c19, c20, c21, c22, c23, c24, c26, c31, c33, c34, c35, c37, c44, c45, c46 } from './classes';
 /**
  * Counters — one account per till, and the staff hand-off.
  *
@@ -307,7 +308,7 @@ export default function Counters() {
           seconds={10}
         />
       </div>
-      <p className="mt-1 text-sm leading-relaxed text-secondary">
+      <p className={c20}>
         Tell slip where your money should land. Your wallet app can give you a public code for
         that — copy it here and slip will watch it. It can see money arrive; it can never move it.
       </p>
@@ -318,13 +319,13 @@ export default function Counters() {
           <li>3. Check address 0</li>
         </ol>
       )}
-      <p className="mt-2 text-xs leading-relaxed text-muted">
+      <p className={c21}>
         One entry per wallet you need to watch — your own, your employer&apos;s, your parents&apos; —
         each with its own colour and label so you can tell them apart at a glance.
       </p>
 
       <Tech>
-        <p className="mt-2 text-xs leading-relaxed text-muted">
+        <p className={c21}>
           The code is any of: an <span className="text-ink">xpub</span>, a{' '}
           <span className="text-ink">BIP-380 descriptor</span> (multisig included), a single public
           key, or a plain address. For a <span className="text-ink">BIP-85</span> child account you
@@ -357,7 +358,7 @@ export default function Counters() {
         <ul className="mt-4 space-y-2">
           {accounts.map((a) => (
             <li key={a.id} className="rounded-lg border border-line p-3">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <div className={c19}>
                 <span className="flex items-center gap-2 text-sm font-medium">
                   <span
                     aria-hidden
@@ -378,7 +379,7 @@ export default function Counters() {
                 <AddressText address={a.firstAddress} />
               </p>
               {(a.source === 'xpub' || a.source === 'descriptor') && (
-                <div className="v2-public-code mt-2 grid items-start gap-3 sm:grid-cols-[auto_minmax(0,1fr)]">
+                <div className={c44}>
                   <div
                     className="v2-pair-qr shrink-0 rounded-xl bg-white p-2"
                     dangerouslySetInnerHTML={{ __html: renderQrSvg(a.xpub, { scale: 4, margin: 4 }) }}
@@ -393,11 +394,11 @@ export default function Counters() {
                 {purposeLabel(a.purpose)} · {a.networkId} · {a.scriptType} · fp {a.fingerprintHex}
               </p>
               {a.note && <p className="mt-0.5 text-[11px] text-muted">{a.note}</p>}
-              <div className="mt-2 flex flex-wrap items-center gap-2">
+              <div className={c45}>
                 <button
                   type="button"
                   onClick={() => void checkBalance(a)}
-                  className="rounded border border-line px-2 text-xs text-muted hover:text-ink"
+                  className={c10}
                 >
                   check balance
                 </button>
@@ -411,12 +412,12 @@ export default function Counters() {
               <button
                 type="button"
                 onClick={() => setQrFor(qrFor === a.id ? null : a.id)}
-                className="mt-2 rounded border border-line px-2 text-xs text-muted hover:text-ink"
+                className={c46}
               >
                 {qrFor === a.id ? 'hide QR' : 'address 0/0 QR'}
               </button>
               {qrFor === a.id && (
-                <div className="v2-public-code mt-2 grid items-start gap-3 sm:grid-cols-[auto_minmax(0,1fr)]">
+                <div className={c44}>
                   {/* Our own generated SVG — the only markup injected here, and its content
                       is a QR matrix, not merchant text. */}
                   <div
@@ -451,7 +452,7 @@ export default function Counters() {
                     refresh();
                     setMessage({ kind: 'ok', text: `${a.label} marked as checked against your wallet.` });
                   }}
-                  className="mt-2 rounded border border-line px-2 text-xs text-muted hover:text-ink"
+                  className={c46}
                 >
                   I compared address 0/0 with my wallet
                 </button>
@@ -462,24 +463,24 @@ export default function Counters() {
 
       <div className="mt-5 border-t border-line pt-4">
         <h3 className="text-sm font-semibold">Add a wallet</h3>
-        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+        <div className={c26}>
           <label className="block" htmlFor="ct-label">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Name</span>
+            <span className={c22}>Name</span>
             <input
               id="ct-label"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder="Front counter"
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+              className={c4}
             />
           </label>
           <label className="block" htmlFor="ct-network">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Network</span>
+            <span className={c22}>Network</span>
             <select
               id="ct-network"
               value={networkId}
               onChange={(e) => setNetworkId(e.target.value as NetworkId)}
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+              className={c4}
             >
               {NETWORKS.map((n) => (
                 <option key={n.id} value={n.id}>
@@ -489,12 +490,12 @@ export default function Counters() {
             </select>
           </label>
           <label className="block" htmlFor="ct-script">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Script</span>
+            <span className={c22}>Script</span>
             <select
               id="ct-script"
               value={scriptType}
               onChange={(e) => setScriptType(e.target.value as ScriptType | 'auto')}
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+              className={c4}
             >
               <option value="auto">Auto from prefix</option>
               {SCRIPTS.map((s) => (
@@ -506,14 +507,14 @@ export default function Counters() {
           </label>
         </div>
 
-        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+        <div className={c26}>
           <label className="block" htmlFor="ct-purpose">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">What is it for</span>
+            <span className={c22}>What is it for</span>
             <select
               id="ct-purpose"
               value={purpose}
               onChange={(e) => setPurpose(e.target.value as AccountPurpose)}
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+              className={c4}
             >
               {ACCOUNT_PURPOSES.map((p2) => (
                 <option key={p2.id} value={p2.id}>
@@ -523,19 +524,19 @@ export default function Counters() {
             </select>
           </label>
           <label className="block" htmlFor="ct-note">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Note (optional)</span>
+            <span className={c22}>Note (optional)</span>
             <input
               id="ct-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="mum's rent account"
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+              className={c4}
             />
           </label>
         </div>
 
         <fieldset className="mt-2">
-          <legend className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+          <legend className={c22}>
             Colour — <span className="text-ink">{WALLET_COLOURS.find((c) => c.id === colour)?.label}</span>
           </legend>
           <div className="mt-1 flex flex-wrap gap-2">
@@ -559,7 +560,7 @@ export default function Counters() {
         {accounts.length === 0 && <WalletPicker />}
 
         <label className="mt-2 block" htmlFor="ct-xpub">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+          <span className={c22}>
             Your wallet&apos;s public code
           </span>
           <textarea
@@ -585,7 +586,7 @@ export default function Counters() {
             rows={3}
             spellCheck={false}
             placeholder="zpub6rFR7y4Q2AijB…"
-            className="mt-1 w-full resize-y rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
+            className={c33}
           />
           <p className="mt-1 text-sm text-ink">Scan the QR from your wallet, or paste the zpub. slip only keeps the public code.</p>
           <CameraCapture
@@ -615,7 +616,7 @@ export default function Counters() {
         </label>
 
         {refusal && (
-          <p role="alert" className="mt-2 rounded-lg border border-bad p-2 text-xs text-bad">
+          <p role="alert" className={c31}>
             {refusal === 'seed phrase'
               ? "That's a recovery phrase. slip can never hold it — paste your public wallet address instead."
               : "That's a private key. slip can never hold it — paste your public wallet address instead."}
@@ -623,7 +624,7 @@ export default function Counters() {
         )}
 
         {validation && !validation.ok && (
-          <p className="mt-2 rounded-lg border border-warn p-2 text-xs text-warn" role="alert">
+          <p className={c34} role="alert">
             {validation.error}
           </p>
         )}
@@ -631,7 +632,7 @@ export default function Counters() {
         {validation && validation.ok && (
           <div className="mt-2">
             {validation.warnings.map((w) => (
-              <p key={w} className="mt-1 rounded-lg border border-warn p-2 text-[11px] text-warn">
+              <p key={w} className={c37}>
                 {w}
               </p>
             ))}
@@ -684,7 +685,7 @@ export default function Counters() {
               </button>
             </div>
             {matchStop && (
-              <p className="mt-2 rounded-lg border border-bad p-2 text-sm text-bad" role="alert" data-compare-stop>
+              <p className={c35} role="alert" data-compare-stop>
                 They don&apos;t match. slip will not take a sale until address 0/0 matches your wallet. There is no skip.
               </p>
             )}
@@ -714,7 +715,7 @@ export default function Counters() {
         <h3 className="text-sm font-semibold">Hand the till over</h3>
         <div className="mt-2 grid gap-2 sm:grid-cols-3">
           <label className="block" htmlFor="ho-account">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Counter</span>
+            <span className={c22}>Counter</span>
             <select
               id="ho-account"
               value={pendingAccountId}
@@ -723,7 +724,7 @@ export default function Counters() {
                 repo().save({ ...repo().load(), activeAccountId: e.target.value || null });
                 refresh();
               }}
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+              className={c4}
             >
               <option value="">choose…</option>
               {accounts.map((a) => (
@@ -734,28 +735,28 @@ export default function Counters() {
             </select>
           </label>
           <label className="block" htmlFor="ho-staff">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Staff name</span>
+            <span className={c22}>Staff name</span>
             <input
               id="ho-staff"
               value={staffInput}
               onChange={(e) => setStaffInput(e.target.value)}
               placeholder="Ana"
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+              className={c4}
             />
           </label>
           <label className="block" htmlFor="ho-pin">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Till PIN</span>
+            <span className={c22}>Till PIN</span>
             <input
               id="ho-pin"
               value={pinInput}
               onChange={(e) => setPinInput(e.target.value.replace(/\D/g, '').slice(0, 8))}
               inputMode="numeric"
               placeholder={pinSet ? '••••' : 'none set'}
-              className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+              className={c5}
             />
           </label>
         </div>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className={c45}>
           <button
             type="button"
             onClick={() => void handOver()}
@@ -776,14 +777,14 @@ export default function Counters() {
               <button
                 type="button"
                 onClick={() => void savePin()}
-                className="rounded-lg border border-line px-3 py-2 text-xs font-semibold text-muted hover:text-ink"
+                className={c23}
               >
                 Set PIN
               </button>
             </>
           )}
         </div>
-        <p className="mt-2 text-[11px] leading-relaxed text-muted">
+        <p className={c24}>
           Only a hash of the PIN is stored, on this device. Handing the till over names who is
           holding it — switching counters without the PIN is refused.
         </p>

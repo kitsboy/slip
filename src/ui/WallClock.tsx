@@ -1,3 +1,4 @@
+import { c8, c42 } from './classes';
 /**
  * The quiet face of the till.
  *
@@ -43,12 +44,12 @@ export default function WallClock() {
       <p className="mt-1 text-xs text-muted">{now.toISOString().slice(0, 10)} UTC</p>
 
       <dl className="mt-5 grid grid-cols-2 gap-3">
-        <div className="rounded-xl border border-line p-3">
-          <dt className="text-[11px] uppercase tracking-[0.08em] text-muted">Today</dt>
+        <div className={c42}>
+          <dt className={c8}>Today</dt>
           <dd className="figure mt-1 text-lg">{formatSats(takings)}</dd>
         </div>
-        <div className="rounded-xl border border-line p-3">
-          <dt className="text-[11px] uppercase tracking-[0.08em] text-muted">Last sale</dt>
+        <div className={c42}>
+          <dt className={c8}>Last sale</dt>
           <dd className="mt-1 text-sm">{last ? last.createdAt.slice(11, 16) : '—'}</dd>
         </div>
       </dl>

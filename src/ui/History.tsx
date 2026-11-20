@@ -1,3 +1,4 @@
+import { c0, c1, c3, c4, c6, c7, c15, c19, c24, c26, c36, c38 } from './classes';
 /**
  * Sales history and the day close.
  *
@@ -230,8 +231,7 @@ export default function History() {
     });
   }
 
-  function downloadCsv() {
-    const csv = salesCsv([
+  const csv = salesCsv([
       ...close.rows,
       ...cancelledRows.map((i) => ({
         id: i.id,
@@ -250,6 +250,7 @@ export default function History() {
         overpaidAtoms: 0n,
       })),
     ]);
+  function downloadCsv() {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -412,7 +413,7 @@ export default function History() {
             id="hs-date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           >
             {days.slice(0, 60).map((d) => (
               <option key={d} value={d}>
@@ -432,7 +433,7 @@ export default function History() {
           seconds={13}
         />
       </div>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
+      <p className={c0}>
         Completed sales only. Refunds are subtracted, and the sheet always states how much a human
         confirmed rather than slip observed.
       </p>
@@ -445,7 +446,7 @@ export default function History() {
         data-cancelled-count={close.cancelledCount}
         data-cancelled-atoms={close.cancelledAtoms.toString()}
       >
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div className={c19}>
           <p className="eyebrow">{date === todayIso ? 'Today' : 'That day'}</p>
           <p className="text-[11px] text-muted">
             {close.count === 0
@@ -465,7 +466,7 @@ export default function History() {
                 </span>
               </p>
             ))}
-            <p className="mt-2 text-[11px] leading-relaxed text-muted">
+            <p className={c24}>
               This day has two coins, so it has two totals. They are never added together — a
               Litecoin litoshi is not a Bitcoin satoshi, and one number for both would be true of
               neither.
@@ -512,7 +513,7 @@ export default function History() {
         {date !== todayIso && (
           <button
             type="button"
-            className="btn btn-secondary mt-2 px-2 py-1 text-xs"
+            className={c15}
             onClick={() => setDate(todayIso)}
           >
             Show today
@@ -527,7 +528,7 @@ export default function History() {
           value={find}
           onChange={(e) => setFind(e.target.value)}
           placeholder="amount, address ending, time, invoice…"
-          className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+          className={c4}
         />
         <span className="mt-1 block text-[11px] text-muted">
           A customer comes back with a receipt and no invoice number: type what they remember.
@@ -611,7 +612,7 @@ export default function History() {
           ['Net', perCoin((t) => t.netAtoms)],
           ['Refunded', perCoin((t) => t.refundedAtoms)],
         ].map(([k, v]) => (
-          <div key={k} className="rounded-lg border border-line px-2 py-1">
+          <div key={k} className={c7}>
             <span className="eyebrow">{k}</span>
             <p className="figure mt-0.5 text-xs">{v}</p>
           </div>
@@ -627,18 +628,27 @@ export default function History() {
             ['other', close.byRail.other],
           ] as ReadonlyArray<readonly [string, bigint]>
         ).map(([k, v]) => (
-          <div key={k} className="rounded-lg border border-line px-2 py-1">
+          <div key={k} className={c7}>
             <span className="eyebrow">{k}</span>
             <p className="figure mt-0.5 text-[11px]">{formatCoinAmount(v, dayCoin)}</p>
           </div>
         ))}
       </div>
 
-      <p className="mt-2 text-[11px] text-muted" data-books-observed>
+      <p className={c6} data-books-observed>
         Observed by slip: <span className="figure">{perCoin((t) => t.observedAtoms)}</span> ·
         confirmed by a human: <span className="figure">{perCoin((t) => t.manualAtoms)}</span>
       </p>
 
+      <details className="mt-3" data-export-preview><summary>Preview accounting export &amp; column guide</summary>
+        <p>Exact CSV for the selected UTC day, identical to the download. Filters on the screen do not filter this export. Completed and manual sales are included; cancelled rows have zero amounts and status cancelled. Waiting, short and expired requests are excluded, not takings.</p>
+        <p>Reconcile each coin separately with your own wallet, refunds and manual records. Never add BTC and LTC atoms together. Manual yes is a human assertion, not an observed payment. Recorded refunds do not prove money was sent. Overpayments are notes; totals use the asked amount. This is not a tax calculation or an accountant integration.</p>
+        <dl>{[
+          ['invoice','Local sale identifier'],['date_time_utc','Sale creation time in UTC, not settlement time'],['wallet','Local wallet label'],['coin','btc or ltc; keep separate'],['rail','onchain, lightning, manual or other; cancelled uses other'],['atoms','Asked amount in smallest coin units; cancelled zero'],['refunded_atoms','Recorded refunds, capped at ask'],['net_atoms','Ask minus recorded refunds; cancelled zero'],['amount','Formatted net coin amount, not fiat'],['overpaid_atoms','Observed excess above tolerance, not added to takings'],['manual','yes means human-confirmed; no is not itself payment proof'],['note','Local sale note; cancelled says not taken'],['receipt_number','Daily receipt number or sale identifier fallback'],['status','complete or cancelled']
+        ].map(([name,meaning]) => <div key={name}><dt><strong>{name}</strong></dt><dd>{meaning}</dd></div>)}</dl>
+        <p>Spreadsheet formula-like cells are prefixed with an apostrophe; commas, quotes and newlines use CSV escaping. Import text as text; do not enable formulas from untrusted data.</p>
+        <label>Exact CSV preview<textarea readOnly value={csv} rows={8} className="w-full font-mono" data-csv-preview /></label>
+      </details>
       <fieldset className="mt-3 flex flex-wrap gap-2">
         <legend>Reports &amp; exports — {date}</legend>
         <button
@@ -679,7 +689,7 @@ export default function History() {
         Nothing sold on this day yet, so there is no sheet to close and no CSV to download.
       </Blocker>
 
-      <p className="mt-2 text-[11px] text-muted" data-backup-nudge>
+      <p className={c6} data-backup-nudge>
         Last backup: {backupNudgeText(backupAt)} —{' '}
         <a className="underline" href="#backup">
           back up now
@@ -697,7 +707,7 @@ export default function History() {
 
 
       {close.count === 0 ? (
-        <p className="mt-3 rounded-lg border border-line p-2 text-[11px] text-muted">
+        <p className={c38}>
           Nothing sold on {date}. Every sale that completes lands here, and the day closes with a
           digest you can stamp.
         </p>
@@ -706,7 +716,7 @@ export default function History() {
           <ul className="mt-3 space-y-1">
             {visibleRows.map((row) => (
               <li key={row.id} className="rounded-lg border border-line p-2" data-sale-row>
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <div className={c19}>
                   <span className="text-xs">
                     {row.at.slice(11, 16)} · {row.walletLabel}
                     {row.note ? ` · ${row.note}` : ''}
@@ -748,17 +758,17 @@ export default function History() {
                 value={atoms}
                 onChange={(e) => setAtoms(e.target.value)}
                 inputMode="numeric"
-                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-xs outline-none focus:border-accent"
+                className={c36}
               />
             </label>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <div className={c26}>
               <label className="block" htmlFor="rf-method">
                 <span className="eyebrow">How it went back</span>
                 <select
                   id="rf-method"
                   value={method}
                   onChange={(e) => setMethod(e.target.value as RefundMethod)}
-                  className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-xs outline-none focus:border-accent"
+                  className={c3}
                 >
                   {(Object.keys(METHOD_LABEL) as RefundMethod[]).map((m) => (
                     <option key={m} value={m}>
@@ -773,7 +783,7 @@ export default function History() {
                   id="rf-ref"
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-[11px] outline-none focus:border-accent"
+                  className={c1}
                 />
               </label>
             </div>
@@ -784,7 +794,7 @@ export default function History() {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="wrong order"
-                className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-xs outline-none focus:border-accent"
+                className={c3}
               />
             </label>
             <div className="mt-2 flex gap-2">
@@ -817,7 +827,7 @@ export default function History() {
                 data-sale-row
                 data-cancelled={inv.id}
               >
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <div className={c19}>
                   <span className="text-xs">
                     {inv.createdAt.slice(11, 16)} · {inv.walletLabel}
                     {inv.note ? ` · ${inv.note}` : ''}

@@ -1,3 +1,4 @@
+import { c0, c4, c13, c14, c22, c38, c39 } from './classes';
 /**
  * The manual, generated from the code that ships.
  *
@@ -124,7 +125,7 @@ export default function Manual() {
     <section className="mt-6 panel" data-panel="manual">
       <p className="eyebrow">Manual</p>
       <h2 className="panel-title mt-1">How to use slip</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
+      <p className={c0}>
         Written for a shop, not an engineer. Each card says what a panel is for, the steps, and the
         one limit you should know before you rely on it.
       </p>
@@ -145,7 +146,7 @@ export default function Manual() {
         </a>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-start gap-3">
+      <div className={c13}>
         {/* The code used to be drawn at its own pixel size inside a fixed 112px box, so it painted 132px
             wide and crossed the paragraph beside it. The box owns the size now, and the SVG fills it. */}
         <button
@@ -165,7 +166,7 @@ export default function Manual() {
             }}
           />
         </button>
-        <p className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
+        <p className={c14}>
           <strong className="text-ink">A QR for your customers.</strong> Stand it beside the till: it
           opens one plain page explaining what they are paying, who holds the money, and why no receipt
           is emailed.{' '}
@@ -188,7 +189,7 @@ export default function Manual() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="refund, rent, lightning, backup…"
-          className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+          className={c4}
         />
       </label>
 
@@ -197,7 +198,7 @@ export default function Manual() {
         if (entries.length === 0) return null;
         return (
           <div key={group.id} className="mt-4">
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">{group.label}</h3>
+            <h3 className={c22}>{group.label}</h3>
             <p className="text-[11px] text-muted">{group.why}</p>
             <ul className="mt-2 space-y-2">
               {entries.map((entry) => (
@@ -206,7 +207,7 @@ export default function Manual() {
                     <span className="text-sm">{entry.title}</span>
                     <span className="chip">{entry.status === 'live' ? 'live' : 'planned'}</span>
                   </div>
-                  <p className="mt-1 text-[11px] leading-relaxed text-muted">{entry.why}</p>
+                  <p className={c39}>{entry.why}</p>
                   <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-[11px] leading-relaxed">
                     {entry.steps.map((step) => (
                       <li key={step}>{step}</li>
@@ -221,7 +222,7 @@ export default function Manual() {
       })}
 
       {results.length === 0 && (
-        <p className="mt-3 rounded-lg border border-line p-2 text-[11px] text-muted">
+        <p className={c38}>
           Nothing matches “{query}”. Try a plainer word — “rent”, “cash”, “proof”.
         </p>
       )}

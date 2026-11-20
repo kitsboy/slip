@@ -1,3 +1,4 @@
+import { c9 } from './classes';
 /**
  * A scan field: paste, type, or use the camera — and never pretend a scan happened.
  *
@@ -142,7 +143,7 @@ export function ScanField({ label, onScan, placeholder = 'paste a code, or scan 
           <p className="p-1 text-[11px] text-muted">Point at the QR. Nothing is recorded or uploaded.</p>
         </div>
       )}
-      {status && <p className="mt-1 text-[11px] text-muted">{status}</p>}
+      {status && <p className={c9}>{status}</p>}
     </div>
   );
 }

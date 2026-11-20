@@ -1,3 +1,4 @@
+import { c0, c19 } from './classes';
 /**
  * "What slip will offer" — the services menu.
  *
@@ -113,7 +114,7 @@ export default function Services() {
   return (
     <section className="mt-6 panel">
       <h2 className="panel-title">What slip will offer</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
+      <p className={c0}>
         The plan, in public. &ldquo;Live now&rdquo; means it works in this build;
         &ldquo;not built yet&rdquo; means it does not, and this build cannot do it.
       </p>
@@ -121,7 +122,7 @@ export default function Services() {
       <ul className="mt-4 grid gap-2 lg:grid-cols-2">
         {SERVICES.map((s) => (
           <li key={s.name} className="rounded-lg border border-line p-3">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <div className={c19}>
               <span className="text-sm font-medium">{s.name}</span>
               <span
                 className={`rounded-full border px-2 py-0.5 text-[11px] uppercase tracking-[0.08em] ${
@@ -131,7 +132,7 @@ export default function Services() {
                 {BADGE[s.status]}
               </span>
             </div>
-            <p className="mt-1 text-xs leading-relaxed text-muted">{s.detail}</p>
+            <p className={c0}>{s.detail}</p>
             <p className="mt-1 text-[11px] leading-relaxed text-warn">{s.guard}</p>
           </li>
         ))}

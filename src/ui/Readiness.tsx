@@ -1,119 +1,43 @@
-/**
- * Is my shop ready to take money?
- *
- * Four questions, answered from the device's own data, in the order a shopkeeper would ask them.
- * Each row is either done, or a door to the one screen that fixes it — never a settings wall, and
- * never a green tick for something slip has not actually seen (a rate is "set", not "correct").
- */
-
 import { useEffect, useState } from 'react';
-
-import { createRepository } from '../core/accounts';
-import { createLedger } from '../core/ledger';
+import { createRepository, statusOf } from '../core/accounts';
+import { lastBackupAt } from '../core/backup';
+import { persistState } from '../core/persist';
+import { isWriteFailed, subscribeWriteState } from '../core/save-state';
+import { rememberedRate } from '../core/selling-guidance';
 import { store as appStore } from '../core/storage';
-
-interface Row {
-  readonly label: string;
-  readonly done: boolean;
-  readonly href: string;
-  readonly action: string;
-  /** Something slip genuinely cannot verify. It is shown as your job, never ticked. */
-  readonly manual?: boolean;
-}
-
+interface Row { label: string; state: 'Set' | 'Blocker' | 'Warning' | 'Unknown'; detail: string; href: string; action: string }
 function read(): Row[] {
   const store = appStore();
-  const { accounts } = createRepository(store).load();
-  const { items } = createLedger(store).load();
-  const hasRate = (store.getItem('rate:last') ?? '').length > 0;
-
+  const env = createRepository(store).load();
+  const active = env.accounts.find(a => a.id === env.activeAccountId);
+  const wallet = active ?? env.accounts.find(a => statusOf(a) === 'ready');
+  const rate = rememberedRate(store.getItem('rate:last'));
+  const backup = lastBackupAt(store);
+  const persistence = persistState(store)?.answer ?? 'unknown';
   return [
-    {
-      label: 'A wallet to be paid into',
-      done: accounts.length > 0,
-      href: '#wallets',
-      action: 'Add a wallet',
-    },
-    {
-      label: 'A price for one Bitcoin you have used',
-      done: hasRate,
-      href: '#till',
-      action: 'Set it on the till',
-    },
-    {
-      label: 'Something to sell',
-      done: items.length > 0,
-      href: '#till',
-      action: 'Add an item',
-    },
-    {
-      label: 'A backup kept somewhere else',
-      done: false,
-      href: '#backup',
-      action: 'Save a backup',
-      // slip cannot see whether a file was saved, so it does not pretend to tick this.
-      manual: true,
-    },
+    { label:'Receiving wallet', state:wallet && statusOf(wallet) === 'ready' ? 'Set' : 'Blocker', detail:wallet ? `${wallet.label} (${wallet.coin.toUpperCase()}) — ${statusOf(wallet) === 'ready' ? 'address acknowledged by you, not funding verified' : 'compare its address with your wallet'}` : 'No acknowledged receiving wallet', href:'#wallets', action:'Check wallets' },
+    { label:'Saved rate', state:rate ? 'Warning' : 'Unknown', detail:rate ? `${rate.value} — last used ${rate.at ?? 'at an unknown time'}. Not a live quote; check the till’s coin and currency.` : 'No valid saved rate. Enter or fetch the current coin’s rate on the till.', href:'#till', action:'Review rate' },
+    { label:'Connectivity', state:'Unknown', detail:navigator.onLine ? 'Browser reports online; explorer, rate and Lightning providers are not verified.' : 'Browser reports offline. Provider checks may be unavailable.', href:'#settings', action:'Review providers' },
+    { label:'Device storage', state:isWriteFailed() ? 'Blocker' : persistence === 'kept' ? 'Set' : 'Warning', detail:isWriteFailed() ? 'Unresolved save failure. Retry saving or export recovery before another sale.' : `Persistence: ${persistence}. This is not a backup or a guarantee against clearing device data.`, href:isWriteFailed() ? '#backup' : '#settings', action:isWriteFailed() ? 'Recover records' : 'Review storage' },
+    { label:'Backup', state:backup ? 'Warning' : 'Unknown', detail:backup ? `Download last requested ${backup}. File delivery and off-device storage are unverified; test the file.` : 'No backup download recorded. Save and test an encrypted file somewhere else.', href:'#backup', action:'Save or test backup' },
   ];
 }
-
 export default function Readiness() {
   const [rows, setRows] = useState<Row[]>([]);
-
   useEffect(() => {
-    const refresh = () => setRows(read());
-    refresh();
-    window.addEventListener('slip:data-changed', refresh);
-    return () => window.removeEventListener('slip:data-changed', refresh);
+    const refresh = () => setRows(read()); refresh();
+    const events = ['slip:data-changed','storage','online','offline','focus'];
+    events.forEach(e => window.addEventListener(e, refresh));
+    const unsubscribe = subscribeWriteState(refresh);
+    return () => { events.forEach(e => window.removeEventListener(e, refresh)); unsubscribe(); };
   }, []);
-
-  if (rows.length === 0) return null;
-  const checkable = rows.filter((r) => !r.manual);
-  const done = checkable.filter((r) => r.done).length;
-
-  return (
-    <section className="panel" data-readiness data-ready={`${done}/${checkable.length}`}>
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="panel-title">Is the shop ready?</h2>
-        <span className="text-xs text-muted">
-          {done} of {checkable.length} done
-        </span>
-      </div>
-
-      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
-        <div
-          className={`h-full transition-all v2-ink-fill`}
-          style={{ width: `${(done / Math.max(1, checkable.length)) * 100}%` }}
-        />
-      </div>
-
-      <ul className="mt-3 grid gap-1">
-        {checkable.map((row) => (
-          <li key={row.label} className="flex items-center gap-2 text-sm">
-            <span
-              aria-hidden
-              className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border text-[11px] ${
-                row.done ? 'border-good text-good' : 'border-line text-muted'
-              }`}
-            >
-              {row.done ? '✓' : '·'}
-            </span>
-            <span className={`flex-1 ${row.done ? 'text-secondary' : 'text-ink'}`}>{row.label}</span>
-            {row.done ? (
-              <span className="text-[11px] text-muted">done</span>
-            ) : (
-              <a href={row.href} className="text-[11px] text-accent underline underline-offset-2">
-                {row.action}
-              </a>
-            )}
-          </li>
-        ))}
-      </ul>
-      {rows.filter((row) => row.manual).map((row) => (
-        <p key={row.label} className="mt-2 text-sm text-ink">
-          Optional — {row.label}. slip cannot see whether you kept one.
-        </p>
-      ))}
-    </section>
-  );
+  const blockers = rows.filter(r => r.state === 'Blocker').length;
+  return <section className="panel" data-readiness data-ready={`${rows.filter(r => r.state === 'Set').length}/${rows.length}`}>
+    <h2 className="panel-title">Ready to sell — device checks</h2>
+    <p role="status">{blockers ? `${blockers} setup blocker(s)` : 'No setup blocker detected'} · warnings and unknowns still need review.</p>
+    <p>This does not certify funding, provider availability or payment readiness. Verify each sale in your own wallet; no cross-device sync.</p>
+    <ul className="mt-3 grid gap-3">{rows.map(row => <li key={row.label}>
+      <strong>{row.label} — {row.state}</strong><p>{row.detail}</p><a className="underline" href={row.href}>{row.action}</a>
+    </li>)}</ul>
+  </section>;
 }

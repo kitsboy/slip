@@ -1,3 +1,4 @@
+import { c28 } from './classes';
 /**
  * Three steps, for a person who has never used Bitcoin.
  *
@@ -42,7 +43,7 @@ export default function HowItWorks({ onStart, onboarded }: Props) {
               {step.n}
             </span>
             <div>
-              <p className="text-sm font-semibold text-ink">{step.title}</p>
+              <p className={c28}>{step.title}</p>
               <p className="mt-1 text-xs leading-relaxed text-secondary">{step.line}</p>
             </div>
           </li>

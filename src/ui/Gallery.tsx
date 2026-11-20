@@ -1,3 +1,4 @@
+import { c41 } from './classes';
 import { useState } from 'react';
 
 import Badge from './Badge';
@@ -124,7 +125,7 @@ export default function Gallery() {
           Every state the money path can be in, in words and in the component that carries it. A state
           that is drawn here but missing from a screen is a bug in the screen, not a gap in the page.
         </p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        <div className={c41}>
           <div className="panel p-3">
             <p className="eyebrow">Resting</p>
             <p className="mt-1 text-xs text-muted">Nothing typed. The till shows its resting line.</p>

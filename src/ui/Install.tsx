@@ -1,3 +1,4 @@
+import { c6, c9 } from './classes';
 /**
  * "Add slip to this device" — only offered when the browser actually offers it.
  *
@@ -41,7 +42,7 @@ export default function Install() {
 
   if (installed) {
     return (
-      <p className="mt-2 text-[11px] text-muted" data-install="installed">
+      <p className={c6} data-install="installed">
         slip is running as an installed app.
       </p>
     );
@@ -62,10 +63,10 @@ export default function Install() {
       >
         install slip on this device
       </button>
-      <p className="mt-1 text-[11px] text-muted">
+      <p className={c9}>
         Installs the same single file. It keeps working with the network off.
       </p>
-      {note && <p className="mt-1 text-[11px] text-muted">{note}</p>}
+      {note && <p className={c9}>{note}</p>}
     </div>
   );
 }

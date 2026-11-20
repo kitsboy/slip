@@ -1,3 +1,4 @@
+import { c28 } from './classes';
 /**
  * What slip cannot do.
  *
@@ -79,7 +80,7 @@ export default function Cannot() {
       <dl className="mt-3 grid gap-2">
         {LIMITS.map((limit) => (
           <div key={limit.what} className="border-t border-line pt-2">
-            <dt className="text-sm font-semibold text-ink">{limit.what}</dt>
+            <dt className={c28}>{limit.what}</dt>
             <dd className="mt-0.5 max-w-2xl text-sm leading-relaxed text-muted">{limit.why}</dd>
           </div>
         ))}

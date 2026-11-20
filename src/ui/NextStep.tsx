@@ -1,3 +1,4 @@
+import { c29, c30 } from './classes';
 /**
  * One line that answers "what do I do now?".
  *
@@ -64,10 +65,10 @@ export default function NextStep() {
 
   if (state.kind === 'no-wallet') {
     return (
-      <section className="panel mt-6 flex flex-wrap items-center justify-between gap-3" data-next-step="wallet">
+      <section className={c29} data-next-step="wallet">
         <div>
           <p className="eyebrow">Start here</p>
-          <p className="mt-1 text-sm leading-relaxed">
+          <p className={c30}>
             Paste one code from your wallet app. That is all slip ever needs, and money can only
             ever arrive — it can never be moved from here.
           </p>
@@ -81,10 +82,10 @@ export default function NextStep() {
 
   if (state.kind === 'ready') {
     return (
-      <section className="panel mt-6 flex flex-wrap items-center justify-between gap-3" data-next-step="sell">
+      <section className={c29} data-next-step="sell">
         <div>
           <p className="eyebrow">You're ready</p>
-          <p className="mt-1 text-sm leading-relaxed">
+          <p className={c30}>
             Nothing to configure. Ring up your first sale and show the customer the code.
           </p>
         </div>
@@ -96,10 +97,10 @@ export default function NextStep() {
   }
 
   return (
-    <section className="panel mt-6 flex flex-wrap items-center justify-between gap-3" data-next-step="close">
+    <section className={c29} data-next-step="close">
       <div>
         <p className="eyebrow">Today</p>
-        <p className="mt-1 text-sm leading-relaxed">
+        <p className={c30}>
           <span className="font-semibold text-ink">{state.count}</span>{' '}
           {state.count === 1 ? 'sale' : 'sales'} so far,{' '}
           <span className="font-semibold text-ink">

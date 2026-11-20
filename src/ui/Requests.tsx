@@ -1,3 +1,4 @@
+import { c0, c4, c5, c6, c7, c8, c9, c10 } from './classes';
 /**
  * Rent & standing requests, plus the blunt budget clock.
  *
@@ -127,7 +128,7 @@ export default function Requests() {
     <section className={`mt-6 panel v2-money-in`} data-panel="requests">
       <p className="eyebrow">Rent &amp; standing requests</p>
       <h2 className="panel-title mt-1">Money that arrives on a schedule</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
+      <p className={c0}>
         A request is an ask, not a payment: it has a wallet, an amount and a due date, and slip
         never calls it covered unless a completed invoice says so.
       </p>
@@ -141,7 +142,7 @@ export default function Requests() {
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             placeholder="Mum's rent"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           />
         </label>
         <label className="block" htmlFor="rq-wallet">
@@ -150,7 +151,7 @@ export default function Requests() {
             id="rq-wallet"
             value={walletId}
             onChange={(e) => setWalletId(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           >
             {accounts.map((a) => (
               <option key={a.id} value={a.id}>
@@ -167,7 +168,7 @@ export default function Requests() {
             onChange={(e) => setAmount(e.target.value)}
             inputMode="decimal"
             placeholder="900.00"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
         <label className="block" htmlFor="rq-cadence">
@@ -176,7 +177,7 @@ export default function Requests() {
             id="rq-cadence"
             value={cadence}
             onChange={(e) => setCadence(e.target.value as Cadence)}
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           >
             <option value="once">Once</option>
             <option value="weekly">Weekly</option>
@@ -191,7 +192,7 @@ export default function Requests() {
             onChange={(e) => setRate(e.target.value)}
             inputMode="decimal"
             placeholder="60000.00"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
       </fieldset>
@@ -204,7 +205,7 @@ export default function Requests() {
         add request
       </button>
 
-      {note && <p className="mt-2 text-[11px] text-muted">{note}</p>}
+      {note && <p className={c6}>{note}</p>}
 
       <AwaitingStrip
         invoices={data.invoices}
@@ -220,13 +221,13 @@ export default function Requests() {
           ['Runway', clock.runwayDays === null ? '—' : `${clock.runwayDays} days`],
           ['Due now', String(clock.dueNow)],
         ].map(([k, v]) => (
-          <div key={k} className="rounded-lg border border-line px-2 py-1">
-            <dt className="text-[11px] uppercase tracking-[0.08em] text-muted">{k}</dt>
+          <div key={k} className={c7}>
+            <dt className={c8}>{k}</dt>
             <dd className="figure mt-0.5 text-xs">{v}</dd>
           </div>
         ))}
       </dl>
-      <p className="mt-1 text-[11px] text-muted">
+      <p className={c9}>
         A blunt clock: completed takings over 30 days against requests due in the next 30. It is a
         sanity check, not accounting.
       </p>
@@ -277,14 +278,14 @@ export default function Requests() {
                   <button
                     type="button"
                     onClick={() => showQr(r)}
-                    className="rounded border border-line px-2 text-xs text-muted hover:text-ink"
+                    className={c10}
                   >
                     show request QR
                   </button>
                   <button
                     type="button"
                     onClick={() => markPaid(r)}
-                    className="rounded border border-line px-2 text-xs text-muted hover:text-ink"
+                    className={c10}
                   >
                     mark paid
                   </button>

@@ -213,6 +213,7 @@ export function daysWithSales(invoices: readonly Invoice[]): string[] {
 
 function csvCell(value: string): string {
   // RFC 4180: quote when the value contains a comma, quote or newline, and double the quotes.
+  if (/^[\s]*[=+@-]/.test(value) || /^[\t\r]/.test(value)) value = "'" + value;
   return /[",\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
 

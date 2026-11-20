@@ -1,3 +1,4 @@
+import { c0, c24 } from './classes';
 /**
  * "Prove it works."
  *
@@ -16,7 +17,7 @@ export default function SelfTest() {
     <section className="mt-6 panel" data-panel="selftest">
       <p className="eyebrow">Self test</p>
       <h2 className="panel-title mt-1">Prove it works</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
+      <p className={c0}>
         Runs the arithmetic that must be exact — address derivation, money rounding, QR encoding and
         receipt proofs — against fixed answers, on this device, with the network off.
       </p>
@@ -45,7 +46,7 @@ export default function SelfTest() {
               </li>
             ))}
           </ul>
-          <p className="mt-2 text-[11px] leading-relaxed text-muted">
+          <p className={c24}>
             What this proves: the maths in this file has not been altered or half-downloaded. What it
             does not prove: that the whole app is safe. slip still holds no keys, and you can check
             that yourself — there is nowhere to paste one.

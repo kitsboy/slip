@@ -1,3 +1,4 @@
+import { c0, c4, c5, c8, c16, c22, c40 } from './classes';
 /**
  * "Price check" — the money maths, on screen.
  *
@@ -53,7 +54,7 @@ export default function PriceCheck() {
   return (
     <section className="mt-6 panel lg:mt-0">
       <h2 className="panel-title">Price check</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted">
+      <p className={c0}>
         The till&apos;s arithmetic, before the till exists. Integer-only: fiat is counted in
         minor units, sats are counted in whole sats, and the fiat→sats step always rounds{' '}
         <span className="text-ink">up</span> so you are never short.
@@ -61,23 +62,23 @@ export default function PriceCheck() {
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <label className="block" htmlFor="pc-price">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Price</span>
+          <span className={c22}>Price</span>
           <input
             id="pc-price"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             inputMode="decimal"
             spellCheck={false}
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
         <label className="block" htmlFor="pc-currency">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Currency</span>
+          <span className={c22}>Currency</span>
           <select
             id="pc-currency"
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+            className={c4}
           >
             {COMMON.map((c) => (
               <option key={c} value={c}>
@@ -87,7 +88,7 @@ export default function PriceCheck() {
           </select>
         </label>
         <label className="block" htmlFor="pc-rate">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+          <span className={c22}>
             Rate (per 1 BTC)
           </span>
           <input
@@ -96,33 +97,33 @@ export default function PriceCheck() {
             onChange={(e) => setRate(e.target.value)}
             inputMode="decimal"
             spellCheck={false}
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
         <label className="block" htmlFor="pc-tax">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Tax (bps)</span>
+          <span className={c22}>Tax (bps)</span>
           <input
             id="pc-tax"
             value={taxBps}
             onChange={(e) => setTaxBps(e.target.value)}
             inputMode="numeric"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
         <label className="block" htmlFor="pc-tip">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">Tip (bps)</span>
+          <span className={c22}>Tip (bps)</span>
           <input
             id="pc-tip"
             value={tipBps}
             onChange={(e) => setTipBps(e.target.value)}
             inputMode="numeric"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
       </div>
 
       {!result.ok ? (
-        <p className="mt-4 rounded-lg border border-warn p-3 text-sm text-warn" role="alert">
+        <p className={c40} role="alert">
           {result.message}
         </p>
       ) : (
@@ -135,8 +136,8 @@ export default function PriceCheck() {
             ['Charge', formatSats(result.sats)],
             ['Minor units', String(result.minorUnits)],
           ].map(([k, v]) => (
-            <div key={k} className="rounded-lg border border-line px-3 py-2">
-              <dt className="text-[11px] uppercase tracking-[0.08em] text-muted">{k}</dt>
+            <div key={k} className={c16}>
+              <dt className={c8}>{k}</dt>
               <dd className="mt-0.5 font-mono text-sm">{v}</dd>
             </div>
           ))}

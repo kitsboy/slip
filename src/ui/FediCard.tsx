@@ -1,3 +1,4 @@
+import { c5, c21, c25 } from './classes';
 /**
  * Fedi, ready and switched off.
  *
@@ -70,7 +71,7 @@ export default function FediCard() {
       <h2 className="panel-title">{FEDI_CARD_COPY.title}</h2>
       <p className="mt-1 text-sm text-secondary">{FEDI_CARD_COPY.lead}</p>
       <p className="mt-2 text-xs leading-relaxed text-warn">{FEDI_CARD_COPY.limit}</p>
-      <p className="mt-2 text-xs leading-relaxed text-muted">
+      <p className={c21}>
         The coins slip sells in are Bitcoin and Litecoin, on mainnet, signet and testnet. Fedi is
         not one of those coins. This card only watches a Lightning address.
       </p>
@@ -92,7 +93,7 @@ export default function FediCard() {
           onChange={(e) => onAddress(e.target.value)}
           placeholder="shop@example.com"
           autoComplete="off"
-          className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+          className={c5}
         />
       </label>
 
@@ -111,7 +112,7 @@ export default function FediCard() {
         </p>
       )}
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+      <div className={c25}>
         <label className="block" htmlFor="fedi-held">
           <span className="eyebrow">What Fedi says it is holding (sats)</span>
           <input
@@ -120,7 +121,7 @@ export default function FediCard() {
             onChange={(e) => setHeld(e.target.value)}
             inputMode="numeric"
             placeholder="slip cannot see this"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
         <label className="block" htmlFor="fedi-threshold">
@@ -131,7 +132,7 @@ export default function FediCard() {
             onChange={(e) => setThreshold(e.target.value)}
             inputMode="numeric"
             placeholder="400000"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
       </div>

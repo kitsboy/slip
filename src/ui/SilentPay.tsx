@@ -1,3 +1,4 @@
+import { c0, c5, c9, c11, c12, c13, c14 } from './classes';
 /**
  * Silent Payments, told straight.
  *
@@ -81,7 +82,7 @@ export default function SilentPay() {
     <section className="mt-6 panel" data-panel="silentpay">
       <p className="eyebrow">Silent Payments</p>
       <h2 className="panel-title mt-1">Take a payment to your sp1 address</h2>
-      <p className="mt-1 text-xs leading-relaxed text-muted">{cap.explanation}</p>
+      <p className={c0}>{cap.explanation}</p>
 
       <ScanField
         id="sp-addr"
@@ -95,13 +96,13 @@ export default function SilentPay() {
       />
       {check && !check.ok && <p className="mt-1 text-[11px] text-bad">{check.reason}</p>}
       {check?.ok && (
-        <p className="mt-1 text-[11px] text-muted">
+        <p className={c9}>
           {check.network === 'btc-mainnet' ? 'Bitcoin mainnet' : 'Bitcoin testnet'} · this address is
           never stored with anything that could spend it.
         </p>
       )}
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+      <div className={c11}>
         <label className="block" htmlFor="sp-amount">
           <span className="eyebrow">Amount ({settings.currency})</span>
           <input
@@ -110,7 +111,7 @@ export default function SilentPay() {
             onChange={(e) => setAmount(e.target.value)}
             inputMode="decimal"
             placeholder="12.50"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
         <label className="block" htmlFor="sp-rate">
@@ -121,7 +122,7 @@ export default function SilentPay() {
             onChange={(e) => setRate(e.target.value)}
             inputMode="decimal"
             placeholder="60000.00"
-            className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+            className={c5}
           />
         </label>
       </div>
@@ -129,7 +130,7 @@ export default function SilentPay() {
       <button
         type="button"
         onClick={build}
-        className="mt-2 rounded-lg border border-accent px-3 py-2 text-xs text-accent"
+        className={c12}
       >
         show payment QR
       </button>
@@ -141,12 +142,12 @@ export default function SilentPay() {
       )}
 
       {shown && (
-        <div className="mt-3 flex flex-wrap items-start gap-3">
+        <div className={c13}>
           <div
             className="qr-pocket h-48 w-48"
             dangerouslySetInnerHTML={{ __html: renderQrSvg(shown.uri, { scale: 5, margin: 2 }) }}
           />
-          <div className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
+          <div className={c14}>
             <p className="figure text-sm text-ink">{formatSats(shown.sats)}</p>
             <p>{formatFiat({ minor: shown.minor, currency: settings.currency })} · sp1 destination</p>
             <p className="mt-1 text-warn">

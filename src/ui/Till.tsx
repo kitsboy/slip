@@ -1,3 +1,4 @@
+import { c2, c4, c5, c6, c9, c14, c18, c19, c23, c24, c25, c26, c27 } from './classes';
 /**
  * The till.
  *
@@ -21,6 +22,8 @@ import {
   type CounterAccount,
 } from '../core/accounts';
 import { sameInvoice, resolveInvoice } from '../core/orders';
+import ReceiptHandoff from './ReceiptHandoff';
+import { paymentGuidance } from '../core/selling-guidance';
 import { receiptLink } from '../core/digital-receipt';
 import { createLedger, type LedgerRepository } from '../core/ledger';
 import {
@@ -123,6 +126,13 @@ export default function Till() {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [custom, setCustom] = useState('');
   const [tipJar, setTipJar] = useState(false);
+  const [busyCounter, setBusyCounter] = useState(() => appStore().getItem('slip.busy-counter.v1') === '1');
+  function toggleBusyCounter() {
+    try {
+      appStore().setItem('slip.busy-counter.v1', busyCounter ? '0' : '1');
+      setBusyCounter(!busyCounter);
+    } catch { setStatus('Could not remember counter mode. Resolve the device save warning.'); }
+  }
   // The rate you last charged at. Offered back with its age on the face of it, never dressed up
   // as a live quote — a shop should not re-type a number it already decided, nor trust a stale one.
   const [rate, setRate] = useState(() => {
@@ -1240,7 +1250,7 @@ export default function Till() {
               ? `Seen on its way, not confirmed yet. ${formatSats(shown.amountAtoms)} at ${shown.walletLabel}.`
               : `${leg2 ? waitingLine : `Waiting to be paid, ${formatSats(invoice.amountAtoms)} at ${invoice.walletLabel}. The code is on screen.`}`}
         </p>
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div className={c19}>
           <p className="eyebrow">Payment</p>
           <span className={`chip ${pending ? 'border-warn text-warn' : 'chip-good'}`}>
             {invoice.status === 'awaiting'
@@ -1390,22 +1400,22 @@ export default function Till() {
                   <span className="text-bad"> · Offline: detection paused, money is not lost.</span>
                 )}
               </p>
-              <p className="mt-1 text-[11px] text-muted">
+              <p className={c9}>
                 {invoice.index === null
                   ? 'This wallet has ONE fixed address; it is reused for every sale.'
                   : `Address #${invoice.index} for this sale. Do not pay it twice.`}
               </p>
-              <details className="mt-2 text-[11px] leading-relaxed text-muted">
+              <details className={c24}>
                 <summary className="cursor-pointer">The rest of the small print</summary>
                 <ul className="mt-1 space-y-1">
-                  <li>· A different amount cannot be matched to this sale.</li>
+                  <li>· A different amount needs review against this sale and your wallet.</li>
                   <li>
                     · An invoice is good for 15 minutes; a late payment is judged, not assumed.
                   </li>
                 </ul>
               </details>
 
-              <p className="mt-2 text-[11px] text-muted">
+              <p className={c6}>
                 {formatFiat({ minor: invoice.amountMinor, currency: invoice.currency })} at the rate
                 you entered
                 {invoice.rateAt ? ` · rate read ${invoice.rateAt.slice(11, 16)} UTC` : ''}
@@ -1414,7 +1424,7 @@ export default function Till() {
           </div>
         )}
 
-        <p className="v2-notice" data-payment-next>{invoice.status === 'seen' ? 'Wait for confirmation. Do not pay again.' : 'Already sent? Check now before paying again.'}</p>
+        <p className="v2-notice" data-payment-next>{paymentGuidance(invoice, invoiceCoin(invoice))}{leg2 && <span className="block" data-leg2-guidance>{leg2.walletLabel}: {paymentGuidance(leg2, invoiceCoin(leg2))}</span>}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
@@ -1430,13 +1440,13 @@ export default function Till() {
           <button
             type="button"
             onClick={abandon}
-            className="rounded-lg border border-line px-3 py-2 text-xs font-semibold text-muted hover:text-ink"
+            className={c23}
           >
             cancel sale
           </button>
         </div>
 
-        {status && <p className="mt-2 text-[11px] text-muted">{status}</p>}
+        {status && <p className={c6}>{status}</p>}
       </section>
     );
   }
@@ -1533,7 +1543,7 @@ export default function Till() {
             .join(' ')}
         >
           <div className="v2-receipt-qr" dangerouslySetInnerHTML={{ __html: qrSvg(proofUri, 5) }} />
-          <div className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
+          <div className={c14}>
             <p className="break-all font-mono">
               <AddressText address={receipt.address} />
             </p>
@@ -1555,6 +1565,8 @@ export default function Till() {
           </div>
         </div>
 
+        <ReceiptHandoff url={proofUri} />
+        {overpaidBy(receipt.amountAtoms, receipt.receivedAtoms) > 0n && <p data-exception-over>{paymentGuidance(receipt, invoiceCoin(receipt))}</p>}
         {overpaidBy(receipt.amountAtoms, receipt.receivedAtoms) > 0n && (
           <p
             className="mt-3 rounded-lg border border-warn/60 bg-warn/10 p-2 text-[11px] leading-relaxed"
@@ -1569,12 +1581,12 @@ export default function Till() {
         )}
 
         {proof && receipt.note !== 'rehearsal' && (
-          <div className="mt-3 flex flex-wrap items-start gap-3 border-t border-line pt-3">
+          <div data-proof-row className="mt-3 flex flex-wrap items-start gap-3 border-t border-line pt-3">
             <div
               className="h-28 w-28 rounded-lg bg-white p-1"
               dangerouslySetInnerHTML={{ __html: qrSvg(formatProof(proof), 4) }}
             />
-            <div className="min-w-0 flex-1 text-[11px] leading-relaxed text-muted">
+            <div className={c14}>
               <p className="text-ink">Proof the customer keeps</p>
               <p className="mt-0.5">
                 Scanning this shows the invoice, the address, the amount and — if the day was
@@ -1626,13 +1638,14 @@ export default function Till() {
   const walletTakings = wallet ? takingsToday(ledger.load().invoices, wallet.id) : 0n;
 
   return (
-    <section className="mt-6 panel" data-panel="till">
+    <section className="mt-6 panel" data-panel="till" data-busy-counter={busyCounter ? "on" : "off"}>
+      <button className="btn btn-secondary" aria-pressed={busyCounter} onClick={toggleBusyCounter}>{busyCounter ? "Exit busy counter mode" : "Busy counter mode"}</button>
       <div
         className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-1${wallets.length === 0 ? ' v2-open-status' : ''}`}
       >
         <p className="eyebrow">Till</p>
         <span className={`badge ${online ? 'badge-pending' : 'badge-bad'} v2-watch`}>
-          {online ? 'Watching for payments' : 'Offline — not watching'}
+          {online ? 'Browser online — provider checks not guaranteed' : 'Offline — not watching'}
           {(wallet?.source === 'xpub' || wallet?.source === 'descriptor') &&
             ` · next address #${ledger.book(wallet.id).next}`}
         </span>
@@ -1690,7 +1703,7 @@ export default function Till() {
                     id="tl-wallet"
                     value={walletId}
                     onChange={(e) => setWalletId(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+                    className={c4}
                   >
                     {wallets.map((w) => (
                       <option key={w.id} value={w.id} disabled={statusOf(w) !== 'ready'}>
@@ -1714,7 +1727,7 @@ export default function Till() {
                           await ledger.replaceItems(templateItems(t.id));
                           reload();
                         }}
-                        className="rounded-lg border border-accent px-3 py-2 text-xs text-accent"
+                        className={c2}
                       >
                         {t.name}
                       </button>
@@ -1880,7 +1893,7 @@ export default function Till() {
                 </>
               )}
 
-              <details className="v2-tools" open>
+              <details className="v2-tools" key={String(busyCounter)} open={!busyCounter}>
                 {<summary>Tools</summary>}
                 {
                   <label className="v2-price mt-2 block" htmlFor="tl-rate">
@@ -1911,7 +1924,7 @@ export default function Till() {
                     </span>
                   </label>
                 }
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <div className={c25}>
                   <label className="block" htmlFor="tl-custom">
                     <span className="eyebrow">
                       Custom amount ({settings.currency}) — added to the items
@@ -1923,7 +1936,7 @@ export default function Till() {
                         onChange={(e) => setCustom(e.target.value)}
                         inputMode="decimal"
                         placeholder="12.50"
-                        className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+                        className={c5}
                       />
                       {
                         <span className="v2-unit" aria-hidden>
@@ -1952,7 +1965,7 @@ export default function Till() {
                         <button
                           type="button"
                           onClick={parkCurrent}
-                          className="rounded-lg border border-line px-3 py-2 text-xs text-muted hover:text-ink"
+                          className={c18}
                         >
                           park sale
                         </button>
@@ -1975,7 +1988,7 @@ export default function Till() {
                       id="tl-staff"
                       value={staffId}
                       onChange={(e) => setStaffId(e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+                      className={c4}
                     >
                       <option value="">the shop&apos;s wallet</option>
                       {settings.staff
@@ -2005,14 +2018,14 @@ export default function Till() {
                   </span>
                 </label>
                 {split && (
-                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  <div className={c26}>
                     <label className="block" htmlFor="tl-split-wallet">
                       <span className="eyebrow">Second wallet</span>
                       <select
                         id="tl-split-wallet"
                         value={splitWalletId}
                         onChange={(e) => setSplitWalletId(e.target.value)}
-                        className="mt-1 w-full rounded-lg border border-line bg-bg p-2 text-sm outline-none focus:border-accent"
+                        className={c4}
                       >
                         <option value="">— choose —</option>
                         {wallets
@@ -2031,7 +2044,7 @@ export default function Till() {
                         value={splitPercent}
                         onChange={(e) => setSplitPercent(e.target.value)}
                         inputMode="numeric"
-                        className="mt-1 w-full rounded-lg border border-line bg-bg p-2 font-mono text-sm outline-none focus:border-accent"
+                        className={c5}
                       />
                     </label>
                   </div>
@@ -2073,7 +2086,7 @@ export default function Till() {
                 />
               )}
               {sweepNote && sweepNote !== 'nothing was open to check' && (
-                <p className="mt-1 text-[11px] text-muted">Open sales: {sweepNote}</p>
+                <p className={c9}>Open sales: {sweepNote}</p>
               )}
             </div>
 
@@ -2092,7 +2105,7 @@ export default function Till() {
                       <button
                         type="button"
                         onClick={() => removeLine(l.item.id)}
-                        className="grid h-9 w-9 place-items-center rounded-lg border border-line text-base text-secondary"
+                        className={c27}
                         aria-label={`One fewer ${l.item.name}`}
                       >
                         −
@@ -2101,7 +2114,7 @@ export default function Till() {
                       <button
                         type="button"
                         onClick={() => addLine(l.item)}
-                        className="grid h-9 w-9 place-items-center rounded-lg border border-line text-base text-secondary"
+                        className={c27}
                         aria-label={`One more ${l.item.name}`}
                       >
                         +
